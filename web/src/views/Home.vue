@@ -1,9 +1,9 @@
 <template>
   <main>
-    <Header />
-    <div class="d-flex justify-content-center">
-      <div v-if="items">
-      <VideoListItem :data="video" v-for="(video, index) in items" :key="index" />
+    <Header @clicked="getNewItem" />
+    <div style="margin-top: 75px" class="d-flex justify-content-center">
+      <div v-if="items.length > 0">
+        <VideoListItem :data="video" v-for="(video, index) in items" :key="index" />
       </div>
       <div v-else>
         <h2>No downloads here</h2>
@@ -21,10 +21,7 @@ import axios from 'axios';
 export default {
   name: 'Home',
   mounted(){
-    axios.get('/items')
-    .then(result => {
-      this.items = result.data.videos;
-    })
+    this.loadData();
   },
   components: {
     Header,
@@ -32,8 +29,22 @@ export default {
   },
   data(){
     return({
-      items: null
+      items: [],
+      sortedItems: []
     })
+  },
+  methods:{
+    getNewItem(value){
+      this.loadData();
+      console.log(value);
+    },
+    loadData(){
+      axios.get('/items')
+      .then(result => {
+        this.items = result.data.videos;
+        this.items.reverse();
+      });
+    }
   }
 }
 </script>
