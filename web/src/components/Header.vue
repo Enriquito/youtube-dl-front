@@ -1,10 +1,13 @@
 <template>
-    <header>
-        <input @blur="getInfo" v-model="options.url" type="url" />
+    <header class="d-flex justify-content-center">
+        <div style="position: relative;">
+            <input @blur="getInfo" v-model="options.url" type="url" />
+            <button @click="sendUrl">Download</button>
+        </div>
         <select v-if="info">
-            <option 
-            v-for="(format, index) in getFormats" 
-            :key="index" 
+            <option
+            v-for="(format, index) in getFormats"
+            :key="index"
             :value="format.ext"
             >{{format.format_note}}</option>
         </select>
@@ -13,7 +16,6 @@
         </select>
         <input type="checkbox" v-model="options.playlist" />
         <label>Playlist</label>
-        <button @click="sendUrl">Download</button>
     </header>
 </template>
 <script>
@@ -27,7 +29,8 @@ export default {
             options : {
                 playlist: false,
                 url : "https://www.youtube.com/watch?v=koVHN6eO4Xg"
-            }
+            },
+            isDownloading: false
         });
     },
     methods: {
@@ -35,6 +38,10 @@ export default {
             axios.post('/download',{
                 url: this.options.url
             })
+            .then(result => {
+                this.$emit('clicked', result.data);
+                this.isDownloading = true;
+            });
         },
         getInfo(){
             let reg = this.options.url.match(/v=(\w+)/);
@@ -71,16 +78,29 @@ header
 {
     text-align: center;
     padding: 10px;
+    position: fixed;
+    background: #34495e;
+    width: 100%;
+    top: 0;
 }
 input[type="url"]
 {
     padding: 10px;
-    width: 500px;
+    width: 550px;
+    padding-right: 90px;
+}
+select
+{
+    padding: 11px;
+    margin-left: 5px;
 }
 button
 {
     margin-left: 5px;
     padding: 10px;
     border: none;
+    right: 1px;
+    position: absolute;
+    top: 2px;
 }
 </style>
