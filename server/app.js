@@ -121,7 +121,7 @@ app.get('/file/:id', async (req,res) => {
         if(db != null){
             db.videos.forEach(el => {
                 if(el.id === req.params.id){
-                    const file = `./videos/${el.id}.${el.ext}`;
+                    const file = `./videos/${el.id}.${el.extention}`;
                     res.download(file);
                 }
             });
