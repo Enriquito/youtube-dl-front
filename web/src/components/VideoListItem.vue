@@ -15,9 +15,7 @@
                     </span>
                 </div>
                 <div>
-                    <a target="_blank" :href="`${serverUrl}/file/${data.id}`">
-                        <img class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
-                    </a>
+                    <img @click="() => {deleteItem(data.id)}" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
                     <a target="_blank" :href="data.videoUrl">
                         <img class="icon" src="@/assets/icons/link.svg" alt="Link" />
                     </a>
@@ -36,10 +34,19 @@
     </figure>
 </template>
 <script>
+import axios from 'axios';
 export default {
     name: "VideoListItem",
     props: {
         data: Object
+    },
+    methods: {
+        deleteItem(id){
+            axios.delete(`/items/${id}`)
+            .then(() => {
+                this.$emit('deleted', this.data);
+            })
+        }
     },
     computed:{
         serverUrl(){
@@ -64,6 +71,11 @@ figure img
     height: 138px;
     border: 1px solid black;
     border: none;
+    cursor: pointer;
+}
+figure figcaption p{
+    max-height: 150px;
+    overflow: scroll;
 }
 figure figcaption
 {
