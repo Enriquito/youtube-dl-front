@@ -7,20 +7,20 @@ module.exports.writeDatabase = (data) => {
             if(error){
                   reject(error);
             }
-            
+
             resolve(true);
 
-            return;    
+            return;
       });
     });
 }
-module.exports.readDatabase = (data) => {
+module.exports.readDatabase = () => {
     return new Promise((resolve,reject) => {
         fs.readFile('./database.json', "utf8", function (error,data) {
             if (error)
                   reject(error);
 
-            resolve(data);
+            resolve(JSON.parse(data));
       });
     });
 }
