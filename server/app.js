@@ -8,21 +8,30 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 
-const ytdownload = (url) => {
+const ytdownload = (url,format) => {
     return new Promise(async (resolve, reject) => {
         try{
             let fileinfo = null;
+            let video = null;
 
-            const video = youtubedl(url,
-                ['--format=18'],
-                { cwd: __dirname }
-            );
+            if(format !== null){
+                video = youtubedl(url,
+                    [`--format=${format}`],
+                    { cwd: __dirname }
+                );
+            }
+            else{
+                video = youtubedl(url,
+                    ['--format=22'],
+                    { cwd: __dirname }
+                );
+            }
+
 
             video.on('info', function(info) {
                 fileinfo = info;
 
                 console.log('filename: ' + info._filename)
-                console.log('size: ' + info.size)
             });
 
             video.pipe(fs.createWriteStream(`./videos/temp.mp4`))
@@ -34,8 +43,6 @@ const ytdownload = (url) => {
                 fs.rename(`./videos/temp.mp4`, `./videos/${fileinfo.id}.${fileinfo.ext}`, () => {
                     console.log('Renaming complete.')
                 });
-
-                console.log(fileinfo)
 
                 const info = {
                     thumbnails : fileinfo.thumbnails,
@@ -138,7 +145,7 @@ app.post('/download', async (req,res) => {
     console.log(`Download started for url: ${req.body.url}`);
 
     try{
-        const downloadResult = await ytdownload(req.body.url);
+        const downloadResult = await ytdownload(req.body.url, req.body.quality);
 
         if(downloadResult.success){
             const database = await readDatabase();
