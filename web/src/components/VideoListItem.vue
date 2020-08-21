@@ -19,9 +19,9 @@
                     <a target="_blank" :href="data.videoUrl">
                         <img class="icon" src="@/assets/icons/link.svg" alt="Link" />
                     </a>
-                    <a target="_blank" :href="`/file/${data.id}`">
+                    <router-link :to="{name:'Watch', params:{id: data.id}}">
                         <img class="icon" style="height: 20px !important;" src="@/assets/icons/eye.svg" alt="Preview" />
-                    </a>
+                    </router-link>
                     <a target="_blank" :href="`${serverUrl}/file/${data.id}`">
                         <img class="icon" style="height: 20px !important;" src="@/assets/icons/download.svg" alt="Download" />
                     </a>
