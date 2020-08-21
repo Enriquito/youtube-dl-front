@@ -3,18 +3,25 @@
         <img alt="image" :src="data.thumbnails[3].url">
         <figcaption>
             <div>
-                <a target="_blank" :href="data.videoUrl">
-                        <img class="icon" src="@/assets/icons/link.svg" alt="Link" />
-                </a>
-                <!-- <a target="_blank" :href="data.videoUrl">
-                        <img class="icon" style="height: 20px !important;" src="@/assets/icons/download.svg" alt="Download" />
-                </a> -->
-                <strong>{{data.title}}</strong>
+
             </div>
             <div>
-                <span>
-                    <a target="_blank" :href="data.uploaderUrl">{{data.uploader}}</a>
-                </span>
+                <strong>{{data.title}}</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+                <div>
+                    <span>
+                        <a target="_blank" :href="data.uploaderUrl">{{data.uploader}}</a>
+                    </span>
+                </div>
+                <div>
+                    <a target="_blank" :href="data.videoUrl">
+                        <img class="icon" src="@/assets/icons/link.svg" alt="Link" />
+                    </a>
+                    <a target="_blank" :href="`/file/${data.id}`">
+                        <img class="icon" style="height: 20px !important;" src="@/assets/icons/download.svg" alt="Download" />
+                    </a>
+                </div>
             </div>
             <p>
                 {{data.description}}
@@ -53,7 +60,7 @@ figure figcaption
 }
 figure figcaption span a
 {
-    color: #243342;
+    color: #243342ad;
 }
 figure figcaption span:nth-child(even)
 {
