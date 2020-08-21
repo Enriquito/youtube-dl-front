@@ -1,9 +1,11 @@
 <template>
     <header class="d-flex justify-content-center">
         <div style="position: relative;">
-            <input @blur="getInfo" v-model="options.url" type="url" />
-            <button v-if="canDownload" @click="sendUrl">Download</button>
-            <button v-else disabled @click="sendUrl">Download</button>
+            <input placeholder="Youtube url here" @blur="getInfo" v-model="options.url" type="url" />
+            <button v-if="isDownloading && canDownload" disabled>Downloading..</button>
+            <button v-else-if="canDownload && !isDownloading" @click="sendUrl">Download</button>
+            <button v-else-if="isFetchingInfo" disabled>Loading..</button>
+            <button v-else-if="!canDownload" disabled>Download</button>
         </div>
         <select v-if="info">
             <option
@@ -15,7 +17,7 @@
         <select v-else>
             <option>Quality</option>
         </select>
-        <input type="checkbox" v-model="options.playlist" />
+        <!-- <input type="checkbox" v-model="options.playlist" /> -->
         <label>Playlist</label>
     </header>
 </template>
@@ -29,32 +31,45 @@ export default {
             info: null,
             options : {
                 playlist: false,
-                url : "https://www.youtube.com/watch?v=koVHN6eO4Xg"
+                url : ""
             },
             isDownloading: false,
-            canDownload: false
+            canDownload: false,
+            isFetchingInfo: false
         });
     },
     methods: {
         sendUrl(){
+            this.isDownloading = true;
+
             axios.post('/download',{
                 url: this.options.url
             })
             .then(result => {
                 this.$emit('clicked', result.data);
-                this.isDownloading = true;
+                this.isDownloading = false;
+                this.options.url = "";
             });
         },
         getInfo(){
-            let reg = this.options.url.match(/v=(\w+)/);
+            if(this.options.url === "")
+                return;
+
+            this.isFetchingInfo = true;
+            let reg = this.options.url.match(/v=([0-9a-zA-Z$-_.+!*'(),]+)/);
             const id = reg[1];
 
             axios.get(`/info/video/${id}`)
             .then(result => result.data)
             .then(result => {
                 this.info = result;
+                this.isFetchingInfo = false;
                 this.canDownload = true;
             })
+            .catch(error => {
+                console.log(error);
+                this.canDownload = true;
+            });
         }
     },
     computed: {
@@ -102,5 +117,7 @@ button
     padding: 11px;
     border: none;
     margin-left: -1px;
+    outline: none;
+    min-width: 127px;
 }
 </style>
