@@ -8,7 +8,7 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 
-const download = (url) => {
+const ytdownload = (url) => {
     return new Promise(async (resolve, reject) => {
         try{
             let fileinfo = null;
@@ -17,14 +17,14 @@ const download = (url) => {
                 ['--format=18'],
                 { cwd: __dirname }
             );
-         
+
             video.on('info', function(info) {
                 fileinfo = info;
 
                 console.log('filename: ' + info._filename)
                 console.log('size: ' + info.size)
             });
-            
+
             video.pipe(fs.createWriteStream(`./videos/temp.mp4`))
 
             video.on('end', function() {
@@ -63,7 +63,7 @@ const download = (url) => {
                 });
               })
 
-            
+
         }
         catch(error){
             reject({success: false, messages: error});
@@ -75,7 +75,7 @@ const getInfo = (url) => {
         youtubedl.getInfo(url, (error, info) => {
             if(error)
                 reject(error);
-           
+
             resolve(info);
           })
     });
@@ -86,9 +86,7 @@ app.get('/items', async (req,res) => {
         const database = await readDatabase();
 
         if(database != null){
-            const db = JSON.parse(database);
-    
-            res.json(db);
+            res.json(database);
         }
         else{
             res.sendStatus(204);
@@ -108,7 +106,7 @@ app.get('/info/:type/:url', async (req,res) => {
             if(info != null)
                 res.json(info);
         }
-        
+
     }
     catch(error){
         console.log(error);
@@ -116,21 +114,40 @@ app.get('/info/:type/:url', async (req,res) => {
     }
 });
 
+app.get('/file/:id', async (req,res) => {
+    try{
+        const db = await readDatabase();
+
+        if(db != null){
+            db.videos.forEach(el => {
+                if(el.id === req.params.id){
+                    const file = `./videos/${el.id}.${el.ext}`;
+                    res.download(file);
+                }
+            });
+        }
+
+
+    }
+    catch(error){
+
+    }
+});
+
 app.post('/download', async (req,res) => {
     console.log(`Download started for url: ${req.body.url}`);
 
     try{
-        const downloadResult = await download(req.body.url);
+        const downloadResult = await ytdownload(req.body.url);
 
         if(downloadResult.success){
             const database = await readDatabase();
 
             if(database != null){
-                const db = JSON.parse(database);
 
-                db.videos.push(downloadResult.info);
+                database.videos.push(downloadResult.info);
 
-                await writeDatabase(db);
+                await writeDatabase(database);
 
                 res.status(201).send(downloadResult.info);
             }
