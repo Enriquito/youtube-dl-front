@@ -7,18 +7,18 @@
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
             <button v-else-if="!canDownload" disabled>Download</button>
         </div>
-        <select v-if="info">
+        <select v-if="info" v-model="options.quality">
             <option
             v-for="(format, index) in getFormats"
             :key="index"
-            :value="format.ext"
+            :value="format.format_id"
             >{{format.format_note}}</option>
         </select>
-        <select v-else>
+        <select v-else v-model="options.quality">
             <option>Quality</option>
         </select>
         <!-- <input type="checkbox" v-model="options.playlist" /> -->
-        <label>Playlist</label>
+        <!-- <label>Playlist</label> -->
     </header>
 </template>
 <script>
@@ -31,7 +31,8 @@ export default {
             info: null,
             options : {
                 playlist: false,
-                url : ""
+                url : "",
+                quality: null
             },
             isDownloading: false,
             canDownload: false,
@@ -42,9 +43,7 @@ export default {
         sendUrl(){
             this.isDownloading = true;
 
-            axios.post('/download',{
-                url: this.options.url
-            })
+            axios.post('/download',this.options)
             .then(result => {
                 this.$emit('clicked', result.data);
                 this.isDownloading = false;
@@ -82,9 +81,9 @@ export default {
                 }
             });
 
-            ar = ar.filter((item, index) => {
-                return ar.indexOf(item) === index
-            });
+            // ar = ar.filter((item, index) => {
+            //     return ar.indexOf(item) === index
+            // });
 
             return ar;
         }
