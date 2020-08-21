@@ -15,6 +15,9 @@
                     </span>
                 </div>
                 <div>
+                    <a target="_blank" :href="`${serverUrl}/file/${data.id}`">
+                        <img class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
+                    </a>
                     <a target="_blank" :href="data.videoUrl">
                         <img class="icon" src="@/assets/icons/link.svg" alt="Link" />
                     </a>
