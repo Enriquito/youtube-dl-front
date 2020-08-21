@@ -3,7 +3,7 @@
     <Header @clicked="getNewItem" />
     <div style="margin-top: 75px" class="d-flex justify-content-center">
       <div v-if="items.length > 0">
-        <VideoListItem :data="video" v-for="(video, index) in items" :key="index" />
+        <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in items" :key="index" />
       </div>
       <div v-else>
         <h2>No downloads here</h2>
@@ -43,6 +43,13 @@ export default {
       .then(result => {
         this.items = result.data.videos;
         this.items.reverse();
+      });
+    },
+    removeDeletedItem(value){
+      console.log(value.id);
+      this.items.forEach((el,index) => {
+        if(el.id === value.id)
+          this.items.splice(index, 1);
       });
     }
   }
