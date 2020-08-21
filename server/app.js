@@ -159,6 +159,40 @@ app.post('/download', async (req,res) => {
     }
 });
 
+app.delete('/items/:id', async (req,res) => {
+    try{
+        let found = false;
+        const database = await readDatabase();
+
+        if(database != null){
+            database.videos.forEach((el, index) => {
+                if(el.id === req.params.id){
+                    found = true;
+
+                    fs.unlink(`./videos/${el.id}.${el.extention}`, async (error) =>{
+                        if(error)
+                            console.log(error);
+
+                        console.log(`File: ${el.id} has been deleted`);
+                        database.videos.splice(index, 1);
+                        await writeDatabase(database);
+                    });
+                }
+            });
+
+            if(found)
+                res.sendStatus(200);
+            else
+                res.sendStatus(404);
+        }
+    }
+    catch(error){
+        res.sendStatus(500);
+    }
+
+
+});
+
 const http = require('http');
 const httpServer = http.createServer(app);
 
