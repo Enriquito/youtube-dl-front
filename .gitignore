@@ -2,3 +2,6 @@ server/node_modules
 web/node_modules
 server/videos/*
 web/.env
+server/.DS_Store
+.DS_Store
+web/.DS_Store
