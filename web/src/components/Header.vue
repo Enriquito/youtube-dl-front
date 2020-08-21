@@ -2,7 +2,8 @@
     <header class="d-flex justify-content-center">
         <div style="position: relative;">
             <input @blur="getInfo" v-model="options.url" type="url" />
-            <button @click="sendUrl">Download</button>
+            <button v-if="canDownload" @click="sendUrl">Download</button>
+            <button v-else disabled @click="sendUrl">Download</button>
         </div>
         <select v-if="info">
             <option
@@ -12,7 +13,7 @@
             >{{format.format_note}}</option>
         </select>
         <select v-else>
-            <option></option>
+            <option>Quality</option>
         </select>
         <input type="checkbox" v-model="options.playlist" />
         <label>Playlist</label>
@@ -30,7 +31,8 @@ export default {
                 playlist: false,
                 url : "https://www.youtube.com/watch?v=koVHN6eO4Xg"
             },
-            isDownloading: false
+            isDownloading: false,
+            canDownload: false
         });
     },
     methods: {
@@ -51,6 +53,7 @@ export default {
             .then(result => result.data)
             .then(result => {
                 this.info = result;
+                this.canDownload = true;
             })
         }
     },
@@ -86,21 +89,18 @@ header
 input[type="url"]
 {
     padding: 10px;
-    width: 550px;
-    padding-right: 90px;
+    width: 400px;
 }
 select
 {
     padding: 11px;
     margin-left: 5px;
+    min-width: 90px;
 }
 button
 {
-    margin-left: 5px;
-    padding: 10px;
+    padding: 11px;
     border: none;
-    right: 1px;
-    position: absolute;
-    top: 2px;
+    margin-left: -1px;
 }
 </style>
