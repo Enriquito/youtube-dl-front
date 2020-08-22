@@ -7,6 +7,7 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
+app.use('/media', express.static('videos'));
 
 const ytdownload = (url,format) => {
     return new Promise(async (resolve, reject) => {
@@ -15,6 +16,7 @@ const ytdownload = (url,format) => {
             let video = null;
 
             if(format !== null){
+                console.log(`using format: ${format}`);
                 video = youtubedl(url,
                     [`--format=${format}`],
                     { cwd: __dirname }
@@ -103,6 +105,33 @@ app.get('/items', async (req,res) => {
         console.log(error);
         res.sendStatus(500);
     }
+});
+
+app.get('/items/:id', async (req,res) => {
+    try{
+        const database = await readDatabase();
+        let item = null;
+        let found = false;
+
+        if(database != null){
+            database.videos.forEach(el => {
+                if(el.id === req.params.id){
+                    found = true;
+                    item = el;
+                }
+            });
+        }
+
+        if(found)
+            res.json(item);
+        else
+            res.sendStatus(404);
+    }
+    catch(error){
+        console.log(error);
+        res.sendStatus(500);
+    }
+
 });
 
 app.get('/info/:type/:url', async (req,res) => {
