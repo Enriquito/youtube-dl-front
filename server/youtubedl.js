@@ -23,19 +23,14 @@ const download = (url, options) => {
     return new Promise(async (resolve, reject) => {
         let command = "";
         let directory = './videos';
-        let output = "";
 
         if(options.directory)
             directory = options.directory;
 
-        command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --format ${options.format}+${options.audioFormat} --print-json ${url}`;
-
-        // if(options.format && options.directory)
-        //     command = `youtube-dl --output '${options.directory}/%(id)s.%(ext)s' --format ${options.format}+${options.audioFormat} --print-json ${url}`;
-        // else if(options.format)
-        //     command = `youtube-dl --output './videos/%(id)s.%(ext)s' --format ${options.format}+${options.audioFormat} --print-json ${url}`;
-        // else
-        //     command = `youtube-dl --output './videos/%(id)s.%(ext)s' --print-json ${url}`;
+        if(options.audioOnly)
+            command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --extract-audio --audio-format mp3 --print-json ${url}`;
+        else
+            command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --format ${options.format}+${options.audioFormat} --print-json ${url}`;
 
         exec(command, (error, stdout, stderr) => {
             if(error){
