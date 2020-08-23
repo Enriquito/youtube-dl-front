@@ -1,12 +1,14 @@
 <template>
     <figure class="d-flex">
+        <img class="media-type-icon" v-if="data.extention == 'mp3'" src="@/assets/icons/note.svg" alt="Audio" />
+        <img class="media-type-icon" v-else src="@/assets/icons/videocamera.svg" alt="Video" />
+
         <img alt="image" :src="data.thumbnails[3].url">
         <figcaption>
-            <div>
-
-            </div>
-            <div>
-                <strong>{{data.title}}</strong>
+            <div class="d-flex">
+                <strong>
+                    {{data.title}}
+                </strong>
             </div>
             <div class="d-flex justify-content-between">
                 <div>
@@ -60,6 +62,8 @@ figure
 {
     width: 700px;
     margin: 10px 0;
+    position: relative;
+    z-index: 1;
 }
 figure .icon
 {
@@ -88,5 +92,16 @@ figure figcaption span a
 figure figcaption span:nth-child(even)
 {
     margin-left: 5px;
+}
+.media-type-icon
+{
+    height: 25px;
+    margin-right: 5px;
+    position: absolute;
+    left: 0;
+    background: #ffffff;
+    padding: 5px;
+    border-bottom-right-radius: 5px;
+    cursor: inherit;
 }
 </style>
