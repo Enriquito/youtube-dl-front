@@ -102,7 +102,7 @@ export default {
                     }
                 }
                 else{
-                    if(el.ext == "mp4" && el.acodec != "none"){
+                    if(el.acodec != "none" && el.vcodec != "none"){
                         ar.push(el);
                     }
                 }
