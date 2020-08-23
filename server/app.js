@@ -1,6 +1,7 @@
 const fs = require('fs')
 let express = require('express');
 const youtubedl = require('youtube-dl');
+const {download, getDownloadInfo} = require('./youtubedl')
 const bodyParser = require('body-parser');
 const {writeDatabase, readDatabase} = require('./helpers');
 const app = express();
@@ -137,7 +138,7 @@ app.get('/items/:id', async (req,res) => {
 app.get('/info/:type/:url', async (req,res) => {
     try{
         if(req.params.type === 'video'){
-            const info = await getInfo(req.params.url);
+            const info = await getDownloadInfo(req.params.url);
 
             if(info != null)
                 res.json(info);
@@ -174,7 +175,7 @@ app.post('/download', async (req,res) => {
     console.log(`Download started for url: ${req.body.url}`);
 
     try{
-        const downloadResult = await ytdownload(req.body.url, req.body.quality);
+        const downloadResult = await download(req.body.url, {format: req.body.quality});
 
         if(downloadResult.success){
             const database = await readDatabase();
