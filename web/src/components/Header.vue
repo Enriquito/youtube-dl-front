@@ -20,10 +20,7 @@
             :value="format.formatId"
             >{{format.formatNote}}</option>
         </select>
-        <select v-else-if="isDownloading || options.audioOnly" disabled v-model="options.videoQuality">
-            <option disabled selected>Quality</option>
-        </select>
-        <select v-else v-model="options.videoQuality">
+        <select v-else disabled v-model="options.videoQuality">
             <option disabled selected>Quality</option>
         </select>
         <!-- <input type="checkbox" v-model="options.playlist" /> -->
@@ -53,7 +50,9 @@ export default {
     methods: {
         sendUrl(){
             this.isDownloading = true;
-            this.options.soundQuality = this.getBestAudio;
+
+            if(!this.options.audioOnly)
+                this.options.soundQuality = this.getBestAudio;
 
             axios.post('/download',this.options)
             .then(result => {
@@ -63,8 +62,11 @@ export default {
             });
         },
         getInfo(){
-            if(this.options.url === "")
+            if(this.options.url === "" || this.options.audioOnly){
+                this.canDownload = true;
                 return;
+            }
+
 
             try{
                 this.isFetchingInfo = true;
@@ -171,6 +173,7 @@ header
     width: 100%;
     top: 0;
     min-height: 50px;
+    z-index: 999;
 }
 input[type="url"]
 {
