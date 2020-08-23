@@ -10,87 +10,6 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 app.use('/media', express.static('videos'));
 
-const ytdownload = (url,format) => {
-    return new Promise(async (resolve, reject) => {
-        try{
-            let fileinfo = null;
-            let video = null;
-
-            if(format !== null){
-                console.log(`using format: ${format}`);
-                video = youtubedl(url,
-                    [`--format=${format}`],
-                    { cwd: __dirname }
-                );
-            }
-            else{
-                video = youtubedl(url,
-                    ['--format=22'],
-                    { cwd: __dirname }
-                );
-            }
-
-
-            video.on('info', function(info) {
-                fileinfo = info;
-
-                console.log('filename: ' + info._filename)
-            });
-
-            video.pipe(fs.createWriteStream(`./videos/temp.mp4`))
-
-            video.on('end', function() {
-                console.log('finished downloading!')
-
-                console.log('Renaming file..');
-                fs.rename(`./videos/temp.mp4`, `./videos/${fileinfo.id}.${fileinfo.ext}`, () => {
-                    console.log('Renaming complete.')
-                });
-
-                const info = {
-                    thumbnails : fileinfo.thumbnails,
-                    title: fileinfo.title,
-                    resolution: {
-                        width: fileinfo.width,
-                        heigth: fileinfo.height
-                    },
-                    tags : fileinfo.tags,
-                    duration : fileinfo.duration,
-                    uploader : fileinfo.uploader_id,
-                    viewCount : fileinfo.view_count,
-                    id : fileinfo.id,
-                    description : fileinfo.description,
-                    uploaderUrl : fileinfo.channel_url,
-                    extention : fileinfo.ext,
-                    format : fileinfo.format_note,
-                    videoUrl : fileinfo.webpage_url
-                }
-
-                resolve({
-                    success: true,
-                    messages: "Download complete",
-                    info: info
-                });
-              })
-
-
-        }
-        catch(error){
-            reject({success: false, messages: error});
-        }
-    });
-}
-const getInfo = (url) => {
-    return new Promise((resolve, reject) => {
-        youtubedl.getInfo(url, (error, info) => {
-            if(error)
-                reject(error);
-
-            resolve(info);
-          })
-    });
-}
-
 app.get('/items', async (req,res) => {
     try{
         const database = await readDatabase();
@@ -163,11 +82,10 @@ app.get('/file/:id', async (req,res) => {
                 }
             });
         }
-
-
     }
     catch(error){
-
+        console.log('error downloading file');
+        res.sendStatus(500);
     }
 });
 
@@ -175,7 +93,7 @@ app.post('/download', async (req,res) => {
     console.log(`Download started for url: ${req.body.url}`);
 
     try{
-        const downloadResult = await download(req.body.url, {format: req.body.quality});
+        const downloadResult = await download(req.body.url, {format: req.body.videoQuality, audioFormat: req.body.soundQuality});
 
         if(downloadResult.success){
             const database = await readDatabase();
