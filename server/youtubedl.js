@@ -41,6 +41,10 @@ const download = (url, options) => {
             console.log(`Downloading file with the following command: ${command}`);
 
             const fileinfo = JSON.parse(stdout);
+            let extention = fileinfo.ext;
+
+            if(options.audioOnly)
+                extention = "mp3";
 
             const info = {
                 thumbnails : fileinfo.thumbnails,
@@ -56,7 +60,7 @@ const download = (url, options) => {
                 id : fileinfo.id,
                 description : fileinfo.description,
                 uploaderUrl : fileinfo.channel_url,
-                extention : fileinfo.ext,
+                extention : extention,
                 format : fileinfo.format_note,
                 videoUrl : fileinfo.webpage_url
             }
