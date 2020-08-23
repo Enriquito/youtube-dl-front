@@ -1,25 +1,29 @@
 <template>
     <header class="d-flex justify-content-center">
         <div style="position: relative;">
-            <input placeholder="Youtube url here" @blur="getInfo" v-model="options.url" type="url" />
+            <input placeholder="https://www.youtube.com/watch?v=*******" @blur="getInfo" v-model="options.url" type="url" />
             <button v-if="isDownloading && canDownload" disabled>Downloading..</button>
             <button v-else-if="canDownload && !isDownloading" @click="sendUrl">Download</button>
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
             <button v-else-if="!canDownload" disabled>Download</button>
         </div>
         <div>
-            <button @click="selectAudioOnly" v-if="audioOnly" class="audio-button" id="audio-button-active">Audio</button>
-            <button @click="selectAudioOnly" v-else class="audio-button">Audio</button>
+            <button @click="selectAudioOnly" v-if="options.audioOnly && !isDownloading" class="audio-button" id="audio-button-active">Audio</button>
+            <button v-else-if="options.audioOnly || !options.audioOnly && isDownloading" id="audio-disabled-button" disabled class="audio-button">Audio</button>
+            <button @click="selectAudioOnly" v-if="!options.audioOnly && !isDownloading" class="audio-button">Audio</button>
         </div>
-        <select v-if="info" v-model="options.quality">
+        <select v-if="info && !isDownloading && !options.audioOnly" v-model="options.videoQuality">
             <option disabled selected>Quality</option>
             <option
             v-for="(format, index) in getFormats"
             :key="index"
-            :value="format.format_id"
-            >{{format.format_note}}</option>
+            :value="format.formatId"
+            >{{format.formatNote}}</option>
         </select>
-        <select v-else v-model="options.quality">
+        <select v-else-if="isDownloading || options.audioOnly" disabled v-model="options.videoQuality">
+            <option disabled selected>Quality</option>
+        </select>
+        <select v-else v-model="options.videoQuality">
             <option disabled selected>Quality</option>
         </select>
         <!-- <input type="checkbox" v-model="options.playlist" /> -->
@@ -37,17 +41,19 @@ export default {
             options : {
                 playlist: false,
                 url : "",
-                quality: "Quality"
+                videoQuality: "",
+                soundQuality: null,
+                audioOnly: false
             },
             isDownloading: false,
             canDownload: false,
             isFetchingInfo: false,
-            audioOnly: false
         });
     },
     methods: {
         sendUrl(){
             this.isDownloading = true;
+            this.options.soundQuality = this.getBestAudio;
 
             axios.post('/download',this.options)
             .then(result => {
@@ -85,30 +91,72 @@ export default {
             }
         },
         selectAudioOnly(){
-            if(this.audioOnly)
-                this.audioOnly = false;
+            if(this.options.audioOnly)
+                this.options.audioOnly = false;
             else
-                this.audioOnly = true;
+                this.options.audioOnly = true;
         }
     },
     computed: {
+        getBestAudio(){
+            let bestAudioID = null;
+
+            for(let i = 0; i < this.info.formats.length; i++){
+                const format = this.info.formats[i];
+
+                if(format.ext == "m4a"){
+                    bestAudioID = format.format_id;
+                }
+            }
+
+            return bestAudioID;
+        },
         getFormats(){
-            let ar = [];
+            const formats = [];
 
-            this.info.formats.forEach(el => {
-                if(this.audioOnly){
-                    if(el.ext == "mp4" || el.ext == "webm" && el.vcodec == "none"){
-                        ar.push(el);
+            for(let i = 0; i < this.info.formats.length; i++){
+                const format = this.info.formats[i];
+
+                if(format.ext == "mp4"){
+
+                    if(formats.length === 0){
+                        formats.push({
+                            formatNote: format.format_note,
+                            tbr: format.tbr,
+                            formatId: format.format_id
+                        });
+                    }
+
+                    let found = false;
+
+                    for(let x = 0; x < formats.length; x++){
+                        if(format.format_note === formats[x].formatNote){
+                            found = true;
+
+                            if(format.tbr > formats[x].tbr){
+                                formats.splice(x, 1, {
+                                    formatNote: format.format_note,
+                                    tbr: format.tbr,
+                                    formatId: format.format_id
+                                });
+                            }
+                            break;
+                        }
+                    }
+
+                    if(!found){
+                        formats.push({
+                            formatNote: format.format_note,
+                            tbr: format.tbr,
+                            formatId: format.format_id
+                        });
                     }
                 }
-                else{
-                    if(el.acodec != "none" && el.vcodec != "none"){
-                        ar.push(el);
-                    }
-                }
-            });
+            }
 
-            return ar;
+            console.log(this.bestAudioID);
+
+            return formats;
         }
     }
 }
@@ -158,5 +206,11 @@ button
     background: #2ecc71;
     color: white;
 
+}
+#audio-disabled-button
+{
+    border-color: rgba(118, 118, 118, 0.3);
+    color: -internal-light-dark(graytext, rgb(170, 170, 170));
+    background-color: -internal-light-dark(rgb(255, 255, 255), rgb(59, 59, 59));
 }
 </style>
