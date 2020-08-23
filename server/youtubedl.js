@@ -27,10 +27,17 @@ const download = (url, options) => {
         if(options.directory)
             directory = options.directory;
 
-        if(options.audioOnly)
-            command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --extract-audio --audio-format mp3 --print-json ${url}`;
-        else
-            command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --format ${options.format}+${options.audioFormat} --print-json ${url}`;
+        if(options.audioOnly){
+            directory = './music';
+
+            if(options.playlist)
+                command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --extract-audio --audio-format mp3 --yes-playlist --ignore-errors --print-json ${url}`;
+            else
+                command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --extract-audio --audio-format mp3 --print-json ${url}`;
+        }
+
+        if(options.playlist)
+            command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --yes-playlist --ignore-errors --print-json ${url}`;
 
         exec(command, (error, stdout, stderr) => {
             if(error){
@@ -67,8 +74,6 @@ const download = (url, options) => {
 
             resolve({success: true, info: info});
         });
-
-
     });
 }
 
