@@ -1,6 +1,7 @@
 server/node_modules
 web/node_modules
 server/videos/*
+server/music/*
 web/.env
 server/.DS_Store
 .DS_Store
