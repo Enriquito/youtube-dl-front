@@ -1,7 +1,7 @@
 <template>
     <header class="d-flex justify-content-center">
         <div style="position: relative;">
-            <input placeholder="https://www.youtube.com/watch?v=*******" @blur="getInfo" v-model="options.url" type="url" />
+            <input placeholder="https://www.youtube.com/" @blur="getInfo" v-model="options.url" type="url" />
             <button v-if="isDownloading && canDownload" disabled>Downloading..</button>
             <button v-else-if="canDownload && !isDownloading" @click="sendUrl">Download</button>
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
@@ -23,8 +23,6 @@
         <select v-else disabled v-model="options.videoQuality">
             <option disabled selected>Quality</option>
         </select>
-        <!-- <input type="checkbox" v-model="options.playlist" /> -->
-        <!-- <label>Playlist</label> -->
     </header>
 </template>
 <script>
@@ -51,7 +49,7 @@ export default {
         sendUrl(){
             this.isDownloading = true;
 
-            if(!this.options.audioOnly)
+            if(!this.options.audioOnly && !this.options.playlist)
                 this.options.soundQuality = this.getBestAudio;
 
             axios.post('/download',this.options)
@@ -62,16 +60,23 @@ export default {
             });
         },
         getInfo(){
-            if(this.options.url === "" || this.options.audioOnly){
+            if(this.options.url === "" || this.options.audioOnly || this.options.playlist){
                 this.canDownload = true;
                 return;
             }
 
-
             try{
-                this.isFetchingInfo = true;
-                let reg = this.options.url.match(/v=([0-9a-zA-Z$-_.+!*'(),]+)/);
-                const id = reg[1];
+                let id = null;
+
+                if(this.isPlaylist(this.options.url)){
+                    this.options.playlist = true;
+                    return;
+                }
+                else{
+                    this.isFetchingInfo = true;
+                    const reg = this.options.url.match(/v=([0-9a-zA-Z$-_.+!*'(),]+)/);
+                    id = reg[1];
+                }
 
                 axios.get(`/info/video/${id}`)
                 .then(result => result.data)
@@ -97,6 +102,9 @@ export default {
                 this.options.audioOnly = false;
             else
                 this.options.audioOnly = true;
+        },
+        isPlaylist(url){
+            return RegExp(/list=([0-9a-zA-Z$-_.+!*'(),]+)/).test(url);
         }
     },
     computed: {
