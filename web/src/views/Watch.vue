@@ -5,7 +5,7 @@
                 <img src="@/assets/icons/arrowleft.svg" alt="Back" />
             </router-link>
         </header>
-        <div class="d-flex justify-content-center" style="margin-top: 50px">
+        <div class="d-flex justify-content-center" style="margin-top: 80px">
             <div style="width: 1024px;">
                 <video :src="`${serverUrl}/media/${this.item.id}.${this.item.extention}`" controls />
                 <h3 style="margin-bottom: 0;">{{this.item.title}}</h3>
@@ -57,5 +57,6 @@ video
 {
     width: 1024px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    outline: none;
 }
 </style>
