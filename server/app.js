@@ -93,7 +93,11 @@ app.post('/download', async (req,res) => {
     console.log(`Download started for url: ${req.body.url}`);
 
     try{
-        const downloadResult = await download(req.body.url, {format: req.body.videoQuality, audioFormat: req.body.soundQuality});
+        const downloadResult = await download(req.body.url, {
+            format: req.body.videoQuality,
+            audioFormat: req.body.soundQuality,
+            audioOnly: req.body.audioOnly
+        });
 
         if(downloadResult.success){
             const database = await readDatabase();
