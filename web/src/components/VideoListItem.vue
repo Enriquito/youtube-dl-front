@@ -1,13 +1,15 @@
 <template>
     <figure class="d-flex">
-        <img class="media-type-icon" v-if="data.extention == 'mp3'" src="@/assets/icons/note.svg" alt="Audio" />
-        <img class="media-type-icon" v-else src="@/assets/icons/videocamera.svg" alt="Video" />
+        <img style="height: 25px !important;" class="media-type-icon" v-if="data.extention == 'mp3'" src="@/assets/icons/note.svg" alt="Audio" />
+        <img style="height: 25px !important;" class="media-type-icon" v-else src="@/assets/icons/videocamera.svg" alt="Video" />
 
-        <img alt="image" :src="data.thumbnails[3].url">
+        <img class="yt-image" alt="image" :src="data.thumbnails[3].url">
         <figcaption>
             <div class="d-flex">
                 <strong>
-                    {{data.title}}
+                    <router-link :to="{name:'Watch', params:{id: data.id}}">
+                        {{data.title}}
+                    </router-link>
                 </strong>
             </div>
             <div class="d-flex justify-content-between">
@@ -21,9 +23,6 @@
                     <a target="_blank" :href="data.videoUrl">
                         <img class="icon" src="@/assets/icons/link.svg" alt="Link" />
                     </a>
-                    <router-link :to="{name:'Watch', params:{id: data.id}}">
-                        <img class="icon" style="height: 20px !important;" src="@/assets/icons/eye.svg" alt="Preview" />
-                    </router-link>
                     <a target="_blank" :href="`${serverUrl}/file/${data.id}`">
                         <img class="icon" style="height: 20px !important;" src="@/assets/icons/download.svg" alt="Download" />
                     </a>
@@ -53,6 +52,9 @@ export default {
     computed:{
         serverUrl(){
             return process.env.VUE_APP_SERVER_ADDRESS;
+        },
+        imageLink(){
+            return this.data.thumbnails[3].url.match(/(\w\B.+)\?sqp=/)[1];
         }
     }
 }
@@ -77,6 +79,11 @@ figure img
     border: none;
     cursor: pointer;
 }
+figure img.yt-image
+{
+    min-width: 250px;
+    min-height: 140px;
+}
 figure figcaption p{
     max-height: 150px;
     overflow: scroll;
@@ -84,6 +91,7 @@ figure figcaption p{
 figure figcaption
 {
     padding: 0 10px;
+    width: 100%;
 }
 figure figcaption span a
 {
@@ -93,9 +101,13 @@ figure figcaption span:nth-child(even)
 {
     margin-left: 5px;
 }
+figure figcaption strong a
+{
+    color: #2c3e50 !important;
+}
 .media-type-icon
 {
-    height: 25px;
+    height: 25px !important;
     margin-right: 5px;
     position: absolute;
     left: 0;
