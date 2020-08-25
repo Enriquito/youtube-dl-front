@@ -35,17 +35,22 @@ const download = (url, options) => {
             else
                 command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --extract-audio --audio-format mp3 --print-json ${url}`;
         }
+        else if(options.playlist)
+            command = `youtube-dl --output '${directory}/%(playlist_index)s - %(title)s.%(ext)s' --yes-playlist --ignore-errors --print-json ${url}`;
+        else{
+            if(options.format)
+                command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' -f ${options.format}+${options.audioFormat} --print-json ${url}`;
+            else
+                command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --recode-video mp4 --print-json ${url}`;
+        }
 
-        if(options.playlist)
-            command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --yes-playlist --ignore-errors --print-json ${url}`;
+        console.log(`Downloading file with the following command: ${command}`);
 
         exec(command, (error, stdout, stderr) => {
             if(error){
                 console.log(error);
                 reject(error);
             }
-
-            console.log(`Downloading file with the following command: ${command}`);
 
             const fileinfo = JSON.parse(stdout);
             let extention = fileinfo.ext;
