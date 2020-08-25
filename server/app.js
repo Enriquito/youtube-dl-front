@@ -8,7 +8,8 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
-app.use('/media', express.static('videos'));
+app.use('/media/videos', express.static('videos'));
+app.use('/media/music', express.static('music'));
 
 app.get('/items', async (req,res) => {
     try{
@@ -75,9 +76,10 @@ app.get('/file/:id', async (req,res) => {
         const db = await readDatabase();
 
         if(db != null){
-            db.videos.forEach(el => {
+            db.videos.forEach(async el => {
                 if(el.id === req.params.id){
                     const file = `./videos/${el.id}.${el.extention}`;
+
                     res.download(file);
                 }
             });
@@ -90,19 +92,22 @@ app.get('/file/:id', async (req,res) => {
 });
 
 app.post('/download', async (req,res) => {
-    console.log(`Download started for url: ${req.body.url}`);
-
     try{
         const downloadResult = await download(req.body.url, {
             format: req.body.videoQuality,
             audioFormat: req.body.soundQuality,
-            audioOnly: req.body.audioOnly
+            audioOnly: req.body.audioOnly,
+            playlist: req.body.playlist
         });
 
         if(downloadResult.success){
             const database = await readDatabase();
 
-            if(database != null){
+            if(req.body.playlist){
+                console.log(downloadResult.info);
+                res.status(201).send(downloadResult.info);
+            }
+            else if(database != null){
 
                 database.videos.push(downloadResult.info);
 
