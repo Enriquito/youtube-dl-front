@@ -60,9 +60,13 @@ export default {
             });
         },
         getInfo(){
-            if(this.options.url === "" || this.options.audioOnly || this.options.playlist){
-                this.canDownload = true;
+            if(this.options.url === ""){
+                this.canDownload = false;
                 return;
+            }
+            else if(this.options.audioOnly){
+                this.canDownload = true;
+                return
             }
 
             try{
@@ -70,6 +74,9 @@ export default {
 
                 if(this.isPlaylist(this.options.url)){
                     this.options.playlist = true;
+                    this.canDownload = false;
+                    this.url = "";
+                    alert('Playlists downloads are not available. (yet)');
                     return;
                 }
                 else{
