@@ -58,14 +58,12 @@ app.get('/items/:id', async (req,res) => {
 
 });
 
-app.get('/info/:type/:url', async (req,res) => {
+app.get('/info/:id', async (req,res) => {
     try{
-        if(req.params.type === 'video'){
-            const info = await getDownloadInfo(req.params.url);
+        const info = await getDownloadInfo(req.params.id);
 
-            if(info != null)
-                res.json(info);
-        }
+        if(info != null)
+            res.json(info);
 
     }
     catch(error){
