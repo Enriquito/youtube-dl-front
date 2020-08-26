@@ -5,6 +5,7 @@ const {download, getDownloadInfo} = require('./youtubedl')
 const bodyParser = require('body-parser');
 const {writeDatabase, readDatabase} = require('./helpers');
 const app = express();
+const port = 3000;
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
@@ -168,6 +169,6 @@ app.get('/', function(req,res) {
 const http = require('http');
 const httpServer = http.createServer(app);
 
-httpServer.listen(3000, () => {
-    console.log('HTTP Server running on port 3000');
+httpServer.listen(port, () => {
+    console.log(`HTTP Server running on port ${port}`);
 });
