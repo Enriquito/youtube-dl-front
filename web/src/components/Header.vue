@@ -85,7 +85,7 @@ export default {
                     id = reg[1];
                 }
 
-                axios.get(`/info/video/${id}`)
+                axios.get(`/info/${id}`)
                 .then(result => result.data)
                 .then(result => {
                     this.info = result;
