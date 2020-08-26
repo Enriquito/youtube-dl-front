@@ -1,14 +1,10 @@
 const { exec } = require('child_process');
 
-const getDownloadInfo = (url, options) => {
+const getDownloadInfo = (id, options) => {
     return new Promise((resolve, reject) => {
-        let command = `youtube-dl -J ${url}`;
+        let command = `youtube-dl -J https://www.youtube.com/watch?v=${id}`;
 
-        // if(options.format){
-        //     command = `youtube-dl -mat ${url}`
-        // }
-
-        exec(`youtube-dl -J ${url}`, (error, stdout, stderr) => {
+        exec(command, (error, stdout, stderr) => {
             if(error){
                 console.log(error);
                 reject(error);
