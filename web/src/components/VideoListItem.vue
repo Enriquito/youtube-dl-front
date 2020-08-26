@@ -3,7 +3,7 @@
         <img style="height: 25px !important;" class="media-type-icon" v-if="data.extention == 'mp3'" src="@/assets/icons/note.svg" alt="Audio" />
         <img style="height: 25px !important;" class="media-type-icon" v-else src="@/assets/icons/videocamera.svg" alt="Video" />
 
-        <img class="yt-image" alt="image" :src="data.thumbnails[3].url">
+        <img class="yt-image" alt="image" :src="imageLink">
         <figcaption>
             <div class="d-flex">
                 <strong>
@@ -51,7 +51,17 @@ export default {
     },
     computed:{
         imageLink(){
-            return this.data.thumbnails[3].url.match(/(\w\B.+)\?sqp=/)[1];
+            let bestImage = null;
+
+            if(this.data.thumbnails.length === 0)
+                bestImage = "@/assets/no-image.png";
+            else{
+                this.data.thumbnails.forEach(el => {
+                    bestImage = el.url;
+                });
+            }
+
+            return bestImage;
         }
     }
 }
