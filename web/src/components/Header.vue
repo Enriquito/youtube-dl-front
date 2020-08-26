@@ -52,7 +52,7 @@ export default {
             if(!this.options.audioOnly && !this.options.playlist)
                 this.options.soundQuality = this.getBestAudio;
 
-            axios.post(`${this.serverUrl}/download`,this.options)
+            axios.post(`/download`,this.options)
             .then(result => {
                 this.$emit('clicked', result.data);
                 this.isDownloading = false;
@@ -85,7 +85,7 @@ export default {
                     id = reg[1];
                 }
 
-                axios.get(`${this.serverUrl}/info/video/${id}`)
+                axios.get(`/info/video/${id}`)
                 .then(result => result.data)
                 .then(result => {
                     this.info = result;
@@ -174,9 +174,6 @@ export default {
             console.log(this.bestAudioID);
 
             return formats;
-        },
-        serverUrl(){
-            return process.env.VUE_APP_SERVER_ADDRESS;
         }
     }
 }

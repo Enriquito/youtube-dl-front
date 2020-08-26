@@ -23,7 +23,7 @@
                     <a target="_blank" :href="data.videoUrl">
                         <img class="icon" src="@/assets/icons/link.svg" alt="Link" />
                     </a>
-                    <a target="_blank" :href="`${serverUrl}/file/${data.id}`">
+                    <a target="_blank" :href="`/file/${data.id}`">
                         <img class="icon" style="height: 20px !important;" src="@/assets/icons/download.svg" alt="Download" />
                     </a>
                 </div>
@@ -43,16 +43,13 @@ export default {
     },
     methods: {
         deleteItem(id){
-            axios.delete(`${this.serverUrl}/items/${id}`)
+            axios.delete(`/items/${id}`)
             .then(() => {
                 this.$emit('deleted', this.data);
             })
         }
     },
     computed:{
-        serverUrl(){
-            return process.env.VUE_APP_SERVER_ADDRESS;
-        },
         imageLink(){
             return this.data.thumbnails[3].url.match(/(\w\B.+)\?sqp=/)[1];
         }

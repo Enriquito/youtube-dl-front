@@ -7,7 +7,7 @@
         </header>
         <div v-if="this.item" class="d-flex justify-content-center" style="margin-top: 80px">
             <div style="width: 1024px;">
-                <video v-if="this.item.extention != 'mp3'" :src="`${serverUrl}/media/videos/${this.item.fileName}`" controls />
+                <video v-if="this.item.extention != 'mp3'" :src="`/media/videos/${this.item.fileName}`" controls />
                 <video v-else :style="`background: url(${item.thumbnails[4].url}); background-size:cover;`" :src="`${serverUrl}/media/music/${this.item.fileLocation}`" controls />
                 <h3 style="margin-bottom: 0;">{{this.item.title}}</h3>
                 <strong>{{this.item.uploader}}</strong>
@@ -22,7 +22,7 @@ import axios from 'axios';
 export default {
     name: "Watch",
     mounted(){
-        axios.get(`${this.serverUrl}/items/${this.$route.params.id}`)
+        axios.get(`/items/${this.$route.params.id}`)
         .then(result => {
             this.item = result.data;
         });
@@ -31,11 +31,6 @@ export default {
         return({
             item: null
         });
-    },
-    computed:{
-        serverUrl(){
-            return process.env.VUE_APP_SERVER_ADDRESS;
-        }
     }
 }
 </script>
