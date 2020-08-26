@@ -85,8 +85,13 @@ figure img.yt-image
     min-height: 140px;
 }
 figure figcaption p{
-    max-height: 150px;
+    max-height: 100px;
     overflow: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+figure figcaption p::-webkit-scrollbar {
+  display: none;
 }
 figure figcaption
 {
