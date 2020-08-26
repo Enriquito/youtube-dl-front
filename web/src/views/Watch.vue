@@ -7,8 +7,8 @@
         </header>
         <div v-if="this.item" class="d-flex justify-content-center" style="margin-top: 80px">
             <div style="width: 1024px;">
-                <video v-if="this.item.extention != 'mp3'" :src="`${serverUrl}/media/videos/${this.item.id}.${this.item.extention}`" controls />
-                <video v-else :style="`background: url(${item.thumbnails[4].url}); background-size:cover;`" :src="`${serverUrl}/media/music/${this.item.id}.${this.item.extention}`" controls />
+                <video v-if="this.item.extention != 'mp3'" :src="`${serverUrl}/media/videos/${this.item.fileName}`" controls />
+                <video v-else :style="`background: url(${item.thumbnails[4].url}); background-size:cover;`" :src="`${serverUrl}/media/music/${this.item.fileLocation}`" controls />
                 <h3 style="margin-bottom: 0;">{{this.item.title}}</h3>
                 <strong>{{this.item.uploader}}</strong>
                 <p style="margin-top: 10px">{{this.item.description}}</p>
