@@ -1,6 +1,5 @@
 const fs = require('fs')
 let express = require('express');
-const youtubedl = require('youtube-dl');
 const {download, getDownloadInfo} = require('./youtubedl')
 const bodyParser = require('body-parser');
 const {writeDatabase, readDatabase} = require('./helpers');
@@ -74,15 +73,21 @@ app.get('/info/:type/:url', async (req,res) => {
 app.get('/file/:id', async (req,res) => {
     try{
         const db = await readDatabase();
+        let file = null;
+        let found = false;
 
         if(db != null){
             db.videos.forEach(async el => {
                 if(el.id === req.params.id){
-                    const file = `./videos/${el.id}.${el.extention}`;
-
-                    res.download(file);
+                    file = `${el.fileLocation}/${el.fileName}`;
+                    found = fs.existsSync(file);
                 }
             });
+
+            if(found)
+                res.download(file);
+            else
+                res.sendStatus(404);
         }
     }
     catch(error){
