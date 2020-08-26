@@ -1,4 +1,5 @@
 const fs = require('fs')
+const path = require('path');
 let express = require('express');
 const {download, getDownloadInfo} = require('./youtubedl')
 const bodyParser = require('body-parser');
@@ -7,6 +8,8 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
+
+app.use('/', express.static(path.join(__dirname,"../web/dist/")));
 app.use('/media/videos', express.static('videos'));
 app.use('/media/music', express.static('music'));
 
@@ -156,6 +159,10 @@ app.delete('/items/:id', async (req,res) => {
     }
 
 
+});
+
+app.get('/', function(req,res) {
+    res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });
 });
 
 const http = require('http');
