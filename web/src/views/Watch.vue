@@ -22,7 +22,7 @@ import axios from 'axios';
 export default {
     name: "Watch",
     mounted(){
-        axios.get(`/items/${this.$route.params.id}`)
+        axios.get(`${this.serverUrl}/items/${this.$route.params.id}`)
         .then(result => {
             this.item = result.data;
         });

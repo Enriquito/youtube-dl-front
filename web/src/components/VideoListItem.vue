@@ -43,7 +43,7 @@ export default {
     },
     methods: {
         deleteItem(id){
-            axios.delete(`/items/${id}`)
+            axios.delete(`${this.serverUrl}/items/${id}`)
             .then(() => {
                 this.$emit('deleted', this.data);
             })
