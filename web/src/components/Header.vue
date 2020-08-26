@@ -75,7 +75,7 @@ export default {
                 if(this.isPlaylist(this.options.url)){
                     this.options.playlist = true;
                     this.canDownload = false;
-                    this.url = "";
+                    this.options.url = "";
                     alert('Playlists downloads are not available. (yet)');
                     return;
                 }
