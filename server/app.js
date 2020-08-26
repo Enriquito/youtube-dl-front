@@ -134,18 +134,14 @@ app.delete('/items/:id', async (req,res) => {
         const database = await readDatabase();
 
         if(database != null){
-            database.videos.forEach((el, index) => {
+            database.videos.forEach(async (el, index) => {
                 if(el.id === req.params.id){
                     found = true;
+                    console.log(`File: ${el.id} has been deleted`);
 
-                    fs.unlink(`./videos/${el.id}.${el.extention}`, async (error) =>{
-                        if(error)
-                            console.log(error);
-
-                        console.log(`File: ${el.id} has been deleted`);
-                        database.videos.splice(index, 1);
-                        await writeDatabase(database);
-                    });
+                    database.videos.splice(index, 1);
+                    await writeDatabase(database);
+                    fs.unlinkSync(`${el.fileLocation}/${el.fileName}`);
                 }
             });
 
