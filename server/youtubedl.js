@@ -23,6 +23,7 @@ const download = (url, options) => {
     return new Promise(async (resolve, reject) => {
         let command = "";
         let directory = './videos';
+        let fileName = '%(title)s';
 
         if(options.directory)
             directory = options.directory;
@@ -31,17 +32,17 @@ const download = (url, options) => {
             directory = './music';
 
             if(options.playlist)
-                command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --extract-audio --audio-format mp3 --yes-playlist --ignore-errors --print-json ${url}`;
+                command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' --extract-audio --audio-format mp3 --yes-playlist --ignore-errors --print-json ${url}`;
             else
-                command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --extract-audio --audio-format mp3 --print-json ${url}`;
+                command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' --extract-audio --audio-format mp3 --print-json ${url}`;
         }
         else if(options.playlist)
             command = `youtube-dl --output '${directory}/%(playlist_index)s - %(title)s.%(ext)s' --yes-playlist --ignore-errors --print-json ${url}`;
         else{
             if(options.format)
-                command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' -f ${options.format}+${options.audioFormat} --print-json ${url}`;
+                command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' -f ${options.format}+${options.audioFormat} --print-json ${url}`;
             else
-                command = `youtube-dl --output '${directory}/%(id)s.%(ext)s' --recode-video mp4 --print-json ${url}`;
+                command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' --recode-video mp4 --print-json ${url}`;
         }
 
         console.log(`Downloading file with the following command: ${command}`);
@@ -74,7 +75,9 @@ const download = (url, options) => {
                 uploaderUrl : fileinfo.channel_url,
                 extention : extention,
                 format : fileinfo.format_note,
-                videoUrl : fileinfo.webpage_url
+                videoUrl : fileinfo.webpage_url,
+                fileLocation: `${directory}`,
+                fileName: `${fileinfo.title}.${extention}`
             }
 
             resolve({success: true, info: info});
