@@ -1,8 +1,11 @@
 server/node_modules
-web/node_modules
 server/videos/*
 server/music/*
-web/.env
 server/.DS_Store
-.DS_Store
+server/database.json
+
+web/node_modules
+web/.env
 web/.DS_Store
+
+.DS_Store
