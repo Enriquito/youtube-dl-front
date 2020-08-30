@@ -36,8 +36,8 @@ export default {
 <style scoped>
     #search-bar
     {
-        width: 50%;
-        padding: 10px;
+        min-width: 700px;
+        padding: 10px 0;
     }
     #search-bar input[type="search"]
     {
