@@ -104,6 +104,7 @@ figure figcaption
 {
     padding: 0 10px;
     width: 100%;
+    max-width: 450px;
 }
 figure figcaption span a
 {
