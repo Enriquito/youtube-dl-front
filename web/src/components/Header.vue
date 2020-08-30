@@ -36,9 +36,10 @@ export default {
             options : {
                 playlist: false,
                 url : "",
-                videoQuality: "",
+                videoQuality: "Quality",
                 soundQuality: null,
-                audioOnly: false
+                audioOnly: false,
+                target: ""
             },
             isDownloading: false,
             canDownload: false,
@@ -49,6 +50,9 @@ export default {
         sendUrl(){
             this.isDownloading = true;
 
+            if(this.options.videoQuality === "Quality")
+                this.options.videoQuality = "";
+
             if(!this.options.audioOnly && !this.options.playlist)
                 this.options.soundQuality = this.getBestAudio;
 
@@ -56,6 +60,8 @@ export default {
             .then(result => {
                 this.$emit('clicked', result.data);
                 this.isDownloading = false;
+                this.info = null;
+                this.canDownload = false;
                 this.options.url = "";
             });
         },
@@ -72,6 +78,18 @@ export default {
             try{
                 let id = null;
 
+                if(RegExp(/((https:\/\/www\.reddit.com))/).test(this.options.url)){
+                    this.options.target = "Reddit";
+                    alert('s');
+                    return;
+                }
+                else if(RegExp(/v=([0-9a-zA-Z$-_.+!*'(),]+)/).test(this.options.url)){
+                    this.options.target = "Youtube";
+                    this.isFetchingInfo = true;
+                    const reg = this.options.url.match(/v=([0-9a-zA-Z$-_.+!*'(),]+)/);
+                    id = reg[1];
+                }
+
                 if(this.isPlaylist(this.options.url)){
                     this.options.playlist = true;
                     this.canDownload = false;
@@ -79,12 +97,7 @@ export default {
                     alert('Playlists downloads are not available. (yet)');
                     return;
                 }
-                else{
-                    this.isFetchingInfo = true;
-                    const reg = this.options.url.match(/v=([0-9a-zA-Z$-_.+!*'(),]+)/);
-                    id = reg[1];
-                }
-
+                console.log(id);
                 axios.get(`/info/${id}`)
                 .then(result => result.data)
                 .then(result => {
@@ -99,7 +112,7 @@ export default {
                 });
             }
             catch(error){
-                alert('invalid youtube url');
+                alert('invalid url');
                 this.isFetchingInfo = false;
                 console.warn(error);
             }
@@ -199,8 +212,18 @@ input[type="url"]
 select
 {
     padding: 11px;
-    margin-left: 5px;
-    min-width: 90px;
+    -webkit-appearance: button;
+    border-radius: 0px;
+    border: none;
+    height: 46px;
+    margin-top: 1px;
+    margin-left: 1px;
+}
+select:disabled
+{
+    border-color: rgba(118, 118, 118, 0.3);
+    color: -internal-light-dark(graytext, rgb(170, 170, 170));
+    background-color: rgb(194, 194, 194);
 }
 button
 {
@@ -215,6 +238,8 @@ button
     margin-top: 1px;
     min-width: 70px;
     user-select: none;
+    margin-left: 1px;
+    background: #FFF;
 }
 #audio-button-active
 {
@@ -223,7 +248,6 @@ button
     box-shadow: inset -1px 2px 5px 2px rgba(0,0,0,0.2);
     background: #2ecc71;
     color: white;
-
 }
 #audio-disabled-button
 {
