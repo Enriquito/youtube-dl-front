@@ -1,5 +1,5 @@
 <template>
-    <header class="d-flex justify-content-center">
+    <div class="d-flex justify-content-center">
         <div style="position: relative;">
             <input placeholder="https://www.youtube.com/" @blur="getInfo" v-model="options.url" type="url" />
             <button v-if="isDownloading && canDownload" disabled>Downloading..</button>
@@ -23,7 +23,7 @@
         <select v-else disabled v-model="options.videoQuality">
             <option disabled selected>Quality</option>
         </select>
-    </header>
+    </div>
 </template>
 <script>
 import axios from 'axios';
@@ -192,22 +192,12 @@ export default {
 }
 </script>
 <style scoped>
-header
-{
-    text-align: center;
-    padding: 10px;
-    position: fixed;
-    background: #34495e;
-    width: 100%;
-    top: 0;
-    min-height: 50px;
-    z-index: 999;
-}
 input[type="url"]
 {
     padding: 10px;
     width: 400px;
     outline: none;
+    border: none;
 }
 select
 {
