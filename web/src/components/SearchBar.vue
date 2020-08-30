@@ -37,17 +37,12 @@ export default {
     #search-bar
     {
         min-width: 700px;
-        padding: 10px 0;
     }
     #search-bar input[type="search"]
     {
         width: 100%;
-        padding: 5px;
-        border: 1px solid rgba(0,0,0,0.1);
+        padding: 10px;
+        border: none;
         outline: none;
-    }
-    #search-bar input[type="search"]:focus
-    {
-        border: 1px solid #34495e;
     }
 </style>
