@@ -48,7 +48,7 @@ export default {
       else
         this.itemsToShow = results;
     },
-    getNewItem(value){
+    getNewItem(){
       this.loadData();
     },
     loadData(){
