@@ -1,11 +1,15 @@
 <template>
   <main>
-    <Header @clicked="getNewItem" />
+
+    <header class="d-flex justify-content-center">
+      <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/film.svg" alt="search" />
+      <img v-else @click="() => {searching = true}" class="header-icon" src="@/assets/icons/search.svg" alt="search" />
+
+      <SearchBar v-if="searching" @searchResults="searchResults" :items="items" />
+      <Header v-else @clicked="getNewItem" />
+    </header>
 
     <div style="margin-top: 75px">
-      <div class="d-flex justify-content-center">
-        <SearchBar @searchResults="searchResults" :items="items" />
-      </div>
       <div class="d-flex justify-content-center">
         <div v-if="items.length > 0">
           <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in itemsToShow" :key="index" />
@@ -15,6 +19,7 @@
         </div>
       </div>
     </div>
+
   </main>
 </template>
 
@@ -38,7 +43,8 @@ export default {
   data(){
     return({
       items: [],
-      itemsToShow : []
+      itemsToShow : [],
+      searching: false
     })
   },
   methods:{
@@ -69,3 +75,28 @@ export default {
   }
 }
 </script>
+<style scoped>
+header
+{
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    background: #34495e;
+    width: 100%;
+    top: 0;
+    min-height: 70px;
+    z-index: 999;
+
+}
+header .header-icon
+{
+    width: 25px;
+    cursor: pointer;
+    background: #FFF;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    height: 44px;
+    margin-top: 1px;
+    margin-right: -2px;
+}
+</style>
