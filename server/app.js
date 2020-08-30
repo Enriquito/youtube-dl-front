@@ -1,3 +1,4 @@
+const {settings} = require('./settings.json');
 const fs = require('fs')
 const path = require('path');
 let express = require('express');
@@ -5,7 +6,7 @@ const {download, getDownloadInfo} = require('./youtubedl')
 const bodyParser = require('body-parser');
 const {writeDatabase, readDatabase} = require('./helpers');
 const app = express();
-const port = 3000;
+const port = settings.port;
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
@@ -60,11 +61,11 @@ app.get('/items/:id', async (req,res) => {
 
 app.get('/info/:id', async (req,res) => {
     try{
+        // console.log(req.params.id);
         const info = await getDownloadInfo(req.params.id);
 
         if(info != null)
             res.json(info);
-
     }
     catch(error){
         console.log(error);
@@ -81,7 +82,7 @@ app.get('/file/:id', async (req,res) => {
         if(db != null){
             db.videos.forEach(async el => {
                 if(el.id === req.params.id){
-                    file = `${el.fileLocation}/${el.fileName}`;
+                    file = path.join(__dirname, el.fileLocation, el.fileName);
                     found = fs.existsSync(file);
                 }
             });
