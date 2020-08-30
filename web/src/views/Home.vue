@@ -1,12 +1,18 @@
 <template>
   <main>
     <Header @clicked="getNewItem" />
-    <div style="margin-top: 75px" class="d-flex justify-content-center">
-      <div v-if="items.length > 0">
-        <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in items" :key="index" />
+
+    <div style="margin-top: 75px">
+      <div class="d-flex justify-content-center">
+        <SearchBar @searchResults="searchResults" :items="items" />
       </div>
-      <div v-else>
-        <h2>No downloads here</h2>
+      <div class="d-flex justify-content-center">
+        <div v-if="items.length > 0">
+          <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in itemsToShow" :key="index" />
+        </div>
+        <div v-else>
+          <h2>No downloads here</h2>
+        </div>
       </div>
     </div>
   </main>
@@ -16,6 +22,7 @@
 // @ is an alias to /src
 import Header from '@/components/Header.vue'
 import VideoListItem from '@/components/VideoListItem.vue'
+import SearchBar from '@/components/SearchBar.vue'
 import axios from 'axios';
 
 export default {
@@ -25,24 +32,31 @@ export default {
   },
   components: {
     Header,
-    VideoListItem
+    VideoListItem,
+    SearchBar
   },
   data(){
     return({
       items: [],
-      sortedItems: []
+      itemsToShow : []
     })
   },
   methods:{
+    searchResults(results){
+      if(results === null || results === undefined)
+        this.itemsToShow = this.items;
+      else
+        this.itemsToShow = results;
+    },
     getNewItem(value){
       this.loadData();
-      console.log(value);
     },
     loadData(){
       axios.get('/items')
       .then(result => {
         this.items = result.data.videos;
         this.items.reverse();
+        this.searchResults(null);
       });
     },
     removeDeletedItem(value){
