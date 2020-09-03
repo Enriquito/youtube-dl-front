@@ -31,4 +31,4 @@ Start the server with the following command.
 cd ~/youtube-dl-front/server
 node app.js
 ```
-Go in your browser to http://yourserveraddress:3000
+Go in your browser to http://localhost:3000
