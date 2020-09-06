@@ -1,6 +1,8 @@
 # Youtube-dl-front
 
 Youtube-dl-front is a frontend for youtube-dl. With the easy interface you can download and view videos in seconds.
+![Download page](https://github.com/Enriquito/youtube-dl-front/blob/master/screenshots/Download.png?raw=true)
+![Download page](https://github.com/Enriquito/youtube-dl-front/blob/master/screenshots/view.png?raw=true)
 
 ## Linux / MacOS Installation
 
