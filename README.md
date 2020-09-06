@@ -2,7 +2,7 @@
 
 youtube-dl-front is a frontend for youtube-dl. With the easy interface you can download and view videos in seconds.
 
-## Installation
+## Linux / MacOS Installation
 
 [Download](http://ytdl-org.github.io/youtube-dl/download.html) the latest youtube-dl version.
 
