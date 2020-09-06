@@ -194,8 +194,8 @@ export default {
 <style scoped>
 input[type="url"]
 {
-    padding: 11px;
-    width: 400px;
+    padding: 11px 5px;
+    width: 411px;
     outline: none;
     border: none;
 }
