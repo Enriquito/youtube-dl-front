@@ -1,7 +1,7 @@
 <template>
     <div class="d-flex justify-content-center">
         <div style="position: relative;">
-            <input placeholder="https://www.youtube.com/" @blur="getInfo" v-model="options.url" type="url" />
+            <input placeholder="Paste video url" @blur="getInfo" v-model="options.url" type="url" />
             <button v-if="isDownloading && canDownload" disabled>Downloading..</button>
             <button v-else-if="canDownload && !isDownloading" @click="sendUrl">Download</button>
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
