@@ -115,7 +115,7 @@ export default {
                 })
                 .catch(error => {
                     console.error(error);
-                    this.canDownload = true;
+                    this.canDownload = false;
                     this.isFetchingInfo = false;
                     this.$parent.$refs.notificationComp.open('Error','Could not fetch video info. Check your url and try again.');
                 });
