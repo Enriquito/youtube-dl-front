@@ -194,7 +194,7 @@ export default {
 <style scoped>
 input[type="url"]
 {
-    padding: 10px;
+    padding: 11px;
     width: 400px;
     outline: none;
     border: none;
@@ -206,8 +206,9 @@ select
     border-radius: 0px;
     border: none;
     height: 46px;
-    margin-top: 1px;
-    margin-left: 1px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    outline: none;
 }
 select:disabled
 {
@@ -225,10 +226,8 @@ button
 }
 .audio-button
 {
-    margin-top: 1px;
     min-width: 70px;
     user-select: none;
-    margin-left: 1px;
     background: #FFF;
 }
 #audio-button-active
