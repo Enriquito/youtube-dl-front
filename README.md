@@ -1,6 +1,6 @@
-# youtube-dl-front
+# Youtube-dl-front
 
-youtube-dl-front is a frontend for youtube-dl. With the easy interface you can download and view videos in seconds.
+Youtube-dl-front is a frontend for youtube-dl. With the easy interface you can download and view videos in seconds.
 
 ## Linux / MacOS Installation
 
@@ -13,7 +13,14 @@ sudo chmod a+rx /usr/local/bin/youtube-dl
 ```
 Install Nodejs
 ```bash
+# NodeJS installation examples
+
+# Ubuntu
 sudo apt-get install nodejs
+# MacOS
+brew install node
+# CentOS
+sudo yum install nodejs
 ```
 Clone youtube-dl-front and install the dependencies.
 
