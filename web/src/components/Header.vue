@@ -63,9 +63,17 @@ export default {
                 this.info = null;
                 this.canDownload = false;
                 this.options.url = "";
+            })
+            .catch(error => {
+                this.canDownload = true;
+                this.isDownloading = false;
+                this.$parent.$refs.notificationComp.open('Error','Could not download video info. Please try again later.');
+                console.error(error);
             });
         },
         getInfo(){
+            // this.$parent.$refs.notificationComp.open('testa','hoihoi');
+
             if(this.options.url === ""){
                 this.canDownload = false;
                 return;
@@ -94,10 +102,10 @@ export default {
                     this.options.playlist = true;
                     this.canDownload = false;
                     this.options.url = "";
-                    alert('Playlists downloads are not available. (yet)');
+                    this.$parent.$refs.notificationComp.open('Information','Playlists downloads are not available. (yet)');
                     return;
                 }
-                console.log(id);
+
                 axios.get(`/info/${id}`)
                 .then(result => result.data)
                 .then(result => {
@@ -106,15 +114,16 @@ export default {
                     this.canDownload = true;
                 })
                 .catch(error => {
-                    console.log(error);
+                    console.error(error);
                     this.canDownload = true;
                     this.isFetchingInfo = false;
+                    this.$parent.$refs.notificationComp.open('Error','Could not fetch video info. Check your url and try again.');
                 });
             }
             catch(error){
-                alert('invalid url');
                 this.isFetchingInfo = false;
-                console.warn(error);
+                this.$parent.$refs.notificationComp.open('Error','Something went wrong. Please try again later.');
+                console.error(error);
             }
         },
         selectAudioOnly(){
