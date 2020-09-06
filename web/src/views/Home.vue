@@ -2,7 +2,7 @@
   <main>
 
     <header class="d-flex justify-content-center">
-      <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/film.svg" alt="search" />
+      <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/close.svg" alt="search" />
       <img v-else @click="() => {searching = true}" class="header-icon" src="@/assets/icons/search.svg" alt="search" />
 
       <SearchBar v-if="searching" @searchResults="searchResults" :items="items" />
@@ -95,8 +95,7 @@ header .header-icon
     background: #FFF;
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
-    height: 44px;
-    margin-top: 1px;
+    height: 46px;
     margin-right: -2px;
 }
 </style>
