@@ -15,6 +15,10 @@ app.use('/', express.static(path.join(__dirname,"../web/dist/")));
 app.use('/media/videos', express.static('videos'));
 app.use('/media/music', express.static('music'));
 
+app.get('/', function(req,res) {
+    res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });
+});
+
 app.get('/items', async (req,res) => {
     try{
         const database = await readDatabase();
@@ -159,10 +163,6 @@ app.delete('/items/:id', async (req,res) => {
     }
 
 
-});
-
-app.get('/', function(req,res) {
-    res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });
 });
 
 const http = require('http');
