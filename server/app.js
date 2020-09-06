@@ -65,7 +65,6 @@ app.get('/items/:id', async (req,res) => {
 
 app.get('/info/:id', async (req,res) => {
     try{
-        // console.log(req.params.id);
         const info = await getDownloadInfo(req.params.id);
 
         if(info != null)

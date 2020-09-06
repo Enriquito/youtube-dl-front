@@ -2,12 +2,13 @@ const { exec } = require('child_process');
 
 const getDownloadInfo = (id, options) => {
     return new Promise((resolve, reject) => {
+
         let command = `youtube-dl -J https://www.youtube.com/watch?v=${id}`;
 
         exec(command, (error, stdout, stderr) => {
             if(error){
-                console.log(error);
                 reject(error);
+                return;
             }
 
             resolve(JSON.parse(stdout));
@@ -47,6 +48,7 @@ const download = (url, options) => {
             if(error){
                 console.log(error);
                 reject(error);
+                return;
             }
 
             const fileinfo = JSON.parse(stdout);
