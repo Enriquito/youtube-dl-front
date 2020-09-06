@@ -41,8 +41,10 @@ export default {
     #search-bar input[type="search"]
     {
         width: 100%;
-        padding: 10px;
+        padding: 11px;
         border: none;
         outline: none;
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
     }
 </style>
