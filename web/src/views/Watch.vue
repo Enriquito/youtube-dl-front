@@ -1,6 +1,7 @@
 <template>
     <main>
-        <header>
+        <Notification ref="notificationComp" />
+        <header class="d-flex align-items-center">
             <router-link :to="{name:'Home'}">
                 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
                     width="512px" height="512px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512; width: 25px; height: 25px; fill:#FFF" xml:space="preserve">
@@ -22,9 +23,13 @@
 <script>
 import axios from 'axios';
 import arrowLeft from '@/assets/icons/arrowleft.svg';
+import Notification from '@/components/Notification.vue'
 
 export default {
     name: "Watch",
+    components:{
+        Notification
+    },
     mounted(){
         axios.get(`/items/${this.$route.params.id}`)
         .then(result => {
@@ -44,20 +49,7 @@ export default {
 }
 </script>
 <style scoped>
-header
-{
-    padding: 10px;
-    position: fixed;
-    background: #34495e;
-    width: 100%;
-    top: 0;
-    min-height: 50px;
-}
-img
-{
-    height: 25px !important;
-    margin-right: 5px;
-}
+
 video
 {
     width: 1024px;
