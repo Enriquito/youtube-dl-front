@@ -146,8 +146,9 @@ app.delete('/items/:id', async (req,res) => {
                     console.log(`File: ${el.id} has been deleted`);
 
                     database.videos.splice(index, 1);
-                    await writeDatabase(database);
                     fs.unlinkSync(`${el.fileLocation}/${el.fileName}`);
+                    await writeDatabase(database);
+
                 }
             });
 
