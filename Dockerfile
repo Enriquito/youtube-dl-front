@@ -1,5 +1,3 @@
-#make our Dockerfile
-echo <<EOF  > Dockerfile
 FROM node:current-alpine
 WORKDIR /
 
@@ -18,4 +16,3 @@ EXPOSE 3000
 VOLUME ["/youtube-dl-front/server/videos"]
 VOLUME ["/youtube-dl-front/config"]
 ENTRYPOINT [ "/run.sh" ]
-EOF
