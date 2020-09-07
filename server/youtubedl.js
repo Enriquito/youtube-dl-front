@@ -1,4 +1,5 @@
 const { exec } = require('child_process');
+const fs = require('fs');
 
 const getDownloadInfo = (id, options) => {
     return new Promise((resolve, reject) => {
@@ -20,7 +21,7 @@ const download = (url, options) => {
     return new Promise(async (resolve, reject) => {
         let command = "";
         let directory = './videos';
-        let fileName = '%(title)s';
+        let fileName = '%(id)s';
 
         if(options.directory)
             directory = options.directory;
@@ -52,10 +53,20 @@ const download = (url, options) => {
             }
 
             const fileinfo = JSON.parse(stdout);
-            let extention = fileinfo.ext;
+            let extention;
+            let formatNote;
+
+            fileinfo.formats.forEach(format => {
+                if(format.format_id === options.format)
+                    formatNote = format.format_note;
+            })
 
             if(options.audioOnly)
                 extention = "mp3";
+            else
+                extention = fileinfo.ext;
+
+            fs.renameSync(`${directory}/${fileinfo.id}.${extention}`, `${directory}/${fileinfo.title} - ${formatNote}.${extention}`);
 
             const info = {
                 thumbnails : fileinfo.thumbnails,
@@ -75,7 +86,7 @@ const download = (url, options) => {
                 format : fileinfo.format_note,
                 videoUrl : fileinfo.webpage_url,
                 fileLocation: `${directory}`,
-                fileName: `${fileinfo.title}.${extention}`
+                fileName: `${fileinfo.title} - ${formatNote}.${extention}`
             }
 
             resolve({success: true, info: info});
