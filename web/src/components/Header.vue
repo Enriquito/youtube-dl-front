@@ -1,9 +1,10 @@
 <template>
     <div class="d-flex justify-content-center">
+        <DownloadManager :isDownloading="this.isDownloading" />
         <div style="position: relative;">
             <input placeholder="Paste video url" @blur="getInfo" v-model="options.url" type="url" />
-            <button v-if="isDownloading && canDownload" disabled>Downloading..</button>
-            <button v-else-if="canDownload && !isDownloading" @click="sendUrl">Download</button>
+            <!-- <button v-if="isDownloading && canDownload" disabled>Downloading..</button> -->
+            <button v-if="canDownload" @click="sendUrl">Download</button>
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
             <button v-else-if="!canDownload" disabled>Download</button>
         </div>
@@ -27,9 +28,13 @@
 </template>
 <script>
 import axios from 'axios';
+import DownloadManager from '@/components/DownloadManager.vue'
 
 export default {
     name: "Header",
+    components:{
+        DownloadManager
+    },
     data: () => {
         return({
             info: null,
@@ -43,7 +48,7 @@ export default {
             },
             isDownloading: false,
             canDownload: false,
-            isFetchingInfo: false,
+            isFetchingInfo: false
         });
     },
     methods: {
@@ -55,6 +60,8 @@ export default {
 
             if(!this.options.audioOnly && !this.options.playlist)
                 this.options.soundQuality = this.getBestAudio;
+
+            this.$parent.$refs.notificationComp.open('Information','Download has been started');
 
             axios.post(`/download`,this.options)
             .then(result => {
@@ -72,8 +79,6 @@ export default {
             });
         },
         getInfo(){
-            // this.$parent.$refs.notificationComp.open('testa','hoihoi');
-
             if(this.options.url === ""){
                 this.canDownload = false;
                 return;
