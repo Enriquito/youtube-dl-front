@@ -1,12 +1,14 @@
 <template>
   <main>
     <Notification ref="notificationComp" />
-    <header class="d-flex justify-content-center">
-      <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/close.svg" alt="search" />
-      <img v-else @click="() => {searching = true}" class="header-icon" src="@/assets/icons/search.svg" alt="search" />
+    <header>
+      <div class="d-flex justify-content-center">
+        <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/close.svg" alt="search" />
+        <img v-else @click="() => {searching = true}" class="header-icon" src="@/assets/icons/search.svg" alt="search" />
 
-      <SearchBar v-if="searching" @searchResults="searchResults" :items="items" />
-      <Header v-else @clicked="getNewItem" />
+        <SearchBar v-if="searching" @searchResults="searchResults" :items="items" />
+        <Header v-else @clicked="getNewItem" />
+      </div>
     </header>
 
     <div style="margin-top: 75px">
