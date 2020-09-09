@@ -119,7 +119,6 @@ app.post('/download', async (req,res) => {
                 res.status(201).send(downloadResult.info);
             }
             else if(database != null){
-
                 database.videos.push(downloadResult.info);
 
                 await writeDatabase(database);
@@ -133,6 +132,19 @@ app.post('/download', async (req,res) => {
         res.json(error);
     }
 });
+
+app.get('/download/status/', async (req,res) => {
+    try{
+        const database = await readDatabase();
+
+        res.json(database.downloads);
+    }
+    catch(error){
+        console.log(error);
+        res.sendStatus(500);
+    }
+
+})
 
 app.delete('/items/:id', async (req,res) => {
     try{
