@@ -3,7 +3,6 @@
         <DownloadManager :isDownloading="this.isDownloading" />
         <div style="position: relative;">
             <input placeholder="Paste video url" @blur="getInfo" v-model="options.url" type="url" />
-            <!-- <button v-if="isDownloading && canDownload" disabled>Downloading..</button> -->
             <button v-if="canDownload" @click="sendUrl">Download</button>
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
             <button v-else-if="!canDownload" disabled>Download</button>
