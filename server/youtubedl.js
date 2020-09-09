@@ -1,5 +1,6 @@
-const { exec } = require('child_process');
+const { spawn, exec } = require('child_process');
 const fs = require('fs');
+const {writeDatabase, readDatabase} = require('./helpers');
 
 const getDownloadInfo = (id, options) => {
     return new Promise((resolve, reject) => {
@@ -17,80 +18,177 @@ const getDownloadInfo = (id, options) => {
     })
 };
 
+const getDownloadOptions = (options, url) => {
+    let directory = './videos';
+    let fileName = '%(id)s';
+    const args = [];
+
+    if(options.directory)
+        directory = options.directory;
+
+    if(options.audioOnly){
+        directory = './music';
+        args.push(`--extract-audio`);
+        args.push(`mp3`);
+
+        // if(options.playlist)
+        //     command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' --extract-audio --audio-format mp3 --yes-playlist --ignore-errors --print-json ${url}`;
+        // else
+
+    }
+    else if(options.playlist){
+
+    }
+    else{
+        if(options.format){
+            args.push(`-f`);
+            args.push(`${options.format}+${options.audioFormat}`);
+        }
+        else{
+            args.push(`--recode-video`);
+            args.push(`mp4`);
+        }
+    }
+    args.push('--output');
+    args.push(`${directory}/%(id)s.%(ext)s`);
+    args.push('--console-title');
+    args.push(url);
+
+    return {
+        directory: directory,
+        args: args
+    };
+};
+
+const getInfo = (url,options) => {
+    return new Promise((resolve, reject) => {
+        try{
+            let command;
+            if(options.format)
+                command = `youtube-dl --skip-download --dump-json -f ${options.format}+${options.audioFormat} ${url}`;
+            else
+                command = `youtube-dl --skip-download --dump-json ${url}`;
+
+            exec(command, (error, stdout, stderr) => {
+                if(error){
+                    reject(error);
+                    return;
+                }
+
+                resolve(JSON.parse(stdout));
+            });
+        }
+        catch(error){
+            console.log(error);
+            reject(error);
+        }
+    });
+}
+
 const download = (url, options) => {
     return new Promise(async (resolve, reject) => {
-        let command = "";
-        let directory = './videos';
-        let fileName = '%(id)s';
+        try{
+            console.log(`Download started for file: ${url}`);
 
-        if(options.directory)
-            directory = options.directory;
+            const downloadOptions = getDownloadOptions(options,url);
+            console.log(downloadOptions);
+            let fileInfo = await getInfo(url,options);
+            let db = await readDatabase();
 
-        if(options.audioOnly){
-            directory = './music';
+            db.downloads.push({
+                id: fileInfo.id,
+                title: fileInfo.title,
+                status: 'downloading',
+                downloadStatus: 0
+            });
 
-            if(options.playlist)
-                command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' --extract-audio --audio-format mp3 --yes-playlist --ignore-errors --print-json ${url}`;
-            else
-                command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' --extract-audio --audio-format mp3 --print-json ${url}`;
+            await writeDatabase(db);
+
+            const download = spawn('youtube-dl', downloadOptions.args);
+
+            let status;
+            let oldStatus = 0;
+
+            download.stdout.on('data',data => {
+
+                const downloadStatus = data.toString().match(/(\d+)\.(\d)%/);
+
+                if(downloadStatus != null){
+                    if(parseInt(downloadStatus[1]) > oldStatus){
+                        status = parseInt(downloadStatus[1]);
+                        oldStatus = status;
+
+                        db.downloads.forEach(async (download) => {
+                            if(download.id === fileInfo.id){
+                                download.downloadStatus = status;
+                                await writeDatabase(db);
+                            }
+                        });
+                    }
+                }
+            });
+
+            download.on('close', () => {
+                let formatNote;
+
+                db.downloads.forEach(async (download) => {
+                    if(download.id === fileInfo.id){
+                        download.status = 'finished';
+                        await writeDatabase(db);
+                    }
+                });
+
+                if(options.audioOnly)
+                    extention = "mp3";
+                else
+                    extention = fileInfo.ext;
+
+                fileInfo.formats.forEach(format => {
+                    if(format.format_id === options.format)
+                        formatNote = format.format_note;
+                })
+
+                let fname = `${fileInfo.title}.${extention}`;
+                let newfname = `${fileInfo.title}.${extention}`;
+
+                if(formatNote !== undefined){
+                    fname = `${fileInfo.title} - ${formatNote}.${extention}`
+                    newfname = `${fileInfo.title} - ${formatNote}.${extention}`
+                }
+
+                fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${newfname}`);
+
+                const info = {
+                    thumbnails : fileInfo.thumbnails,
+                    title: fileInfo.title,
+                    resolution: {
+                        width: fileInfo.width,
+                        heigth: fileInfo.height
+                    },
+                    tags : fileInfo.tags,
+                    duration : fileInfo.duration,
+                    uploader : fileInfo.uploader,
+                    viewCount : fileInfo.view_count,
+                    id : fileInfo.id,
+                    description : fileInfo.description,
+                    uploaderUrl : fileInfo.channel_url,
+                    extention : extention,
+                    format : fileInfo.format_note,
+                    videoUrl : fileInfo.webpage_url,
+                    fileLocation: `${downloadOptions.directory}`,
+                    fileName: fname
+                }
+
+                console.log('Download complete');
+
+                resolve({success: true, info: info});
+            });
         }
-        else if(options.playlist)
-            command = `youtube-dl --output '${directory}/%(playlist_index)s - %(title)s.%(ext)s' --yes-playlist --ignore-errors --print-json ${url}`;
-        else{
-            if(options.format)
-                command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' -f ${options.format}+${options.audioFormat} --print-json ${url}`;
-            else
-                command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' --recode-video mp4 --print-json ${url}`;
+        catch(error){
+            console.log(error);
+            reject(error);
+            return;
         }
-
-        console.log(`Downloading file with the following command: ${command}`);
-
-        exec(command, (error, stdout, stderr) => {
-            if(error){
-                console.log(error);
-                reject(error);
-                return;
-            }
-
-            const fileinfo = JSON.parse(stdout);
-            let extention;
-            let formatNote;
-
-            fileinfo.formats.forEach(format => {
-                if(format.format_id === options.format)
-                    formatNote = format.format_note;
-            })
-
-            if(options.audioOnly)
-                extention = "mp3";
-            else
-                extention = fileinfo.ext;
-
-            fs.renameSync(`${directory}/${fileinfo.id}.${extention}`, `${directory}/${fileinfo.title} - ${formatNote}.${extention}`);
-
-            const info = {
-                thumbnails : fileinfo.thumbnails,
-                title: fileinfo.title,
-                resolution: {
-                    width: fileinfo.width,
-                    heigth: fileinfo.height
-                },
-                tags : fileinfo.tags,
-                duration : fileinfo.duration,
-                uploader : fileinfo.uploader,
-                viewCount : fileinfo.view_count,
-                id : fileinfo.id,
-                description : fileinfo.description,
-                uploaderUrl : fileinfo.channel_url,
-                extention : extention,
-                format : fileinfo.format_note,
-                videoUrl : fileinfo.webpage_url,
-                fileLocation: `${directory}`,
-                fileName: `${fileinfo.title} - ${formatNote}.${extention}`
-            }
-
-            resolve({success: true, info: info});
-        });
     });
 }
 
