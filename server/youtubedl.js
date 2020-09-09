@@ -29,6 +29,7 @@ const getDownloadOptions = (options, url) => {
     if(options.audioOnly){
         directory = './music';
         args.push(`--extract-audio`);
+        args.push('--audio-format')
         args.push(`mp3`);
 
         // if(options.playlist)
