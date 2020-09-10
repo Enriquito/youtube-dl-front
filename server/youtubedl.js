@@ -176,7 +176,7 @@ const download = (url, options) => {
                     extention : extention,
                     format : fileInfo.format_note,
                     videoUrl : fileInfo.webpage_url,
-                    fileLocation: `${downloadOptions.directory}`,
+                    fileLocation: downloadOptions.directory,
                     fileName: fname
                 }
 
