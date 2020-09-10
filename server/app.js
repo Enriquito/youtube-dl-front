@@ -133,7 +133,7 @@ app.post('/download', async (req,res) => {
     }
 });
 
-app.get('/download/status/', async (req,res) => {
+app.get('/download/status', async (req,res) => {
     try{
         const database = await readDatabase();
 
@@ -175,6 +175,22 @@ app.delete('/items/:id', async (req,res) => {
     }
 
 
+});
+
+app.delete('/download/status', async (req,res) => {
+    try{
+        const database = await readDatabase();
+
+        database.downloads = [];
+
+        await writeDatabase(database);
+
+        res.sendStatus(200);
+    }
+    catch(error){
+        console.log(error);
+        res.sendStatus(500);
+    }
 });
 
 const http = require('http');

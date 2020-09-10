@@ -1,8 +1,8 @@
 <template>
     <div id="download-manager" :class="windowClass">
-        <div @click="toggle" class="d-flex justify-content-between">
-            <h5>Downloads</h5>
-            <img class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
+        <div class="d-flex justify-content-between">
+            <h5 @click="toggle" style="cursor:pointer;">Downloads</h5>
+            <img @click="deleteList" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
         </div>
         <ul v-if="data">
             <li v-for="(item, index) in data" :key="item.id">
@@ -32,8 +32,8 @@ export default {
         return({
             data: null,
             fetchInterval: null,
-            windowClass: "close-manager",
-            open: false
+            windowClass: "open-manager",
+            open: true
         });
     },
     methods:{
@@ -46,6 +46,15 @@ export default {
                 this.windowClass = "open-manager";
                 this.open = true;
             }
+        },
+        deleteList(){
+            console.log(this);
+            axios.delete('/download/status')
+            .then(result => {
+                if(result.status === 200){
+                    this.$parent.$parent.$refs.notificationComp.open('Success','Download list has been deleted.');
+                }
+            })
         }
     },
     watch:{
