@@ -111,7 +111,6 @@ const download = (url, options) => {
             let oldStatus = 0;
 
             download.stdout.on('data',data => {
-
                 const downloadStatus = data.toString().match(/(\d+)\.(\d)%/);
 
                 if(downloadStatus != null){
@@ -130,6 +129,7 @@ const download = (url, options) => {
             });
 
             download.on('close', () => {
+                
                 let formatNote;
 
                 db.downloads.forEach(async (download) => {
@@ -157,7 +157,9 @@ const download = (url, options) => {
                     newfname = `${fileInfo.title} - ${formatNote}.${extention}`
                 }
 
-                fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${newfname}`);
+                while(fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
+                    fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${newfname}`);
+                }
 
                 const info = {
                     thumbnails : fileInfo.thumbnails,
