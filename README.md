@@ -33,6 +33,18 @@ cd youtube-dl-front/server
 npm install
 ```
 
+## Linux / MacOS Update
+```bash
+cd youtube-dl-front/
+git pull
+```
+Terminate the current node process and restart with
+
+```bash
+cd youtube-dl-front/server
+node app.js
+```
+
 ## Usage
 
 Start the server with the following command.
