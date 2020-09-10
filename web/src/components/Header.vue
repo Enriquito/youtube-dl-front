@@ -73,7 +73,7 @@ export default {
             .catch(error => {
                 this.canDownload = true;
                 this.isDownloading = false;
-                this.$parent.$refs.notificationComp.open('Error','Could not download video info. Please try again later.');
+                this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
                 console.error(error);
             });
         },
@@ -121,12 +121,12 @@ export default {
                     console.error(error);
                     this.canDownload = false;
                     this.isFetchingInfo = false;
-                    this.$parent.$refs.notificationComp.open('Error','Could not fetch video info. Check your url and try again.');
+                    this.$parent.$refs.notificationComp.open('Error','The server could not fetch the video info. Check your url and try again.');
                 });
             }
             catch(error){
                 this.isFetchingInfo = false;
-                this.$parent.$refs.notificationComp.open('Error','Something went wrong. Please try again later.');
+                this.$parent.$refs.notificationComp.open('Error','The server encountered an error. Please try again.');
                 console.error(error);
             }
         },
