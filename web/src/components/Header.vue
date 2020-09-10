@@ -197,8 +197,6 @@ export default {
                 }
             }
 
-            console.log(this.bestAudioID);
-
             return formats;
         }
     }
