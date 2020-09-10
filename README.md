@@ -38,7 +38,7 @@ npm install
 cd youtube-dl-front/
 git pull
 ```
-Terminate the current node process and restart with
+Terminate the current node process and restart with the following commands.
 
 ```bash
 cd youtube-dl-front/server
