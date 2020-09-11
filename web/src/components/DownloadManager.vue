@@ -1,7 +1,7 @@
 <template>
     <div id="download-manager" :class="windowClass">
         <div class="d-flex justify-content-between">
-            <h5 @click="toggle" style="cursor:pointer;">Downloads</h5>
+            <h5 style="cursor:pointer;">Downloads</h5>
             <img @click="deleteList" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
         </div>
         <ul v-if="data">
@@ -32,21 +32,10 @@ export default {
         return({
             data: null,
             fetchInterval: null,
-            windowClass: "open-manager",
-            open: true
+            windowClass: "close-manager",
         });
     },
     methods:{
-        toggle(){
-            if(this.open){
-                this.windowClass = "close-manager"
-                this.open = false;
-            }
-            else{
-                this.windowClass = "open-manager";
-                this.open = true;
-            }
-        },
         deleteList(){
             console.log(this);
             axios.delete('/download/status')
@@ -58,8 +47,8 @@ export default {
         }
     },
     watch:{
-        isDownloading(){
-            if(this.isDownloading){
+        isDownloading(newVal){
+            if(newVal){
                 this.fetchInterval = setInterval(() => {
                     axios.get(`/download/status`)
                     .then(result => result.data)
@@ -72,10 +61,19 @@ export default {
                     });
                 }, 1000)
             }
+        },
+        open(newVal){
+            if(newVal){
+                this.windowClass = "close-manager"
+            }
+            else{
+                this.windowClass = "open-manager";
+            }
         }
     },
     props:{
-        isDownloading: Boolean
+        isDownloading: Boolean,
+        open: Boolean
     },
     components:{
         DownloadItem
@@ -85,25 +83,24 @@ export default {
 <style scoped>
 @keyframes close{
     0%{
-        height: auto;
+        left: 10px;
     }
     50%{
-
+        left: 35px;
     }
     100%{
-        width: 175px;
-        height: 45px;
+        left: -1000;
     }
 }
-@keyframes open{
+@keyframes openm{
     0%{
-        width: 175px;
-        height: 45px;
+        left: -1000;
     }
     50%{
-        width: 230px;
+        left: 35px;
     }
     100%{
+        left: 10px;
         height: auto;
     }
 }
@@ -111,7 +108,7 @@ export default {
     animation: close forwards 0.5s;
 }
 .open-manager{
-    animation: open forwards 0.5s;
+    animation: openm forwards 0.5s;
 }
 .icon
 {
@@ -126,13 +123,15 @@ export default {
     overflow: hidden;
     position: fixed;
     top: 10px;
-    left: 10px;
-    width: 175px;
+    left: -1000px;
+    width: 230px;
     height: 45px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     background: #FFF;
     padding: 10px;
     border-radius: 10px;
+    z-index: 990;
+
 }
 #download-manager:hover{
     width: 300px;
