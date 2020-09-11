@@ -50,7 +50,7 @@ export default {
     z-index: 999;
     padding: 5px 10px;
     right: -500px;
-    top: 20px;
+    top: 60px;
     background: #fff;
     cursor: pointer;
     display: none;
