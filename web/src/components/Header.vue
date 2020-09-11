@@ -1,6 +1,6 @@
 <template>
     <div class="d-flex justify-content-center">
-        <DownloadManager :isDownloading="this.isDownloading" />
+
         <div style="position: relative;">
             <input placeholder="Paste video url" @blur="getInfo" v-model="options.url" type="url" />
             <button v-if="canDownload" @click="sendUrl">Download</button>
@@ -8,11 +8,10 @@
             <button v-else-if="!canDownload" disabled>Download</button>
         </div>
         <div>
-            <button @click="selectAudioOnly" v-if="options.audioOnly && !isDownloading" class="audio-button" id="audio-button-active">Audio</button>
-            <button v-else-if="options.audioOnly || !options.audioOnly && isDownloading" id="audio-disabled-button" disabled class="audio-button">Audio</button>
-            <button @click="selectAudioOnly" v-if="!options.audioOnly && !isDownloading" class="audio-button">Audio</button>
+            <button @click="selectAudioOnly" v-if="options.audioOnly" class="audio-button" id="audio-button-active">Audio</button>
+            <button @click="selectAudioOnly" v-if="!options.audioOnly" class="audio-button">Audio</button>
         </div>
-        <select v-if="info && !isDownloading && !options.audioOnly" v-model="options.videoQuality">
+        <select v-if="info && !options.audioOnly" v-model="options.videoQuality">
             <option disabled selected>Quality</option>
             <option
             v-for="(format, index) in getFormats"
@@ -27,13 +26,9 @@
 </template>
 <script>
 import axios from 'axios';
-import DownloadManager from '@/components/DownloadManager.vue'
 
 export default {
     name: "Header",
-    components:{
-        DownloadManager
-    },
     data: () => {
         return({
             info: null,
@@ -45,14 +40,13 @@ export default {
                 audioOnly: false,
                 target: ""
             },
-            isDownloading: false,
             canDownload: false,
             isFetchingInfo: false
         });
     },
     methods: {
         sendUrl(){
-            this.isDownloading = true;
+            this.$store.commit('isDownloading', true);
 
             if(this.options.videoQuality === "Quality")
                 this.options.videoQuality = "";
@@ -65,14 +59,14 @@ export default {
             axios.post(`/download`,this.options)
             .then(result => {
                 this.$emit('clicked', result.data);
-                this.isDownloading = false;
+                this.$store.commit('isDownloading', false);
                 this.info = null;
                 this.canDownload = false;
                 this.options.url = "";
             })
             .catch(error => {
                 this.canDownload = true;
-                this.isDownloading = false;
+                this.$store.commit('isDownloading', false);
                 this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
                 console.error(error);
             });
