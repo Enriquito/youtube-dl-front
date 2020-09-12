@@ -1,13 +1,13 @@
 <template>
-    <div class="d-flex justify-content-center" id="settings-holder">
+    <div v-if="open" class="d-flex justify-content-center" id="settings-holder">
         <div class="align-self-center d-flex" id="settings-window">
-            <div>
+            <div v-if="settings">
                 <h3>Settings</h3>
                 <div>
                     <label for="port-number">Application port</label>
-                    <input id="port-number" type="number" min="1" max="65535" />
+                    <input id="port-number" v-model="settings.port" type="number" min="1" max="65535" />
                     <label for="default-quality">Default quality</label>
-                    <select id="default-quality">
+                    <select v-model="settings.defaultQuality" id="default-quality">
                         <option>144p</option>
                         <option>240p</option>
                         <option>360p</option>
@@ -17,16 +17,73 @@
                     </select>
                 </div>
                 <div id="settings-buttons" class="d-flex justify-content-space-between">
-                    <button @click="() => {this.$emit('close')}">Close</button>
-                    <button>Save</button>
+                    <button @click="close">Close</button>
+                    <button @click="update">Save</button>
+                </div>
+            </div>
+            <div v-else>
+                <h3>Settings</h3>
+                <div>
+                    <div style="width: 150px" class="skeleton-label"></div>
+                    <div style="width: 250px" class="skeleton-input"></div>
+                    <div style="width: 110px" class="skeleton-label"></div>
+                    <div style="width: 200px" class="skeleton-input"></div>
+                    <div style="width: 150px" class="skeleton-label"></div>
+                    <div style="width: 250px" class="skeleton-input"></div>
+                </div>
+                <div id="settings-buttons" class="d-flex justify-content-space-between">
+                    <button @click="close">Close</button>
+                    <button disabled>Save</button>
                 </div>
             </div>
         </div>
     </div>
 </template>
 <script>
+import axios from 'axios'
+
 export default {
     name: "SettingsWindow",
+    created(){
+        axios.get(`/settings`)
+        .then(result => result.data)
+        .then(result => {
+            this.settings = result.settings;
+        })
+        .catch(error => {
+            console.error(error);
+            this.$parent.$refs.notificationComp.open('Error','The server encountered an error while fetshing the settings data. Please try again.');
+        });
+    },
+    data(){
+        return({
+            settings: null
+        });
+    },
+    methods:{
+        update(){
+            axios.put('/settings',{
+                port: this.settings.port,
+                defaultQuality: this.settings.defaultQuality
+            })
+            .then(result => {
+                console.log(result);
+                if(result.status === 200)
+                    this.$parent.$refs.notificationComp.open('Information',
+                    'Settings has been updated');
+            })
+            .catch(error => {
+                console.error(error);
+                this.$parent.$refs.notificationComp.open('Error','The server encountered an error while updating the settings. Please try again.');
+            });
+        },
+        close(){
+            this.$store.commit('settingsOpen', false);
+        }
+    },
+    props:{
+        open: Boolean
+    }
 }
 </script>
 <style scoped>
@@ -69,5 +126,35 @@ export default {
 {
     display:block;
     width: 200px;
+}
+#settings-window div div .skeleton-label
+{
+    height: 10px;
+    background: grey;
+    border-radius: 10px;
+    width: 150px;
+    margin-bottom: 10px;
+    animation: skeleton-loader 2s infinite;
+}
+#settings-window div div .skeleton-input
+{
+    height: 15px;
+    background: grey;
+    border-radius: 10px;
+    width: 250px;
+    margin-bottom: 10px;
+    animation-delay: 1s;
+    animation: skeleton-loader 2s infinite;
+}
+@keyframes skeleton-loader {
+    0%{
+        background: grey;
+    }
+    50%{
+        background: rgb(168, 168, 168);
+    }
+    100%{
+        background: grey;
+    }
 }
 </style>
