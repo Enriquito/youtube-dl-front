@@ -44,22 +44,6 @@ import axios from 'axios'
 
 export default {
     name: "SettingsWindow",
-    created(){
-        axios.get(`/settings`)
-        .then(result => result.data)
-        .then(result => {
-            this.settings = result.settings;
-        })
-        .catch(error => {
-            console.error(error);
-            this.$parent.$refs.notificationComp.open('Error','The server encountered an error while fetshing the settings data. Please try again.');
-        });
-    },
-    data(){
-        return({
-            settings: null
-        });
-    },
     methods:{
         update(){
             axios.put('/settings',{
@@ -82,7 +66,8 @@ export default {
         }
     },
     props:{
-        open: Boolean
+        open: Boolean,
+        settings: Object
     }
 }
 </script>
