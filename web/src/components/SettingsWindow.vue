@@ -51,7 +51,6 @@ export default {
                 defaultQuality: this.settings.defaultQuality
             })
             .then(result => {
-                console.log(result);
                 if(result.status === 200)
                     this.$parent.$refs.notificationComp.open('Information',
                     'Settings has been updated');
