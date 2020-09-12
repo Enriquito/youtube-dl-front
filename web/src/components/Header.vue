@@ -73,15 +73,19 @@ export default {
                 let round = 0;
 
                 do{
-                    this.getFormats.forEach(el => {
-                        console.log(qualities[(qualityIndex - round)]);
+                    for(let i = 0; i < this.getFormats.length; i++){
+                        const el = this.getFormats[i];
+
                         if(el.formatNote === qualities[(qualityIndex - round)]){
                             this.options.videoQuality = el.formatId;
+                            console.log(`Downloading quality: ${el.formatNote}`);
                             SearchingDefaultQuality = false;
+                            break;
                         }
-                    });
-
-                    if(round < this.getFormats.length)
+                    }
+                    if(!SearchingDefaultQuality)
+                        break;
+                    else if(round < this.getFormats.length)
                         round++;
                     else
                         break;
