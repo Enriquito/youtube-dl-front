@@ -1,5 +1,1 @@
-{
-    "settings" : {
-        "port" : 3000
-    }
-}
+{"settings":{"port":3000,"defaultQuality":"720p"}}
