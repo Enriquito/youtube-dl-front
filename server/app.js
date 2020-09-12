@@ -116,7 +116,7 @@ app.post('/download', async (req,res) => {
             playlist: req.body.playlist
         });
 
-        if(downloadResult.success){
+        if(downloadResult.success === true){
             const database = await readDatabase();
 
             if(req.body.playlist){
@@ -130,14 +130,14 @@ app.post('/download', async (req,res) => {
 
                 res.status(201).send(downloadResult.info);
             }
-            else{
-                res.sendStatus(409);
-            }
+        }
+        else{
+            res.sendStatus(409);
         }
     }
     catch(error){
         console.log(error);
-        res.json(error);
+        res.send(500).json(error);
     }
 });
 
