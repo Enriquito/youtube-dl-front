@@ -116,7 +116,7 @@ const download = (url, options) => {
 
             db.videos.forEach(el => {
                 if(el.fileName === fname){
-                    reject({success: false, error: 'Item already excists'});
+                    resolve({success: false, error: 'Item already excists'});
                     double = true;
                 }
             });
