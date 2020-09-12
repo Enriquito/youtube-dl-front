@@ -212,6 +212,7 @@ app.get('/settings', async (req,res) => {
         res.sendStatus(500);
     }
 });
+
 app.put('/settings', async (req,res) => {
     try{
         const data = await readSettings();
