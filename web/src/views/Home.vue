@@ -1,7 +1,7 @@
 <template>
   <main>
     <Notification ref="notificationComp" />
-    <SettingsWindow @close="closeSettings" v-if="settingsOpen" />
+    <SettingsWindow :open="this.$store.state.settingsOpen" />
     <DownloadManager :open="this.$store.state.downloadOpen" :isDownloading="this.$store.state.isDownloading" />
     <header>
       <div class="d-flex justify-content-center">
@@ -11,7 +11,7 @@
         <SearchBar v-if="searching" @searchResults="searchResults" :items="items" />
         <Header v-else @clicked="getNewItem" />
         <div class="d-flex align-self-center" style="position: absolute;right: 15px;cursor: pointer;">
-          <svg @click="() => {this.settingsOpen = true}" class="icon gear-icon" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+          <svg @click="toggleSettingsOpen" class="icon gear-icon" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
               width="512px" height="512px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
             <g>
               <path d="M411.1,256c0-23.9,14.8-42.8,36.9-55.8c-4-13.3-9.3-26.2-15.8-38.2c-24.9,6.5-45-3.2-62-20.2c-16.9-16.9-22.1-37.1-15.6-62
@@ -75,8 +75,6 @@ export default {
       itemsToShow : [],
       searching: false,
       gearIcon: require('@/assets/icons/gear.svg'),
-      settingsOpen: false,
-      downloadsOpen: false
     })
   },
   methods:{
@@ -86,8 +84,11 @@ export default {
       else
         this.$store.commit('downloadOpen', true);
     },
-    closeSettings(){
-      this.settingsOpen = false;
+    toggleSettingsOpen(){
+      if(this.$store.state.settingsOpen)
+        this.$store.commit('settingsOpen', false);
+      else
+        this.$store.commit('settingsOpen', true);
     },
     searchResults(results){
       if(results === null || results === undefined)
