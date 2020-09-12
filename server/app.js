@@ -130,6 +130,9 @@ app.post('/download', async (req,res) => {
 
                 res.status(201).send(downloadResult.info);
             }
+            else{
+                res.sendStatus(409);
+            }
         }
     }
     catch(error){
