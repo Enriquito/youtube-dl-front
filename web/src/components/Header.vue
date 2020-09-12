@@ -1,6 +1,5 @@
 <template>
     <div class="d-flex justify-content-center">
-
         <div style="position: relative;">
             <input placeholder="Paste video url" @blur="getInfo" v-model="options.url" type="url" />
             <button v-if="canDownload" @click="sendUrl">Download</button>
@@ -44,12 +43,59 @@ export default {
             isFetchingInfo: false
         });
     },
+    props:{
+        defaultQuality: String
+    },
     methods: {
         sendUrl(){
             this.$store.commit('isDownloading', true);
 
-            if(this.options.videoQuality === "Quality")
-                this.options.videoQuality = "";
+            let SearchingDefaultQuality = true;
+
+            if(this.options.videoQuality === "Quality"){
+                const qualities = [
+                    '144p',
+                    '240p',
+                    '360p',
+                    '480p',
+                    '720p',
+                    '1080p'
+                ];
+
+                let qualityIndex;
+
+                qualities.forEach((el, i) => {
+                    if(qualities[i] === this.defaultQuality){
+                        qualityIndex = i;
+                    }
+                });
+
+                let round = 0;
+
+                do{
+                    this.getFormats.forEach(el => {
+                        console.log(qualities[(qualityIndex - round)]);
+                        if(el.formatNote === qualities[(qualityIndex - round)]){
+                            this.options.videoQuality = el.formatId;
+                            SearchingDefaultQuality = false;
+                        }
+                    });
+
+                    if(round < this.getFormats.length)
+                        round++;
+                    else
+                        break;
+                }
+                while(SearchingDefaultQuality)
+
+                if(SearchingDefaultQuality){
+                    this.$parent.$refs.notificationComp.open('Error','Error finding default quality. Please select manualy.');
+                    this.$store.commit('isDownloading', false);
+                    return;
+                }
+                else
+                    console.info(`Downloading quality: ${qualities[(qualityIndex - round)]}`)
+            }
 
             if(!this.options.audioOnly && !this.options.playlist)
                 this.options.soundQuality = this.getBestAudio;
