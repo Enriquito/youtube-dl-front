@@ -61,6 +61,8 @@ export default {
                     });
                 }, 1000)
             }
+            else
+                clearInterval(this.fetchInterval);
         },
         open(newVal){
             if(newVal){
