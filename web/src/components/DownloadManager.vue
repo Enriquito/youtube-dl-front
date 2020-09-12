@@ -47,6 +47,7 @@ export default {
     },
     watch:{
         isDownloading(newVal){
+            console.log(newVal);
             if(newVal){
                 this.fetchInterval = setInterval(() => {
                     axios.get(`/download/status`)
