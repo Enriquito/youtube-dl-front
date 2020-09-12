@@ -96,6 +96,34 @@ const download = (url, options) => {
             let fileInfo = await getInfo(url,options);
             let db = await readDatabase();
 
+            if(options.audioOnly)
+                    extention = "mp3";
+            else
+                extention = fileInfo.ext;
+
+            let fname = `${fileInfo.title}.${extention}`;
+            let formatNote;
+
+            fileInfo.formats.forEach(format => {
+                if(format.format_id === options.format)
+                    formatNote = format.format_note;
+            })
+
+            if(formatNote !== undefined)
+                fname = `${fileInfo.title} - ${formatNote}.${extention}`
+
+            let double = false;
+
+            db.videos.forEach(el => {
+                if(el.fileName === fname){
+                    reject({success: false, error: 'Item already excists'});
+                    double = true;
+                }
+            });
+
+            if(double)
+                return;
+
             db.downloads.forEach((el,index) => {
                 if(el.id === fileInfo.id){
                     db.downloads.splice(index,1);
@@ -136,7 +164,7 @@ const download = (url, options) => {
 
             download.on('close', () => {
 
-                let formatNote;
+
 
                 db.downloads.forEach(async (download) => {
                     if(download.id === fileInfo.id){
@@ -144,22 +172,6 @@ const download = (url, options) => {
                         await writeDatabase(db);
                     }
                 });
-
-
-                if(options.audioOnly)
-                    extention = "mp3";
-                else
-                    extention = fileInfo.ext;
-
-                fileInfo.formats.forEach(format => {
-                    if(format.format_id === options.format)
-                        formatNote = format.format_note;
-                })
-
-                let fname = `${fileInfo.title}.${extention}`;
-
-                if(formatNote !== undefined)
-                    fname = `${fileInfo.title} - ${formatNote}.${extention}`
 
                 while(fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
                     fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${fname}`);
