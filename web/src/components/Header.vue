@@ -104,8 +104,6 @@ export default {
             if(!this.options.audioOnly && !this.options.playlist)
                 this.options.soundQuality = this.getBestAudio;
 
-            this.$parent.$refs.notificationComp.open('Information','Download has been started');
-
             axios.post(`/download`,this.options)
             .then(result => {
                 this.$emit('clicked', result.data);
@@ -115,9 +113,15 @@ export default {
                 this.options.url = "";
             })
             .catch(error => {
+                if(error.response.status === 409){
+                    this.$parent.$refs.notificationComp.open('Warning','Video with same quality already in libary.');
+                }
+                else{
+                    this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
+                }
                 this.canDownload = true;
                 this.$store.commit('isDownloading', false);
-                this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
+
                 console.error(error);
             });
         },
