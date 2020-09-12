@@ -96,6 +96,12 @@ const download = (url, options) => {
             let fileInfo = await getInfo(url,options);
             let db = await readDatabase();
 
+            db.downloads.forEach((el,index) => {
+                if(el.id === fileInfo.id){
+                    db.downloads.splice(index,1);
+                }
+            });
+
             db.downloads.push({
                 id: fileInfo.id,
                 title: fileInfo.title,
@@ -129,7 +135,7 @@ const download = (url, options) => {
             });
 
             download.on('close', () => {
-                
+
                 let formatNote;
 
                 db.downloads.forEach(async (download) => {
@@ -138,6 +144,7 @@ const download = (url, options) => {
                         await writeDatabase(db);
                     }
                 });
+
 
                 if(options.audioOnly)
                     extention = "mp3";
@@ -150,15 +157,12 @@ const download = (url, options) => {
                 })
 
                 let fname = `${fileInfo.title}.${extention}`;
-                let newfname = `${fileInfo.title}.${extention}`;
 
-                if(formatNote !== undefined){
+                if(formatNote !== undefined)
                     fname = `${fileInfo.title} - ${formatNote}.${extention}`
-                    newfname = `${fileInfo.title} - ${formatNote}.${extention}`
-                }
 
                 while(fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
-                    fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${newfname}`);
+                    fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${fname}`);
                 }
 
                 const info = {
