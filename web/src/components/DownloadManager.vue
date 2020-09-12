@@ -37,11 +37,10 @@ export default {
     },
     methods:{
         deleteList(){
-            console.log(this);
             axios.delete('/download/status')
             .then(result => {
                 if(result.status === 200){
-                    this.$parent.$parent.$refs.notificationComp.open('Success','Download list has been deleted.');
+                    this.$parent.$refs.notificationComp.open('Success','Download list has been deleted.');
                 }
             })
         }
