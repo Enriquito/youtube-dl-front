@@ -4,7 +4,12 @@ const path = require('path');
 let express = require('express');
 const {download, getDownloadInfo} = require('./youtubedl')
 const bodyParser = require('body-parser');
-const {writeDatabase, readDatabase} = require('./helpers');
+const {
+    writeDatabase,
+    readDatabase,
+    readSettings,
+    writeSettings
+    } = require('./helpers');
 const app = express();
 const port = settings.port;
 
@@ -111,7 +116,7 @@ app.post('/download', async (req,res) => {
             playlist: req.body.playlist
         });
 
-        if(downloadResult.success){
+        if(downloadResult.success === true){
             const database = await readDatabase();
 
             if(req.body.playlist){
@@ -119,7 +124,6 @@ app.post('/download', async (req,res) => {
                 res.status(201).send(downloadResult.info);
             }
             else if(database != null){
-
                 database.videos.push(downloadResult.info);
 
                 await writeDatabase(database);
@@ -127,12 +131,28 @@ app.post('/download', async (req,res) => {
                 res.status(201).send(downloadResult.info);
             }
         }
+        else{
+            res.sendStatus(409);
+        }
     }
     catch(error){
         console.log(error);
-        res.json(error);
+        res.send(500).json(error);
     }
 });
+
+app.get('/download/status', async (req,res) => {
+    try{
+        const database = await readDatabase();
+
+        res.json(database.downloads);
+    }
+    catch(error){
+        console.log(error);
+        res.sendStatus(500);
+    }
+
+})
 
 app.delete('/items/:id', async (req,res) => {
     try{
@@ -163,6 +183,74 @@ app.delete('/items/:id', async (req,res) => {
     }
 
 
+});
+
+app.delete('/download/status', async (req,res) => {
+    try{
+        const database = await readDatabase();
+
+        database.downloads = [];
+
+        await writeDatabase(database);
+
+        res.sendStatus(200);
+    }
+    catch(error){
+        console.log(error);
+        res.sendStatus(500);
+    }
+});
+
+app.get('/settings', async (req,res) => {
+    try{
+        const data = await readSettings();
+
+        if(data === null)
+            res.send(400).json({error: 'Error fetching settings'});
+
+        res.json(data);
+    }
+    catch(error){
+        console.log(error);
+        res.sendStatus(500);
+    }
+});
+
+app.put('/settings', async (req,res) => {
+    try{
+        const data = await readSettings();
+
+        if(data === null){
+            res.send(400).json({error: 'Error fetching settings'});
+            return;
+        }
+
+        const updates = Object.keys(req.body);
+        let changesMade = false;
+
+        updates.forEach((el, index) => {
+            console.log(el);
+            switch(el){
+                case 'port':
+                    data.settings.port = req.body.port;
+                    changesMade = true;
+                    break;
+                case 'defaultQuality':
+                    data.settings.defaultQuality = req.body.defaultQuality;
+                    changesMade = true;
+                    break;
+            }
+        })
+
+        if(changesMade)
+            await writeSettings(data);
+
+        res.json(data);
+    }
+    catch(error){
+        console.log(error);
+        res.sendStatus(500);
+    }
 });
 
 const http = require('http');

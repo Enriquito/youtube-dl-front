@@ -2,17 +2,15 @@
     <div class="d-flex justify-content-center">
         <div style="position: relative;">
             <input placeholder="Paste video url" @blur="getInfo" v-model="options.url" type="url" />
-            <button v-if="isDownloading && canDownload" disabled>Downloading..</button>
-            <button v-else-if="canDownload && !isDownloading" @click="sendUrl">Download</button>
+            <button v-if="canDownload" @click="sendUrl">Download</button>
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
             <button v-else-if="!canDownload" disabled>Download</button>
         </div>
         <div>
-            <button @click="selectAudioOnly" v-if="options.audioOnly && !isDownloading" class="audio-button" id="audio-button-active">Audio</button>
-            <button v-else-if="options.audioOnly || !options.audioOnly && isDownloading" id="audio-disabled-button" disabled class="audio-button">Audio</button>
-            <button @click="selectAudioOnly" v-if="!options.audioOnly && !isDownloading" class="audio-button">Audio</button>
+            <button @click="selectAudioOnly" v-if="options.audioOnly" class="audio-button" id="audio-button-active">Audio</button>
+            <button @click="selectAudioOnly" v-if="!options.audioOnly" class="audio-button">Audio</button>
         </div>
-        <select v-if="info && !isDownloading && !options.audioOnly" v-model="options.videoQuality">
+        <select v-if="info && !options.audioOnly" v-model="options.videoQuality">
             <option disabled selected>Quality</option>
             <option
             v-for="(format, index) in getFormats"
@@ -41,17 +39,67 @@ export default {
                 audioOnly: false,
                 target: ""
             },
-            isDownloading: false,
             canDownload: false,
-            isFetchingInfo: false,
+            isFetchingInfo: false
         });
+    },
+    props:{
+        defaultQuality: String
     },
     methods: {
         sendUrl(){
-            this.isDownloading = true;
+            this.$store.commit('isDownloading', true);
 
-            if(this.options.videoQuality === "Quality")
-                this.options.videoQuality = "";
+            let SearchingDefaultQuality = true;
+
+            if(this.options.videoQuality === "Quality"){
+                const qualities = [
+                    '144p',
+                    '240p',
+                    '360p',
+                    '480p',
+                    '720p',
+                    '1080p'
+                ];
+
+                let qualityIndex;
+
+                qualities.forEach((el, i) => {
+                    if(qualities[i] === this.defaultQuality){
+                        qualityIndex = i;
+                    }
+                });
+
+                let round = 0;
+
+                do{
+                    for(let i = 0; i < this.getFormats.length; i++){
+                        const el = this.getFormats[i];
+
+                        if(el.formatNote === qualities[(qualityIndex - round)]){
+                            this.options.videoQuality = el.formatId;
+                            console.log(`Downloading quality: ${el.formatNote}`);
+                            SearchingDefaultQuality = false;
+                            break;
+                        }
+                    }
+                    if(!SearchingDefaultQuality)
+                        break;
+                    else if(round < this.getFormats.length)
+                        round++;
+                    else
+                        break;
+                }
+                while(SearchingDefaultQuality)
+
+                if(SearchingDefaultQuality){
+                    this.$parent.$refs.notificationComp.open('Error','Error finding default quality. Please select manualy.');
+                    this.$store.commit('isDownloading', false);
+                    return;
+                }
+                else
+                    console.info(`Downloading quality: ${qualities[(qualityIndex - round)]}`)
+            }
 
             if(!this.options.audioOnly && !this.options.playlist)
                 this.options.soundQuality = this.getBestAudio;
@@ -59,21 +107,25 @@ export default {
             axios.post(`/download`,this.options)
             .then(result => {
                 this.$emit('clicked', result.data);
-                this.isDownloading = false;
+                this.$store.commit('isDownloading', false);
                 this.info = null;
                 this.canDownload = false;
                 this.options.url = "";
             })
             .catch(error => {
+                if(error.response.status === 409){
+                    this.$parent.$refs.notificationComp.open('Warning','Video with same quality already in libary.');
+                }
+                else{
+                    this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
+                }
                 this.canDownload = true;
-                this.isDownloading = false;
-                this.$parent.$refs.notificationComp.open('Error','Could not download video info. Please try again later.');
+                this.$store.commit('isDownloading', false);
+
                 console.error(error);
             });
         },
         getInfo(){
-            // this.$parent.$refs.notificationComp.open('testa','hoihoi');
-
             if(this.options.url === ""){
                 this.canDownload = false;
                 return;
@@ -117,12 +169,12 @@ export default {
                     console.error(error);
                     this.canDownload = false;
                     this.isFetchingInfo = false;
-                    this.$parent.$refs.notificationComp.open('Error','Could not fetch video info. Check your url and try again.');
+                    this.$parent.$refs.notificationComp.open('Error','The server could not fetch the video info. Check your url and try again.');
                 });
             }
             catch(error){
                 this.isFetchingInfo = false;
-                this.$parent.$refs.notificationComp.open('Error','Something went wrong. Please try again later.');
+                this.$parent.$refs.notificationComp.open('Error','The server encountered an error. Please try again.');
                 console.error(error);
             }
         },
@@ -192,8 +244,6 @@ export default {
                     }
                 }
             }
-
-            console.log(this.bestAudioID);
 
             return formats;
         }

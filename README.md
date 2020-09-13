@@ -2,7 +2,7 @@
 
 Youtube-dl-front is a frontend for youtube-dl. With the easy interface you can download and view videos in seconds.
 
-![Download page](https://github.com/Enriquito/youtube-dl-front/blob/master/screenshots/Download.png?raw=true)
+![Download page](https://raw.githubusercontent.com/Enriquito/youtube-dl-front/master/screenshots/home.png)
 ![Download page](https://github.com/Enriquito/youtube-dl-front/blob/master/screenshots/view.png?raw=true)
 
 ## Linux / MacOS Installation
@@ -31,6 +31,18 @@ Clone youtube-dl-front and install the dependencies.
 git clone https://github.com/Enriquito/youtube-dl-front
 cd youtube-dl-front/server
 npm install
+```
+
+## Linux / MacOS Update
+```bash
+cd youtube-dl-front/
+git pull
+```
+Terminate the current node process and restart with the following commands.
+
+```bash
+cd youtube-dl-front/server
+node app.js
 ```
 
 ## Usage
