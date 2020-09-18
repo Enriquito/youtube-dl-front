@@ -136,19 +136,19 @@ export default {
             }
 
             try{
-                let id = null;
+                // let id = null;
 
-                if(RegExp(/((https:\/\/www\.reddit.com))/).test(this.options.url)){
-                    this.options.target = "Reddit";
-                    alert('s');
-                    return;
-                }
-                else if(RegExp(/v=([0-9a-zA-Z$-_.+!*'(),]+)/).test(this.options.url)){
-                    this.options.target = "Youtube";
-                    this.isFetchingInfo = true;
-                    const reg = this.options.url.match(/v=([0-9a-zA-Z$-_.+!*'(),]+)/);
-                    id = reg[1];
-                }
+                // if(RegExp(/((https:\/\/www\.reddit.com))/).test(this.options.url)){
+                //     this.options.target = "Reddit";
+                //     alert('s');
+                //     return;
+                // }
+                // else if(RegExp(/v=([0-9a-zA-Z$-_.+!*'(),]+)/).test(this.options.url)){
+                //     this.options.target = "Youtube";
+                //     this.isFetchingInfo = true;
+                //     const reg = this.options.url.match(/v=([0-9a-zA-Z$-_.+!*'(),]+)/);
+                //     id = reg[1];
+                // }
 
                 if(this.isPlaylist(this.options.url)){
                     this.options.playlist = true;
@@ -158,7 +158,7 @@ export default {
                     return;
                 }
 
-                axios.get(`/info/${id}`)
+                axios.post(`/info/`,{url: this.options.url})
                 .then(result => result.data)
                 .then(result => {
                     this.info = result;
