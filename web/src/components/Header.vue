@@ -105,11 +105,13 @@ export default {
 
             axios.post(`/download`,this.options)
             .then(result => {
+                this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has finished downloading.`);
                 this.$emit('clicked', result.data);
                 this.$store.commit('isDownloading', false);
                 this.info = null;
                 this.canDownload = false;
                 this.options.url = "";
+
             })
             .catch(error => {
                 if(error.response.status === 400){
