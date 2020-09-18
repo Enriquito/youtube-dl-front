@@ -32,7 +32,7 @@ export default {
         return({
             data: null,
             fetchInterval: null,
-            windowClass: "close-manager",
+            windowClass: "",
         });
     },
     methods:{
