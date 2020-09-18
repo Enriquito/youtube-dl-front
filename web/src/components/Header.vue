@@ -52,7 +52,7 @@ export default {
 
             let SearchingDefaultQuality = true;
 
-            if(this.options.videoQuality === "Quality"){
+            if(this.options.videoQuality === "Quality" && !this.options.audioOnly){
                 const qualities = [
                     '144p',
                     '240p',
@@ -99,6 +99,9 @@ export default {
                 }
                 else
                     console.info(`Downloading quality: ${qualities[(qualityIndex - round)]}`)
+            }
+            else if(this.options.audioOnly){
+                alert('Audio')
             }
 
             if(!this.options.audioOnly && !this.options.playlist)
