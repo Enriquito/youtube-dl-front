@@ -40,6 +40,7 @@ export default {
             axios.delete('/download/status')
             .then(result => {
                 if(result.status === 200){
+                    this.data = [];
                     this.$parent.$refs.notificationComp.open('Success','Download list has been deleted.');
                 }
             })
@@ -47,7 +48,6 @@ export default {
     },
     watch:{
         isDownloading(newVal){
-            console.log(newVal);
             if(newVal){
                 this.fetchInterval = setInterval(() => {
                     axios.get(`/download/status`)
