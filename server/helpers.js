@@ -3,7 +3,7 @@ const fs = require('fs')
 module.exports.writeDatabase = (data) => {
     return new Promise((resolve,reject) => {
         try{
-            fs.writeFile(`../config/database.json`, JSON.stringify(data), (error) => {
+            fs.writeFile(`../config/database.json`, JSON.stringify(data, null, "\t"), (error) => {
                 if(error){
                     reject(error);
                     return;
@@ -40,7 +40,7 @@ module.exports.readDatabase = () => {
 module.exports.writeSettings = (data) => {
     return new Promise((resolve,reject) => {
         try{
-            fs.writeFile(`./settings.json`, JSON.stringify(data), (error) => {
+            fs.writeFile(`./settings.json`, JSON.stringify(data, null, "\t"), (error) => {
                 if(error){
                     reject(error);
                     return;
