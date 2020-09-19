@@ -49,10 +49,12 @@ export default {
     methods: {
         sendUrl(){
             this.$store.commit('isDownloading', true);
-
             let SearchingDefaultQuality = true;
 
-            if(this.options.videoQuality === "Quality"){
+            if(this.info !== null)
+                this.options.soundQuality = this.getBestAudio;
+
+            if(this.options.videoQuality === "Quality" && !this.options.audioOnly){
                 const qualities = [
                     '144p',
                     '240p',
@@ -101,20 +103,19 @@ export default {
                     console.info(`Downloading quality: ${qualities[(qualityIndex - round)]}`)
             }
 
-            if(!this.options.audioOnly && !this.options.playlist)
-                this.options.soundQuality = this.getBestAudio;
-
             axios.post(`/download`,this.options)
             .then(result => {
+                this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has finished downloading.`);
                 this.$emit('clicked', result.data);
                 this.$store.commit('isDownloading', false);
                 this.info = null;
                 this.canDownload = false;
                 this.options.url = "";
+
             })
             .catch(error => {
-                if(error.response.status === 409){
-                    this.$parent.$refs.notificationComp.open('Warning','Video with same quality already in libary.');
+                if(error.response.status === 400){
+                    this.$parent.$refs.notificationComp.open('Warning','Video already in libary.');
                 }
                 else{
                     this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
@@ -126,6 +127,8 @@ export default {
             });
         },
         getInfo(){
+            this.isFetchingInfo = true;
+
             if(this.options.url === ""){
                 this.canDownload = false;
                 return;
@@ -136,20 +139,6 @@ export default {
             }
 
             try{
-                let id = null;
-
-                if(RegExp(/((https:\/\/www\.reddit.com))/).test(this.options.url)){
-                    this.options.target = "Reddit";
-                    alert('s');
-                    return;
-                }
-                else if(RegExp(/v=([0-9a-zA-Z$-_.+!*'(),]+)/).test(this.options.url)){
-                    this.options.target = "Youtube";
-                    this.isFetchingInfo = true;
-                    const reg = this.options.url.match(/v=([0-9a-zA-Z$-_.+!*'(),]+)/);
-                    id = reg[1];
-                }
-
                 if(this.isPlaylist(this.options.url)){
                     this.options.playlist = true;
                     this.canDownload = false;
@@ -158,7 +147,7 @@ export default {
                     return;
                 }
 
-                axios.get(`/info/${id}`)
+                axios.post(`/info/`,{url: this.options.url})
                 .then(result => result.data)
                 .then(result => {
                     this.info = result;
@@ -174,7 +163,7 @@ export default {
             }
             catch(error){
                 this.isFetchingInfo = false;
-                this.$parent.$refs.notificationComp.open('Error','The server encountered an error. Please try again.');
+                this.$parent.$refs.notificationComp.open('Error','The server encountered an error.');
                 console.error(error);
             }
         },
@@ -192,12 +181,17 @@ export default {
         getBestAudio(){
             let bestAudioID = null;
 
-            for(let i = 0; i < this.info.formats.length; i++){
-                const format = this.info.formats[i];
+            try{
+                for(let i = 0; i < this.info.formats.length; i++){
+                    const format = this.info.formats[i];
 
-                if(format.ext == "m4a"){
-                    bestAudioID = format.format_id;
+                    if(format.ext == "m4a"){
+                        bestAudioID = format.format_id;
+                    }
                 }
+            }
+            catch(error){
+                console.log(error);
             }
 
             return bestAudioID;
@@ -205,44 +199,49 @@ export default {
         getFormats(){
             const formats = [];
 
-            for(let i = 0; i < this.info.formats.length; i++){
-                const format = this.info.formats[i];
+            try{
+                for(let i = 0; i < this.info.formats.length; i++){
+                    const format = this.info.formats[i];
 
-                if(format.ext == "mp4"){
+                    if(format.ext == "mp4"){
 
-                    if(formats.length === 0){
-                        formats.push({
-                            formatNote: format.format_note,
-                            tbr: format.tbr,
-                            formatId: format.format_id
-                        });
-                    }
+                        if(formats.length === 0){
+                            formats.push({
+                                formatNote: format.format_note,
+                                tbr: format.tbr,
+                                formatId: format.format_id
+                            });
+                        }
 
-                    let found = false;
+                        let found = false;
 
-                    for(let x = 0; x < formats.length; x++){
-                        if(format.format_note === formats[x].formatNote){
-                            found = true;
+                        for(let x = 0; x < formats.length; x++){
+                            if(format.format_note === formats[x].formatNote){
+                                found = true;
 
-                            if(format.tbr > formats[x].tbr){
-                                formats.splice(x, 1, {
-                                    formatNote: format.format_note,
-                                    tbr: format.tbr,
-                                    formatId: format.format_id
-                                });
+                                if(format.tbr > formats[x].tbr){
+                                    formats.splice(x, 1, {
+                                        formatNote: format.format_note,
+                                        tbr: format.tbr,
+                                        formatId: format.format_id
+                                    });
+                                }
+                                break;
                             }
-                            break;
+                        }
+
+                        if(!found){
+                            formats.push({
+                                formatNote: format.format_note,
+                                tbr: format.tbr,
+                                formatId: format.format_id
+                            });
                         }
                     }
-
-                    if(!found){
-                        formats.push({
-                            formatNote: format.format_note,
-                            tbr: format.tbr,
-                            formatId: format.format_id
-                        });
-                    }
                 }
+            }
+            catch(error){
+                console.log(error);
             }
 
             return formats;
