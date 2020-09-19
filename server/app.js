@@ -2,7 +2,6 @@ const {settings} = require('./settings.json');
 const fs = require('fs')
 const path = require('path');
 let express = require('express');
-const {download, getDownloadInfo} = require('./youtubedl')
 const bodyParser = require('body-parser');
 const Media = require('./media');
 const {
