@@ -3,7 +3,7 @@ const fs = require('fs')
 module.exports.writeDatabase = (data) => {
     return new Promise((resolve,reject) => {
         try{
-            fs.writeFile(`../config/database.json`, JSON.stringify(data, null, "\t"), (error) => {
+            fs.writeFile(`../config/database.json`, JSON.stringify(data), (error) => {
                 if(error){
                     reject(error);
                     return;
@@ -72,4 +72,15 @@ module.exports.readSettings = () => {
             reject(error);
         }
     });
+}
+
+module.exports.isDownloading = (downloads) => {
+    let isDownloading = false;
+
+    downloads.forEach(download => {
+        if(download.status === 'downloading')
+            isDownloading = true;
+    });
+
+    return isDownloading;
 }
