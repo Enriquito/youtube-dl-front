@@ -9,10 +9,34 @@ class Media
         this.options = options;
         this.info = null;
     }
+
+    AddToQueue(){
+        return new Promise(async (resolve, reject) => {
+            try{
+                let db = await readDatabase();
+                let fileInfo = await this.GetInfo(this.url,this.options);
+
+                db.downloads.push({
+                    id: fileInfo.id,
+                    title: fileInfo.title,
+                    status: 'queued',
+                    downloadStatus: 0,
+                    url: this.url,
+                    options: this.options
+                });
+
+                await writeDatabase(db);
+
+                resolve({success: true, messages: `Download '${fileInfo.title} has been added to the queue.`, code: 3});
+            }
+            catch(error){
+                reject({success: false, messages: error, code: 100});
+            }
+        });
+    }
     GetDownloadOptions(){
         let directory = './videos';
         const args = [];
-        console.log(this.options);
 
         if(this.options.directory)
             directory = this.directory;
@@ -83,7 +107,7 @@ class Media
 
                 exec(command, (error, stdout, stderr) => {
                     if(error){
-                        reject(error);
+                        reject({success: false, messages: error, code: 100});
                         return;
                     }
 
@@ -92,7 +116,7 @@ class Media
             }
             catch(error){
                 console.log(error);
-                reject(error);
+                reject({success: false, messages: error, code: 100});
             }
         });
     }
@@ -123,7 +147,7 @@ class Media
                 console.log(`Download started for file: ${this.url}`);
 
                 const downloadOptions = this.GetDownloadOptions();
-                console.log(downloadOptions);
+                // console.log(downloadOptions);
                 let fileInfo = await this.GetInfo(this.url,this.options);
                 let formatNote = this.GetFormat(fileInfo);
                 let db = await readDatabase();
@@ -151,6 +175,8 @@ class Media
                     }
                 });
 
+                let downloadsIndex = (db.downloads.length);
+
                 db.downloads.push({
                     id: fileInfo.id,
                     title: fileInfo.title,
@@ -165,31 +191,22 @@ class Media
                 let status;
                 let oldStatus = 0;
 
-                download.stdout.on('data',data => {
+                download.stdout.on('data',async data => {
                     const downloadStatus = data.toString().match(/(\d+)\.(\d)%/);
 
                     if(downloadStatus != null){
                         if(parseInt(downloadStatus[1]) > oldStatus){
+                            db = await readDatabase();
                             status = parseInt(downloadStatus[1]);
                             oldStatus = status;
 
-                            db.downloads.forEach(async (download) => {
-                                if(download.id === fileInfo.id){
-                                    download.downloadStatus = status;
-                                    await writeDatabase(db);
-                                }
-                            });
+                            db.downloads[downloadsIndex].downloadStatus = status;
+                            await writeDatabase(db);
                         }
                     }
                 });
 
-                download.on('close', () => {
-                    db.downloads.forEach(async (download) => {
-                        if(download.id === fileInfo.id){
-                            download.status = 'finished';
-                            await writeDatabase(db);
-                        }
-                    });
+                download.on('close', async () => {
 
                     while(fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
                         fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${fname}`);
@@ -216,14 +233,28 @@ class Media
                         fileName: fname
                     }
 
+                    db.downloads[downloadsIndex].status = 'finished';
+                    db.videos.push(this.info);
+                    await writeDatabase(db);
+
                     console.log('Download complete');
+
+                    let haveQueueItems = false;
+
+                    db.downloads.forEach(el => {
+                        if(el.status === 'queued')
+                            haveQueueItems = true;
+                    });
+
+                    if(haveQueueItems)
+                        spawn('node', ['downloadQueueItems.js']);
 
                     resolve({success: true, messages: "Download successfull", code: 1});
                 });
             }
             catch(error){
                 console.log(error);
-                reject(error);
+                reject({success: false, messages: error, code: 100});
                 return;
             }
         });
