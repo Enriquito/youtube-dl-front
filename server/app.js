@@ -136,7 +136,7 @@ app.post('/download', async (req,res) => {
             return;
         }
         else{
-            await media.Download();
+            media.Download();
             res.sendStatus(201);
         }
 
