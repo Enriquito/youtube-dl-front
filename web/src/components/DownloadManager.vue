@@ -4,11 +4,19 @@
             <h5 style="cursor:pointer;">Downloads</h5>
             <img @click="deleteList" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
         </div>
-        <ul v-if="data">
-            <li v-for="(item, index) in data" :key="item.id">
-                <DownloadItem v-if="index <= 10 " :title="item.title" :progressValue="item.downloadStatus" />
-            </li>
-        </ul>
+        <div>
+            <ul v-if="data">
+                <DownloadItem v-if="DownloadingItem" :title="DownloadingItem.title" :progressValue="DownloadingItem.downloadStatus" />
+            </ul>
+        </div>
+        <div>
+            <strong>Queued</strong>
+            <ul v-if="data">
+                <li v-for="(item, index) in queueItems" :key="item.id">
+                    <DownloadItem v-if="index <= 10 " :title="item.title" :progressValue="item.downloadStatus" />
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 <script>
@@ -68,6 +76,30 @@ export default {
     },
     components:{
         DownloadItem
+    },
+    computed:{
+        queueItems(){
+            const q = [];
+
+            this.data.forEach(el => {
+                if(el.status === 'queued'){
+                    q.push(el);
+                }
+            });
+
+            return q;
+        },
+        DownloadingItem(){
+            let item;
+
+            this.data.forEach(el => {
+                if(el.status === 'downloading'){
+                    item = el;
+                }
+            });
+
+            return item;
+        }
     }
 }
 </script>
