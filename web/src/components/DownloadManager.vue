@@ -18,21 +18,13 @@ import DownloadItem from '@/components/DownloadItem.vue'
 export default {
     name: "DownloadManager",
     created(){
-        axios.get(`/download/status`)
-        .then(result => result.data)
-        .then(result => {
-            this.data = result;
-            this.data.reverse();
-        })
-        .catch(error => {
-            console.error(error);
-        });
+        this.getStatusData();
     },
     data(){
         return({
             data: null,
             fetchInterval: null,
-            windowClass: "",
+            windowClass: ""
         });
     },
     methods:{
@@ -44,37 +36,34 @@ export default {
                     this.$parent.$refs.notificationComp.open('Success','Download list has been deleted.');
                 }
             })
+        },
+        getStatusData(){
+            axios.get(`/download/status`)
+            .then(result => result.data)
+            .then(result => {
+                this.data = result;
+                this.data.reverse();
+            })
+            .catch(error => {
+                console.error(error);
+            });
         }
     },
     watch:{
-        isDownloading(newVal){
-            if(newVal){
-                this.fetchInterval = setInterval(() => {
-                    axios.get(`/download/status`)
-                    .then(result => result.data)
-                    .then(result => {
-                        this.data = result;
-                        this.data.reverse();
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
-                }, 1000)
-            }
-            else
-                clearInterval(this.fetchInterval);
-        },
         open(newVal){
             if(newVal){
                 this.windowClass = "close-manager"
+                clearInterval(this.fetchInterval);
             }
             else{
+                 this.fetchInterval = setInterval(() => {
+                     this.getStatusData();
+                }, 1000);
                 this.windowClass = "open-manager";
             }
         }
     },
     props:{
-        isDownloading: Boolean,
         open: Boolean
     },
     components:{
