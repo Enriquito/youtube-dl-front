@@ -2,7 +2,7 @@
   <main>
     <Notification ref="notificationComp" />
     <SettingsWindow :settings="settings" :open="this.$store.state.settingsOpen" />
-    <DownloadManager :open="this.$store.state.downloadOpen" :isDownloading="this.$store.state.isDownloading" />
+    <DownloadManager :open="this.$store.state.downloadOpen" />
     <header v-if="settings">
       <div class="d-flex justify-content-center">
         <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/close.svg" alt="search" />
