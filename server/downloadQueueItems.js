@@ -5,10 +5,6 @@ const {readDatabase} = require('./helpers');
 const downloadQueueItems = async () =>{
     const db = await readDatabase();
 
-    db.downloads.forEach(async el => {
-
-    });
-
     for(let i = 0; i < db.downloads.length; i++){
         let el = db.downloads[i];
 
