@@ -8,7 +8,8 @@ const {
     writeDatabase,
     readDatabase,
     readSettings,
-    writeSettings
+    writeSettings,
+    isDownloading
     } = require('./helpers');
 const app = express();
 const port = settings.port;
@@ -109,6 +110,7 @@ app.get('/file/:id', async (req,res) => {
 
 app.post('/download', async (req,res) => {
     try{
+        const database = await readDatabase();
         const media = new Media();
 
         media.url = req.body.url;
@@ -119,25 +121,43 @@ app.post('/download', async (req,res) => {
             playlist: req.body.playlist
         };
 
-        const result = await media.Download();
+        if(isDownloading(database.downloads)){
+            const result = await media.AddToQueue();
+            let returnCode = 201;
 
-        switch(result.code){
-            case 1:
-                const database = await readDatabase();
-                database.videos.push(media.info);
-                await writeDatabase(database);
+            if(!result)
+                returnCode = 500;
 
-                res.status(201).send(media.info);
-                break;
-            case 2:
-                res.status(400).json({
-                    code: 2,
-                    messages: "Item already excists"
-                });
-                break;
-            default:
-                res.sendStatus(500);
+            res.status(returnCode).json({
+                code: result.code,
+                messages: result.messages
+            });
+
+            return;
         }
+        else{
+            await media.Download();
+            res.sendStatus(201);
+        }
+
+
+
+        // switch(result.code){
+        //     case 1:
+        //         database.videos.push(media.info);
+        //         await writeDatabase(database);
+
+        //         res.status(201).send(media.info);
+        //         break;
+        //     case 2:
+        //         res.status(400).json({
+        //             code: 2,
+        //             messages: "Item already excists"
+        //         });
+        //         break;
+        //     default:
+        //         res.sendStatus(500);
+        // }
     }
     catch(error){
         console.log(error);
