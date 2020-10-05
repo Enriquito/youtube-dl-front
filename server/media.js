@@ -7,7 +7,8 @@ class Media
     constructor(url, options){
         this.url = url;
         this.options = options;
-        this.info = null;
+        this.info;
+        this.socket;
     }
 
     AddToQueue(){
@@ -147,7 +148,6 @@ class Media
                 console.log(`Download started for file: ${this.url}`);
 
                 const downloadOptions = this.GetDownloadOptions();
-                // console.log(downloadOptions);
                 let fileInfo = await this.GetInfo(this.url,this.options);
                 let formatNote = this.GetFormat(fileInfo);
                 let db = await readDatabase();
@@ -184,6 +184,8 @@ class Media
                     downloadStatus: 0
                 });
 
+                this.socket.emit('downloadStatus', db);
+
                 await writeDatabase(db);
 
                 const download = spawn('youtube-dl', downloadOptions.args);
@@ -200,8 +202,9 @@ class Media
                             status = parseInt(downloadStatus[1]);
                             oldStatus = status;
 
+
                             db.downloads[downloadsIndex].downloadStatus = status;
-                            await writeDatabase(db);
+                            this.socket.emit('downloadStatus', db);
                         }
                     }
                 });
@@ -236,6 +239,8 @@ class Media
                     db.downloads[downloadsIndex].status = 'finished';
                     db.videos.push(this.info);
                     await writeDatabase(db);
+                    this.socket.emit('downloadStatus', db);
+                    this.socket.emit('getVideos', db.videos);
 
                     console.log('Download complete');
 
@@ -247,7 +252,7 @@ class Media
                     });
 
                     if(haveQueueItems)
-                        spawn('node', ['downloadQueueItems.js']);
+                        this.downloadQueueItems();
 
                     resolve({success: true, messages: "Download successfull", code: 1});
                 });
@@ -258,6 +263,23 @@ class Media
                 return;
             }
         });
+    }
+    async downloadQueueItems(){
+        const db = await readDatabase();
+
+        for(let i = 0; i < db.downloads.length; i++){
+            let el = db.downloads[i];
+
+            if(el.status === 'queued'){
+                const media = new Media();
+                media.socket = this.socket;
+
+                media.url = el.url;
+                media.options = el.options;
+
+                await media.Download();
+            }
+        }
     }
 }
 
