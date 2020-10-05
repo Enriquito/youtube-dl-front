@@ -21,6 +21,32 @@ app.use('/', express.static(path.join(__dirname,"../web/dist/")));
 app.use('/media/videos', express.static('videos'));
 app.use('/media/music', express.static('music'));
 
+const http = require('http');
+const httpServer = http.createServer(app);
+const io = require('socket.io')(httpServer);
+let testSocket;
+
+io.on('connection', (socket) => {
+    console.log('a user connected');
+    testSocket = socket;
+    let database = null;
+
+    socket.on('getVideos', async () => {
+        try{
+            database = await readDatabase();
+            console.log('ontvangen');
+
+            if(database != null)
+                socket.emit('getVideos', database.videos);
+
+        }
+        catch(error){
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+});
+
 app.get('/', function(req,res) {
     res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });
 });
@@ -112,6 +138,7 @@ app.post('/download', async (req,res) => {
     try{
         const database = await readDatabase();
         const media = new Media();
+        media.socket = testSocket;
 
         media.url = req.body.url;
         media.options = {
@@ -276,9 +303,6 @@ app.put('/settings', async (req,res) => {
         res.sendStatus(500);
     }
 });
-
-const http = require('http');
-const httpServer = http.createServer(app);
 
 httpServer.listen(port, () => {
     console.log(`HTTP Server running on port ${port}`);
