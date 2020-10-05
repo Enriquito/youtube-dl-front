@@ -5,17 +5,18 @@
             <img @click="deleteList" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
         </div>
         <div>
-            <ul v-if="data">
-                <DownloadItem v-if="DownloadingItem" :title="DownloadingItem.title" :progressValue="DownloadingItem.downloadStatus" />
+            <ul v-if="isDownloading">
+                <DownloadItem :showProgress="true" :title="item.title" :progressValue="item.downloadStatus" />
             </ul>
         </div>
         <div>
             <strong>Queued</strong>
-            <ul v-if="data">
+            <ul v-if="queueItems.length > 0">
                 <li v-for="(item, index) in queueItems" :key="item.id">
-                    <DownloadItem v-if="index <= 10 " :title="item.title" :progressValue="item.downloadStatus" />
+                    <DownloadItem v-if="index <= 10" :showProgress="false" :title="item.title" :progressValue="item.downloadStatus" />
                 </li>
             </ul>
+            <small style="display: block; text-align:center;" v-else>No items in queue</small>
         </div>
     </div>
 </template>
@@ -25,13 +26,32 @@ import DownloadItem from '@/components/DownloadItem.vue'
 
 export default {
     name: "DownloadManager",
-    created(){
-        this.getStatusData();
+    sockets: {
+        connect() {
+            this.$socket.emit('downloadStatus');
+
+            this.sockets.subscribe('downloadStatus', (data) => {
+                this.data = data.downloads;
+                this.checkIfFinished();
+
+                if(data === null)
+                    return;
+
+                data.downloads.forEach(el => {
+                    if(el.status === 'downloading'){
+                        this.isDownloading = true;
+                        this.item = el;
+                    }
+                });
+            });
+        }
     },
     data(){
         return({
-            data: null,
+            data: [],
             fetchInterval: null,
+            isDownloading: false,
+            item: null,
             windowClass: ""
         });
     },
@@ -45,15 +65,15 @@ export default {
                 }
             })
         },
-        getStatusData(){
-            axios.get(`/download/status`)
-            .then(result => result.data)
-            .then(result => {
-                this.data = result;
-                this.data.reverse();
-            })
-            .catch(error => {
-                console.error(error);
+        checkIfFinished(){
+            if(this.item === null)
+                return;
+
+            this.data.forEach(el => {
+                if(this.item.id === el.id && el.status === 'finished'){
+                    this.isDownloading = false;
+                    this.$store.commit('isDownloading', false);
+                }
             });
         }
     },
@@ -61,12 +81,8 @@ export default {
         open(newVal){
             if(newVal){
                 this.windowClass = "close-manager"
-                clearInterval(this.fetchInterval);
             }
             else{
-                 this.fetchInterval = setInterval(() => {
-                     this.getStatusData();
-                }, 1000);
                 this.windowClass = "open-manager";
             }
         }
@@ -89,16 +105,16 @@ export default {
 
             return q;
         },
-        DownloadingItem(){
-            let item;
+        finishedItems(){
+            const q = [];
 
             this.data.forEach(el => {
-                if(el.status === 'downloading'){
-                    item = el;
+                if(el.status === 'finished'){
+                    q.push(el);
                 }
             });
 
-            return item;
+            return q;
         }
     }
 }

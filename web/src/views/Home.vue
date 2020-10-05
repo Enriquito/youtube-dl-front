@@ -36,7 +36,7 @@
     <div style="margin-top: 75px">
       <div class="d-flex justify-content-center">
         <div v-if="items.length > 0">
-          <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in itemsToShow" :key="index" />
+          <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in items" :key="index" />
         </div>
         <div v-else>
           <h2>No downloads here</h2>
@@ -59,8 +59,9 @@ import axios from 'axios';
 export default {
   name: 'Home',
   mounted(){
-    this.loadData();
+    this.reloadVideos();
     this.loadSettings();
+    this.$socket.emit('getVideos');
   },
   components: {
     Header,
@@ -73,11 +74,16 @@ export default {
   data(){
     return({
       items: [],
-      itemsToShow : [],
+      // itemsToShow : [],
       searching: false,
       gearIcon: require('@/assets/icons/gear.svg'),
       settings: null
     })
+  },
+  sockets:{
+    connect() {
+      this.reloadVideos();
+    }
   },
   methods:{
     toggleDownloadsOpen(){
@@ -92,11 +98,11 @@ export default {
       else
         this.$store.commit('settingsOpen', true);
     },
-    searchResults(results){
-      if(results === null || results === undefined)
-        this.itemsToShow = this.items;
-      else
-        this.itemsToShow = results;
+    searchResults(){
+      // if(results === null || results === undefined)
+      //   this.itemsToShow = this.items;
+      // else
+      //   this.itemsToShow = results;
     },
     getNewItem(){
       this.loadData();
@@ -129,6 +135,12 @@ export default {
         if(el.id === value.id)
           this.items.splice(index, 1);
       });
+    },
+    reloadVideos(){
+      this.sockets.subscribe('getVideos', (data) => {
+        this.items = data;
+        this.items.reverse();
+      });
     }
   },
   computed:{
@@ -137,6 +149,9 @@ export default {
         return 'icon download-icon download-ani';
       else
         return 'icon download-icon';
+    },
+    itemsToShow(){
+      return []
     }
   }
 }
