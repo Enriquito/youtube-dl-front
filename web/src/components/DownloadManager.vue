@@ -10,13 +10,11 @@
             </ul>
         </div>
         <div>
-            <strong>Queued</strong>
             <ul v-if="queueItems.length > 0">
                 <li v-for="(item, index) in queueItems" :key="item.id">
                     <DownloadItem v-if="index <= 10" :showProgress="false" :title="item.title" :progressValue="item.downloadStatus" />
                 </li>
             </ul>
-            <small style="display: block; text-align:center;" v-else>No items in queue</small>
         </div>
     </div>
 </template>
