@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
             console.log('ontvangen');
 
             if(database != null)
-                socket.emit('getVideos', database.videos);
+                socket.emit('getVideos', database.videos.reverse());
 
         }
         catch(error){

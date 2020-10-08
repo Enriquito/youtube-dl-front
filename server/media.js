@@ -240,7 +240,7 @@ class Media
                     db.videos.push(this.info);
                     await writeDatabase(db);
                     this.socket.emit('downloadStatus', db);
-                    this.socket.emit('getVideos', db.videos);
+                    this.socket.emit('getVideos', db.videos.reverse());
 
                     console.log('Download complete');
 
