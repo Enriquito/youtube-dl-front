@@ -6,7 +6,9 @@
         </div>
         <div>
             <ul v-if="isDownloading">
-                <DownloadItem :showProgress="true" :title="item.title" :progressValue="item.downloadStatus" />
+                <li>
+                    <DownloadItem :showProgress="true" :title="item.title" :progressValue="item.downloadStatus" />
+                </li>
             </ul>
         </div>
         <div>
