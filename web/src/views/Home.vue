@@ -9,7 +9,7 @@
         <img v-else @click="() => {searching = true}" class="header-icon" src="@/assets/icons/search.svg" alt="search" />
 
         <SearchBar v-if="searching" @searchResults="searchResults" :items="items" />
-        <Header v-else @clicked="getNewItem" :defaultQuality="settings.defaultQuality" />
+        <Header v-else :defaultQuality="settings.defaultQuality" />
         <div class="d-flex align-self-center" style="position: absolute;right: 15px;cursor: pointer;">
           <svg @click="toggleSettingsOpen" class="icon gear-icon" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
               width="512px" height="512px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
@@ -61,7 +61,6 @@ export default {
   mounted(){
     this.reloadVideos();
     this.loadSettings();
-    this.$socket.emit('getVideos');
   },
   components: {
     Header,
@@ -79,11 +78,6 @@ export default {
       gearIcon: require('@/assets/icons/gear.svg'),
       settings: null
     })
-  },
-  sockets:{
-    connect() {
-      this.reloadVideos();
-    }
   },
   methods:{
     toggleDownloadsOpen(){
@@ -104,14 +98,11 @@ export default {
       // else
       //   this.itemsToShow = results;
     },
-    getNewItem(){
-      this.loadData();
-    },
     loadData(){
       axios.get('/items')
       .then(result => {
         this.items = result.data.videos;
-        this.items.reverse();
+        // this.items.reverse();
         this.searchResults(null);
       })
       .catch(error => {
@@ -139,8 +130,9 @@ export default {
     reloadVideos(){
       this.sockets.subscribe('getVideos', (data) => {
         this.items = data;
-        this.items.reverse();
+        // this.items.reverse();
       });
+      this.$socket.emit('getVideos');
     }
   },
   computed:{
@@ -150,9 +142,6 @@ export default {
       else
         return 'icon download-icon';
     },
-    itemsToShow(){
-      return []
-    }
   }
 }
 </script>
