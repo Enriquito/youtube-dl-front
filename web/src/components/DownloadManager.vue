@@ -183,5 +183,6 @@ export default {
 }
 #download-manager ul li{
     list-style-type: none;
+    padding: 10px 0;
 }
 </style>
