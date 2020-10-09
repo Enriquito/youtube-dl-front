@@ -105,9 +105,6 @@ export default {
 
             axios.post(`/download`,this.options)
             .then(result => {
-                // this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has finished downloading.`);
-                this.$emit('clicked', result.data);
-
                 switch(result.data.code){
                     case 3:
                         this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has been added to the queue.`);
