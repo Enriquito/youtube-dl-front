@@ -2,14 +2,14 @@
   <main>
     <Notification ref="notificationComp" />
     <SettingsWindow :settings="settings" :open="this.$store.state.settingsOpen" />
-    <DownloadManager :open="this.$store.state.downloadOpen" :isDownloading="this.$store.state.isDownloading" />
+    <DownloadManager :open="this.$store.state.downloadOpen" />
     <header v-if="settings">
       <div class="d-flex justify-content-center">
         <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/close.svg" alt="search" />
         <img v-else @click="() => {searching = true}" class="header-icon" src="@/assets/icons/search.svg" alt="search" />
 
         <SearchBar v-if="searching" @searchResults="searchResults" :items="items" />
-        <Header v-else @clicked="getNewItem" :defaultQuality="settings.defaultQuality" />
+        <Header v-else :defaultQuality="settings.defaultQuality" />
         <div class="d-flex align-self-center" style="position: absolute;right: 15px;cursor: pointer;">
           <svg @click="toggleSettingsOpen" class="icon gear-icon" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
               width="512px" height="512px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
@@ -36,7 +36,7 @@
     <div style="margin-top: 75px">
       <div class="d-flex justify-content-center">
         <div v-if="items.length > 0">
-          <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in itemsToShow" :key="index" />
+          <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in items" :key="index" />
         </div>
         <div v-else>
           <h2>No downloads here</h2>
@@ -59,7 +59,7 @@ import axios from 'axios';
 export default {
   name: 'Home',
   mounted(){
-    this.loadData();
+    this.reloadVideos();
     this.loadSettings();
   },
   components: {
@@ -73,7 +73,7 @@ export default {
   data(){
     return({
       items: [],
-      itemsToShow : [],
+      // itemsToShow : [],
       searching: false,
       gearIcon: require('@/assets/icons/gear.svg'),
       settings: null
@@ -92,20 +92,17 @@ export default {
       else
         this.$store.commit('settingsOpen', true);
     },
-    searchResults(results){
-      if(results === null || results === undefined)
-        this.itemsToShow = this.items;
-      else
-        this.itemsToShow = results;
-    },
-    getNewItem(){
-      this.loadData();
+    searchResults(){
+      // if(results === null || results === undefined)
+      //   this.itemsToShow = this.items;
+      // else
+      //   this.itemsToShow = results;
     },
     loadData(){
       axios.get('/items')
       .then(result => {
         this.items = result.data.videos;
-        this.items.reverse();
+        // this.items.reverse();
         this.searchResults(null);
       })
       .catch(error => {
@@ -129,6 +126,13 @@ export default {
         if(el.id === value.id)
           this.items.splice(index, 1);
       });
+    },
+    reloadVideos(){
+      this.sockets.subscribe('getVideos', (data) => {
+        this.items = data;
+        // this.items.reverse();
+      });
+      this.$socket.emit('getVideos');
     }
   },
   computed:{
@@ -137,7 +141,7 @@ export default {
         return 'icon download-icon download-ani';
       else
         return 'icon download-icon';
-    }
+    },
   }
 }
 </script>

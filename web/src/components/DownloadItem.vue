@@ -1,7 +1,7 @@
 <template>
     <div class="item-holder">
         <span>{{title}}</span>
-        <progress :value="progressValue" max="100"></progress>
+        <progress v-if="showProgress" :value="progressValue" max="100"></progress>
     </div>
 </template>
 <script>
@@ -9,7 +9,8 @@ export default {
     name: "DownloadManager",
     props:{
         title: String,
-        progressValue: Number
+        progressValue: Number,
+        showProgress: Boolean
     }
 }
 </script>

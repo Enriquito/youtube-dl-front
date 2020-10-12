@@ -105,23 +105,28 @@ export default {
 
             axios.post(`/download`,this.options)
             .then(result => {
-                this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has finished downloading.`);
-                this.$emit('clicked', result.data);
-                this.$store.commit('isDownloading', false);
+                switch(result.data.code){
+                    case 3:
+                        this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has been added to the queue.`);
+                    break;
+                    case 2:
+                        this.$parent.$refs.notificationComp.open('Warning','Video already in libary.');
+                    break;
+                    case 1:
+                        this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has finished downloading.`);
+                    break;
+                }
+
+                // this.$store.commit('isDownloading', false);
                 this.info = null;
-                this.canDownload = false;
+                this.canDownload = true;
                 this.options.url = "";
 
             })
             .catch(error => {
-                if(error.response.status === 400){
-                    this.$parent.$refs.notificationComp.open('Warning','Video already in libary.');
-                }
-                else{
-                    this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
-                }
+                this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
                 this.canDownload = true;
-                this.$store.commit('isDownloading', false);
+                // this.$store.commit('isDownloading', false);
 
                 console.error(error);
             });

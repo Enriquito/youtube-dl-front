@@ -27,10 +27,13 @@ module.exports.readDatabase = () => {
                     return;
                 }
 
-                resolve(JSON.parse(data));
+                const jsonResult = JSON.parse(data);
+
+                resolve(jsonResult);
           });
         }
         catch(error){
+            console.log('ERROR Hier');
             console.log(error);
             reject(error);
         }
@@ -72,4 +75,15 @@ module.exports.readSettings = () => {
             reject(error);
         }
     });
+}
+
+module.exports.isDownloading = (downloads) => {
+    let isDownloading = false;
+
+    downloads.forEach(download => {
+        if(download.status === 'downloading')
+            isDownloading = true;
+    });
+
+    return isDownloading;
 }

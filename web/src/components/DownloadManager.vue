@@ -4,11 +4,20 @@
             <h5 style="cursor:pointer;">Downloads</h5>
             <img @click="deleteList" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
         </div>
-        <ul v-if="data">
-            <li v-for="(item, index) in data" :key="item.id">
-                <DownloadItem v-if="index <= 10 " :title="item.title" :progressValue="item.downloadStatus" />
-            </li>
-        </ul>
+        <div>
+            <ul v-if="isDownloading">
+                <li>
+                    <DownloadItem :showProgress="true" :title="item.title" :progressValue="item.downloadStatus" />
+                </li>
+            </ul>
+        </div>
+        <div>
+            <ul v-if="queueItems.length > 0">
+                <li v-for="(item, index) in queueItems" :key="item.id">
+                    <DownloadItem v-if="index <= 10" :showProgress="false" :title="item.title" :progressValue="item.downloadStatus" />
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 <script>
@@ -17,22 +26,33 @@ import DownloadItem from '@/components/DownloadItem.vue'
 
 export default {
     name: "DownloadManager",
-    created(){
-        axios.get(`/download/status`)
-        .then(result => result.data)
-        .then(result => {
-            this.data = result;
-            this.data.reverse();
-        })
-        .catch(error => {
-            console.error(error);
-        });
+    sockets: {
+        connect() {
+            this.$socket.emit('downloadStatus');
+
+            this.sockets.subscribe('downloadStatus', (data) => {
+                this.data = data.downloads;
+                this.checkIfFinished();
+
+                if(data === null)
+                    return;
+
+                data.downloads.forEach(el => {
+                    if(el.status === 'downloading'){
+                        this.isDownloading = true;
+                        this.item = el;
+                    }
+                });
+            });
+        }
     },
     data(){
         return({
-            data: null,
+            data: [],
             fetchInterval: null,
-            windowClass: "",
+            isDownloading: false,
+            item: null,
+            windowClass: ""
         });
     },
     methods:{
@@ -44,26 +64,20 @@ export default {
                     this.$parent.$refs.notificationComp.open('Success','Download list has been deleted.');
                 }
             })
+        },
+        checkIfFinished(){
+            if(this.item === null)
+                return;
+
+            this.data.forEach(el => {
+                if(this.item.id === el.id && el.status === 'finished'){
+                    this.isDownloading = false;
+                    this.$store.commit('isDownloading', false);
+                }
+            });
         }
     },
     watch:{
-        isDownloading(newVal){
-            if(newVal){
-                this.fetchInterval = setInterval(() => {
-                    axios.get(`/download/status`)
-                    .then(result => result.data)
-                    .then(result => {
-                        this.data = result;
-                        this.data.reverse();
-                    })
-                    .catch(error => {
-                        console.error(error);
-                    });
-                }, 1000)
-            }
-            else
-                clearInterval(this.fetchInterval);
-        },
         open(newVal){
             if(newVal){
                 this.windowClass = "close-manager"
@@ -74,11 +88,34 @@ export default {
         }
     },
     props:{
-        isDownloading: Boolean,
         open: Boolean
     },
     components:{
         DownloadItem
+    },
+    computed:{
+        queueItems(){
+            const q = [];
+
+            this.data.forEach(el => {
+                if(el.status === 'queued'){
+                    q.push(el);
+                }
+            });
+
+            return q;
+        },
+        finishedItems(){
+            const q = [];
+
+            this.data.forEach(el => {
+                if(el.status === 'finished'){
+                    q.push(el);
+                }
+            });
+
+            return q;
+        }
     }
 }
 </script>
@@ -148,5 +185,6 @@ export default {
 }
 #download-manager ul li{
     list-style-type: none;
+    padding: 10px 0;
 }
 </style>

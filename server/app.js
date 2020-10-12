@@ -8,7 +8,8 @@ const {
     writeDatabase,
     readDatabase,
     readSettings,
-    writeSettings
+    writeSettings,
+    isDownloading
     } = require('./helpers');
 const app = express();
 const port = settings.port;
@@ -19,6 +20,32 @@ app.use(bodyParser.json());
 app.use('/', express.static(path.join(__dirname,"../web/dist/")));
 app.use('/media/videos', express.static('videos'));
 app.use('/media/music', express.static('music'));
+
+const http = require('http');
+const httpServer = http.createServer(app);
+const io = require('socket.io')(httpServer);
+let testSocket;
+
+io.on('connection', (socket) => {
+    console.log('a user connected');
+    testSocket = socket;
+    let database = null;
+
+    socket.on('getVideos', async () => {
+        try{
+            database = await readDatabase();
+            console.log('ontvangen');
+
+            if(database != null)
+                socket.emit('getVideos', database.videos.reverse());
+
+        }
+        catch(error){
+            console.log(error);
+            res.sendStatus(500);
+        }
+    })
+});
 
 app.get('/', function(req,res) {
     res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });
@@ -109,7 +136,9 @@ app.get('/file/:id', async (req,res) => {
 
 app.post('/download', async (req,res) => {
     try{
+        const database = await readDatabase();
         const media = new Media();
+        media.socket = testSocket;
 
         media.url = req.body.url;
         media.options = {
@@ -119,25 +148,43 @@ app.post('/download', async (req,res) => {
             playlist: req.body.playlist
         };
 
-        const result = await media.Download();
+        if(isDownloading(database.downloads)){
+            const result = await media.AddToQueue();
+            let returnCode = 201;
 
-        switch(result.code){
-            case 1:
-                const database = await readDatabase();
-                database.videos.push(media.info);
-                await writeDatabase(database);
+            if(!result)
+                returnCode = 500;
 
-                res.status(201).send(media.info);
-                break;
-            case 2:
-                res.status(400).json({
-                    code: 2,
-                    messages: "Item already excists"
-                });
-                break;
-            default:
-                res.sendStatus(500);
+            res.status(returnCode).json({
+                code: result.code,
+                messages: result.messages
+            });
+
+            return;
         }
+        else{
+            media.Download();
+            res.sendStatus(200);
+        }
+
+
+
+        // switch(result.code){
+        //     case 1:
+        //         database.videos.push(media.info);
+        //         await writeDatabase(database);
+
+        //         res.status(201).send(media.info);
+        //         break;
+        //     case 2:
+        //         res.status(400).json({
+        //             code: 2,
+        //             messages: "Item already excists"
+        //         });
+        //         break;
+        //     default:
+        //         res.sendStatus(500);
+        // }
     }
     catch(error){
         console.log(error);
@@ -256,9 +303,6 @@ app.put('/settings', async (req,res) => {
         res.sendStatus(500);
     }
 });
-
-const http = require('http');
-const httpServer = http.createServer(app);
 
 httpServer.listen(port, () => {
     console.log(`HTTP Server running on port ${port}`);
