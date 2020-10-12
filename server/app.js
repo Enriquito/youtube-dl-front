@@ -27,14 +27,12 @@ const io = require('socket.io')(httpServer);
 let testSocket;
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
     testSocket = socket;
     let database = null;
 
     socket.on('getVideos', async () => {
         try{
             database = await readDatabase();
-            console.log('ontvangen');
 
             if(database != null)
                 socket.emit('getVideos', database.videos.reverse());
