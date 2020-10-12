@@ -5,7 +5,8 @@ import router from './router'
 import VueSocketIO from 'vue-socket.io'
 
 Vue.use(new VueSocketIO({
-  debug: true
+  debug: process.env.NODE_ENV === 'development' ? true : false,
+  connection: '/',
 }))
 
 Vue.config.productionTip = false
