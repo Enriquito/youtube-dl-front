@@ -50,7 +50,7 @@ class Media
             args.push('mp3');
 
         //     command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' --extract-audio --audio-format mp3 --yes-playlist --ignore-errors --print-json ${url}`;
-        }
+        } 
         else if(this.options.audioOnly && !this.options.playlist){
             directory = './music';
             args.push('--extract-audio');
@@ -159,10 +159,12 @@ class Media
                 else
                     extention = fileInfo.ext;
 
+                fname = `${fileInfo.title.replace(/[:<>"/|?*]/, '')}`;
+
                 if(formatNote !== undefined)
-                    fname = `${fileInfo.title} - ${formatNote}.${extention}`;
+                    fname = `${fname} - ${formatNote}.${extention}`;
                 else
-                    fname = `${fileInfo.title}.${extention}`;
+                    fname = `${fname}.${extention}`;
 
                 if(this.CheckForDoubleVideos(db, fname)){
                     resolve({success: false, messages: 'Item already excists', code: 2});
