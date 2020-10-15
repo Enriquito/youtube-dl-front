@@ -39,7 +39,7 @@
           <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in items" :key="index" />
         </div>
         <div v-else>
-          <!-- <h2>No downloads here</h2> -->
+          <h2>No downloads here</h2>
           <VideoSkeletonLoader />
         </div>
       </div>
