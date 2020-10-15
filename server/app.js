@@ -24,15 +24,13 @@ app.use('/media/music', express.static('music'));
 const http = require('http');
 const httpServer = http.createServer(app);
 const io = require('socket.io')(httpServer);
-let testSocket;
 
 io.on('connection', (socket) => {
-    testSocket = socket;
-    let database = null;
+    socket.join('ydl');
 
     socket.on('getVideos', async () => {
         try{
-            database = await readDatabase();
+            const database = await readDatabase();
 
             if(database != null)
                 socket.emit('getVideos', database.videos.reverse());
@@ -40,15 +38,19 @@ io.on('connection', (socket) => {
         }
         catch(error){
             console.log(error);
-            res.sendStatus(500);
         }
     });
 
-    socket.on('download', async (options) =>{
+    socket.on('downloadStatus', async () => {
+        const database = await readDatabase();
+        io.to('ydl').emit('downloadStatus', database);
+    });
+
+    socket.on('download', async options =>{
         try{
             const database = await readDatabase();
             const media = new Media();
-            media.socket = socket;
+            media.io = io;
 
             media.url = options.url;
             media.options = {
@@ -58,30 +60,18 @@ io.on('connection', (socket) => {
                 playlist: options.playlist
             };
 
-            if(isDownloading(database.downloads)){
-                const result = await media.AddToQueue();
-                let returnCode = 201;
-
-                if(!result)
-                    returnCode = 500;
-
-                socket.emit('downloadResult', {
-                    code: result.code,
-                    messages: result.messages
-                });
-
-                return;
-            }
-            else{
+            if(isDownloading(database.downloads))
+                media.AddToQueue();
+            else
                 media.Download();
-            }
+
         }
         catch(error){
             console.log(error);
-            res.status(500).json(error);
         }
     });
 });
+
 
 app.get('/', function(req,res) {
     res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });
@@ -174,7 +164,7 @@ app.post('/download', async (req,res) => {
     try{
         const database = await readDatabase();
         const media = new Media();
-        media.socket = testSocket;
+        media.io = io;
 
         media.url = req.body.url;
         media.options = {
