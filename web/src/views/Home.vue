@@ -39,7 +39,8 @@
           <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in items" :key="index" />
         </div>
         <div v-else>
-          <h2>No downloads here</h2>
+          <!-- <h2>No downloads here</h2> -->
+          <VideoSkeletonLoader />
         </div>
       </div>
     </div>
@@ -54,6 +55,7 @@ import SearchBar from '@/components/SearchBar.vue'
 import Notification from '@/components/Notification.vue'
 import SettingsWindow from '@/components/SettingsWindow.vue'
 import DownloadManager from '@/components/DownloadManager.vue'
+import VideoSkeletonLoader from '@/components/VideoSkeletonLoader.vue'
 import axios from 'axios';
 
 export default {
@@ -68,7 +70,8 @@ export default {
     SearchBar,
     Notification,
     SettingsWindow,
-    DownloadManager
+    DownloadManager,
+    VideoSkeletonLoader
   },
   data(){
     return({
