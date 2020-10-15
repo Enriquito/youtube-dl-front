@@ -111,7 +111,7 @@ const deleteDownloads = async () => {
     }
 };
 
-app.get('/', function(req,res) {
+app.get('/', (req,res) => {
     res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });
 });
 
