@@ -26,25 +26,23 @@ import DownloadItem from '@/components/DownloadItem.vue'
 
 export default {
     name: "DownloadManager",
-    sockets: {
-        connect() {
-            this.$socket.emit('downloadStatus');
+    mounted() {
+        this.sockets.subscribe('downloadStatus', (data) => {
+            this.data = data.downloads;
+            this.checkIfFinished();
 
-            this.sockets.subscribe('downloadStatus', (data) => {
-                this.data = data.downloads;
-                this.checkIfFinished();
+            if(data === null)
+                return;
 
-                if(data === null)
-                    return;
-
-                data.downloads.forEach(el => {
-                    if(el.status === 'downloading'){
-                        this.isDownloading = true;
-                        this.item = el;
-                    }
-                });
+            data.downloads.forEach(el => {
+                if(el.status === 'downloading'){
+                    this.isDownloading = true;
+                    this.item = el;
+                }
             });
-        }
+        });
+
+        this.$socket.emit('downloadStatus');
     },
     data(){
         return({
@@ -84,6 +82,7 @@ export default {
             }
             else{
                 this.windowClass = "open-manager";
+                this.$socket.emit('downloadStatus');
             }
         }
     },
