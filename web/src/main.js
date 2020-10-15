@@ -6,7 +6,7 @@ import VueSocketIO from 'vue-socket.io'
 
 Vue.use(new VueSocketIO({
   debug: process.env.NODE_ENV === 'development' ? true : false,
-  connection: '/',
+  connection: process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : '/',
 }))
 
 Vue.config.productionTip = false
