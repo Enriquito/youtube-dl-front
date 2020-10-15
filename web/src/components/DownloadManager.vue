@@ -21,7 +21,6 @@
     </div>
 </template>
 <script>
-import axios from 'axios';
 import DownloadItem from '@/components/DownloadItem.vue'
 
 export default {
@@ -55,13 +54,13 @@ export default {
     },
     methods:{
         deleteList(){
-            axios.delete('/download/status')
-            .then(result => {
-                if(result.status === 200){
-                    this.data = [];
-                    this.$parent.$refs.notificationComp.open('Success','Download list has been deleted.');
+            this.$socket.emit('DeleteDownloads');
+
+            this.data.forEach((el, index) => {
+                if(el.status !== 'downloading' || el.status !== 'queued'){
+                    this.data.splice(index, 1);
                 }
-            })
+            });
         },
         checkIfFinished(){
             if(this.item === null)
