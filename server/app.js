@@ -73,24 +73,42 @@ const getVideos = async () => {
 };
 
 const downloadStatus = async () => {
-    const database = await readDatabase();
-    io.to('ydl').emit('downloadStatus', database);
+    try{
+        const database = await readDatabase();
+
+        if(database != null)
+            io.to('ydl').emit('downloadStatus', database);
+
+    }
+    catch(error){
+        console.log(error);
+    }
+    
 }
 
 const deleteDownloads = async () => {
-    const database = await readDatabase();
-    let temp = database.downloads.splice();
+    try{
+        const database = await readDatabase();
 
-    database.downloads.forEach((el, index) => {
-        if(el.status !== 'downloading' || el.status !== 'queued'){
-            temp = temp.splice(index, 1);
-        }
-    });
+        if(database === null)
+            throw 'Error loading database file';
 
-    database.downloads = temp;
+        let temp = database.downloads.splice();
 
-    writeDatabase(database);
-    console.log('Downloads deleted.');
+        database.downloads.forEach((el, index) => {
+            if(el.status !== 'downloading' || el.status !== 'queued'){
+                temp = temp.splice(index, 1);
+            }
+        });
+
+        database.downloads = temp;
+
+        writeDatabase(database);
+        console.log('Downloads deleted.');
+    }
+    catch(error){
+        console.log(error);
+    }
 };
 
 app.get('/', function(req,res) {
