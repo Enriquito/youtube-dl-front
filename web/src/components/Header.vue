@@ -28,7 +28,35 @@ import axios from 'axios';
 
 export default {
     name: "Header",
-    data: () => {
+    mounted(){
+        this.sockets.subscribe('systemMessages', (data) => {
+            this.$parent.$refs.notificationComp.open(data.type, data.messages);
+        });
+
+        // this.sockets.subscribe('downloadResult', (data) => {
+
+        //     if(data.code){
+        //         switch(data.code){
+        //             case 3:
+        //                 this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has been added to the queue.`);
+        //                 this.stopDownload();
+        //                 this.$store.commit('isDownloading', false);
+        //             break;
+        //             case 2:
+        //                 this.$parent.$refs.notificationComp.open('Warning','Video already in libary.');
+        //                 this.stopDownload();
+        //                 this.$store.commit('isDownloading', false);
+        //             break;
+        //             case 1:
+        //                 this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has finished downloading.`);
+        //                 this.stopDownload();
+        //                 this.$store.commit('isDownloading', false);
+        //             break;
+        //         }
+        //     }
+        // });
+    },
+    data(){
         return({
             info: null,
             options : {
@@ -47,9 +75,15 @@ export default {
         defaultQuality: String
     },
     methods: {
+        stopDownload(){
+            this.info = null;
+            this.canDownload = true;
+            this.options.url = "";
+        },
         sendUrl(){
             this.$store.commit('isDownloading', true);
             let SearchingDefaultQuality = true;
+            this.$socket.emit('download');
 
             if(this.info !== null)
                 this.options.soundQuality = this.getBestAudio;
@@ -103,33 +137,36 @@ export default {
                     console.info(`Downloading quality: ${qualities[(qualityIndex - round)]}`)
             }
 
-            axios.post(`/download`,this.options)
-            .then(result => {
-                switch(result.data.code){
-                    case 3:
-                        this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has been added to the queue.`);
-                    break;
-                    case 2:
-                        this.$parent.$refs.notificationComp.open('Warning','Video already in libary.');
-                    break;
-                    case 1:
-                        this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has finished downloading.`);
-                    break;
-                }
+            this.$socket.emit('download',this.options);
+            this.stopDownload();
 
-                // this.$store.commit('isDownloading', false);
-                this.info = null;
-                this.canDownload = true;
-                this.options.url = "";
+            // axios.post(`/download`,this.options)
+            // .then(result => {
+            //     switch(result.data.code){
+            //         case 3:
+            //             this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has been added to the queue.`);
+            //         break;
+            //         case 2:
+            //             this.$parent.$refs.notificationComp.open('Warning','Video already in libary.');
+            //         break;
+            //         case 1:
+            //             this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has finished downloading.`);
+            //         break;
+            //     }
 
-            })
-            .catch(error => {
-                this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
-                this.canDownload = true;
-                // this.$store.commit('isDownloading', false);
+            //     // this.$store.commit('isDownloading', false);
+            //     this.info = null;
+            //     this.canDownload = true;
+            //     this.options.url = "";
 
-                console.error(error);
-            });
+            // })
+            // .catch(error => {
+            //     this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
+            //     this.canDownload = true;
+            //     // this.$store.commit('isDownloading', false);
+
+            //     console.error(error);
+            // });
         },
         getInfo(){
             this.isFetchingInfo = true;

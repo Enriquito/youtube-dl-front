@@ -50,7 +50,7 @@ class Media
             args.push('mp3');
 
         //     command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' --extract-audio --audio-format mp3 --yes-playlist --ignore-errors --print-json ${url}`;
-        } 
+        }
         else if(this.options.audioOnly && !this.options.playlist){
             directory = './music';
             args.push('--extract-audio');
@@ -153,6 +153,7 @@ class Media
                 let db = await readDatabase();
                 let extention;
                 let fname;
+                this.socket.emit('systemMessages', {type: "Success", messages: `Download started for ${fileInfo.title}`});
 
                 if(this.options.audioOnly)
                         extention = "mp3";
@@ -241,7 +242,8 @@ class Media
                     db.downloads[downloadsIndex].status = 'finished';
                     db.videos.push(this.info);
                     await writeDatabase(db);
-                    this.socket.emit('downloadStatus', db);
+                    // this.socket.emit('downloadStatus', db);
+                    this.socket.emit('systemMessages', {type: "Success", messages: `${fileInfo.title} has finished downloading`});
                     this.socket.emit('getVideos', db.videos.reverse());
 
                     console.log('Download complete');
@@ -261,6 +263,7 @@ class Media
             }
             catch(error){
                 console.log(error);
+                this.socket.emit('systemMessages', {type: "Error", messages: "Error while downloading video."});
                 reject({success: false, messages: error, code: 100});
                 return;
             }
