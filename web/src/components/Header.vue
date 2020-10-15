@@ -83,7 +83,6 @@ export default {
         sendUrl(){
             this.$store.commit('isDownloading', true);
             let SearchingDefaultQuality = true;
-            this.$socket.emit('download');
 
             if(this.info !== null)
                 this.options.soundQuality = this.getBestAudio;
@@ -139,34 +138,6 @@ export default {
 
             this.$socket.emit('download',this.options);
             this.stopDownload();
-
-            // axios.post(`/download`,this.options)
-            // .then(result => {
-            //     switch(result.data.code){
-            //         case 3:
-            //             this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has been added to the queue.`);
-            //         break;
-            //         case 2:
-            //             this.$parent.$refs.notificationComp.open('Warning','Video already in libary.');
-            //         break;
-            //         case 1:
-            //             this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has finished downloading.`);
-            //         break;
-            //     }
-
-            //     // this.$store.commit('isDownloading', false);
-            //     this.info = null;
-            //     this.canDownload = true;
-            //     this.options.url = "";
-
-            // })
-            // .catch(error => {
-            //     this.$parent.$refs.notificationComp.open('Error','The server encountered an error while downloading. Please try again.');
-            //     this.canDownload = true;
-            //     // this.$store.commit('isDownloading', false);
-
-            //     console.error(error);
-            // });
         },
         getInfo(){
             this.isFetchingInfo = true;
