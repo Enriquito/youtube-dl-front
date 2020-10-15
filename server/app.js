@@ -42,7 +42,45 @@ io.on('connection', (socket) => {
             console.log(error);
             res.sendStatus(500);
         }
-    })
+    });
+
+    socket.on('download', async (options) =>{
+        try{
+            const database = await readDatabase();
+            const media = new Media();
+            media.socket = socket;
+
+            media.url = options.url;
+            media.options = {
+                format: options.videoQuality,
+                audioFormat: options.soundQuality,
+                audioOnly: options.audioOnly,
+                playlist: options.playlist
+            };
+
+            if(isDownloading(database.downloads)){
+                const result = await media.AddToQueue();
+                let returnCode = 201;
+
+                if(!result)
+                    returnCode = 500;
+
+                socket.emit('downloadResult', {
+                    code: result.code,
+                    messages: result.messages
+                });
+
+                return;
+            }
+            else{
+                media.Download();
+            }
+        }
+        catch(error){
+            console.log(error);
+            res.status(500).json(error);
+        }
+    });
 });
 
 app.get('/', function(req,res) {
@@ -164,25 +202,6 @@ app.post('/download', async (req,res) => {
             media.Download();
             res.sendStatus(200);
         }
-
-
-
-        // switch(result.code){
-        //     case 1:
-        //         database.videos.push(media.info);
-        //         await writeDatabase(database);
-
-        //         res.status(201).send(media.info);
-        //         break;
-        //     case 2:
-        //         res.status(400).json({
-        //             code: 2,
-        //             messages: "Item already excists"
-        //         });
-        //         break;
-        //     default:
-        //         res.sendStatus(500);
-        // }
     }
     catch(error){
         console.log(error);
