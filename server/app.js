@@ -28,63 +28,70 @@ const io = require('socket.io')(httpServer);
 io.on('connection', (socket) => {
     socket.join('ydl');
 
-    socket.on('getVideos', async () => {
-        try{
-            const database = await readDatabase();
-
-            if(database != null)
-                socket.emit('getVideos', database.videos.reverse());
-
-        }
-        catch(error){
-            console.log(error);
-        }
-    });
-
-    socket.on('downloadStatus', async () => {
-        const database = await readDatabase();
-        io.to('ydl').emit('downloadStatus', database);
-    });
-
-    socket.on('DeleteDownloads', async () => {
-        const database = await readDatabase();
-
-        database.downloads.forEach((el, index) => {
-            if(el.status !== 'downloading' || el.status !== 'queued'){
-                database.downloads = temp.splice(index, 1);
-            }
-        });
-
-        writeDatabase(database);
-        console.log('Downloads deleted.');
-    });
-
-    socket.on('download', async options =>{
-        try{
-            const database = await readDatabase();
-            const media = new Media();
-            media.io = io;
-
-            media.url = options.url;
-            media.options = {
-                format: options.videoQuality,
-                audioFormat: options.soundQuality,
-                audioOnly: options.audioOnly,
-                playlist: options.playlist
-            };
-
-            if(isDownloading(database.downloads))
-                media.AddToQueue();
-            else
-                media.Download();
-
-        }
-        catch(error){
-            console.log(error);
-        }
-    });
+    socket.on('getVideos', getVideos);
+    socket.on('downloadStatus', downloadStatus);
+    socket.on('DeleteDownloads', deleteDownloads);
+    socket.on('download', download);
 });
 
+const download = async options => {
+    try{
+        const database = await readDatabase();
+        const media = new Media();
+        media.io = io;
+
+        media.url = options.url;
+        media.options = {
+            format: options.videoQuality,
+            audioFormat: options.soundQuality,
+            audioOnly: options.audioOnly,
+            playlist: options.playlist
+        };
+
+        if(isDownloading(database.downloads))
+            media.AddToQueue();
+        else
+            media.Download();
+
+    }
+    catch(error){
+        console.log(error);
+    }
+};
+
+const getVideos = async () => {
+    try{
+        const database = await readDatabase();
+
+        if(database != null)
+            io.to('ydl').emit('getVideos', database.videos.reverse());
+
+    }
+    catch(error){
+        console.log(error);
+    }
+};
+
+const downloadStatus = async () => {
+    const database = await readDatabase();
+    io.to('ydl').emit('downloadStatus', database);
+}
+
+const deleteDownloads = async () => {
+    const database = await readDatabase();
+    let temp = database.downloads.splice();
+
+    database.downloads.forEach((el, index) => {
+        if(el.status !== 'downloading' || el.status !== 'queued'){
+            temp = temp.splice(index, 1);
+        }
+    });
+
+    database.downloads = temp;
+
+    writeDatabase(database);
+    console.log('Downloads deleted.');
+};
 
 app.get('/', function(req,res) {
     res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });
