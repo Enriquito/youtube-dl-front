@@ -8,7 +8,7 @@ class Media
         this.url = url;
         this.options = options;
         this.info;
-        this.socket;
+        this.io;
     }
 
     AddToQueue(){
@@ -28,6 +28,7 @@ class Media
 
                 await writeDatabase(db);
 
+                this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download '${fileInfo.title} has been added to the queue.`});
                 resolve({success: true, messages: `Download '${fileInfo.title} has been added to the queue.`, code: 3});
             }
             catch(error){
@@ -153,7 +154,7 @@ class Media
                 let db = await readDatabase();
                 let extention;
                 let fname;
-                this.socket.emit('systemMessages', {type: "Success", messages: `Download started for ${fileInfo.title}`});
+                this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download started for ${fileInfo.title}`});
 
                 if(this.options.audioOnly)
                         extention = "mp3";
@@ -187,7 +188,7 @@ class Media
                     downloadStatus: 0
                 });
 
-                this.socket.emit('downloadStatus', db);
+                this.io.to('ydl').emit('downloadStatus', db);
 
                 await writeDatabase(db);
 
@@ -207,7 +208,7 @@ class Media
 
 
                             db.downloads[downloadsIndex].downloadStatus = status;
-                            this.socket.emit('downloadStatus', db);
+                            this.io.to('ydl').emit('downloadStatus', db);
                         }
                     }
                 });
@@ -242,9 +243,10 @@ class Media
                     db.downloads[downloadsIndex].status = 'finished';
                     db.videos.push(this.info);
                     await writeDatabase(db);
-                    // this.socket.emit('downloadStatus', db);
-                    this.socket.emit('systemMessages', {type: "Success", messages: `${fileInfo.title} has finished downloading`});
-                    this.socket.emit('getVideos', db.videos.reverse());
+                    
+                    this.io.to('ydl').emit('downloadStatus', db);
+                    this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `${fileInfo.title} has finished downloading`});
+                    this.io.to('ydl').emit('getVideos', db.videos.reverse());
 
                     console.log('Download complete');
 
@@ -263,7 +265,7 @@ class Media
             }
             catch(error){
                 console.log(error);
-                this.socket.emit('systemMessages', {type: "Error", messages: "Error while downloading video."});
+                this.io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while downloading video."});
                 reject({success: false, messages: error, code: 100});
                 return;
             }
@@ -277,7 +279,7 @@ class Media
 
             if(el.status === 'queued'){
                 const media = new Media();
-                media.socket = this.socket;
+                media.io = this.io;
 
                 media.url = el.url;
                 media.options = el.options;
