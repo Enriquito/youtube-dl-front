@@ -181,7 +181,7 @@ export default {
 }
 #download-manager ul{
     margin: 0;
-    padding: 10px;
+    padding: 0 10px;
 }
 #download-manager ul li{
     list-style-type: none;
