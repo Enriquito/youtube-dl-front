@@ -46,6 +46,19 @@ io.on('connection', (socket) => {
         io.to('ydl').emit('downloadStatus', database);
     });
 
+    socket.on('DeleteDownloads', async () => {
+        const database = await readDatabase();
+
+        database.downloads.forEach((el, index) => {
+            if(el.status !== 'downloading' || el.status !== 'queued'){
+                database.downloads = temp.splice(index, 1);
+            }
+        });
+
+        writeDatabase(database);
+        console.log('Downloads deleted.');
+    });
+
     socket.on('download', async options =>{
         try{
             const database = await readDatabase();
