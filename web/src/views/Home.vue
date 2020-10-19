@@ -1,9 +1,9 @@
 <template>
   <main>
     <Notification ref="notificationComp" />
-    <SettingsWindow :settings="settings" :open="this.$store.state.settingsOpen" />
+    <SettingsWindow v-if="settings" :settings="settings" :open="this.$store.state.settingsOpen" />
     <DownloadManager :open="this.$store.state.downloadOpen" />
-    <header v-if="settings">
+    <header>
       <div class="d-flex justify-content-center">
         <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/close.svg" alt="search" />
         <img v-else @click="() => {searching = true}" class="header-icon" src="@/assets/icons/search.svg" alt="search" />
