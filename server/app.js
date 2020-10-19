@@ -250,34 +250,60 @@ app.get('/download/status', async (req,res) => {
 })
 
 app.delete('/items/:id', async (req,res) => {
+    let database = null;
+    let found = false;
+    let delError = false;
+
     try{
-        let found = false;
-        const database = await readDatabase();
-
-        if(database != null){
-            database.videos.forEach(async (el, index) => {
-                if(el.id === req.params.id){
-                    found = true;
-                    console.log(`File: ${el.id} has been deleted`);
-
-                    database.videos.splice(index, 1);
-                    fs.unlinkSync(`${el.fileLocation}/${el.fileName}`);
-                    await writeDatabase(database);
-
-                }
-            });
-
-            if(found)
-                res.sendStatus(200);
-            else
-                res.sendStatus(404);
-        }
+        database = await readDatabase();
     }
     catch(error){
-        res.sendStatus(500);
+        console.log(error);
+        console.log('Cannot read database.');
+        delError = true;
     }
 
+    if(database != null && !delError){
+        database.videos.forEach(async (el, index) => {
+            if(el.id === req.params.id){
+                found = true;
+                
+                database.videos.splice(index, 1);
 
+                try{
+                    fs.unlinkSync(`${el.fileLocation}/${el.fileName}`);
+                }
+                catch(error){
+                    console.log(error);
+
+                    if(error.errno){
+                        if(error.errno === -4058){
+                            console.log('File not found.');
+                        }
+                    }
+                }
+           }
+        });
+    }
+
+    if(delError){
+        res.sendStatus(500);
+    }
+    else if(found){
+        try{
+            await writeDatabase(database);
+            res.sendStatus(200);
+            console.log(`Database record has been deleted`);
+        }
+        catch(error){
+            console.log(error);
+            console.log('Error while writing database file.');
+            res.sendStatus(500);
+        }
+    }
+    else{
+        res.sendStatus(404);
+    }
 });
 
 app.delete('/download/status', async (req,res) => {
