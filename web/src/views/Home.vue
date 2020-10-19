@@ -35,11 +35,15 @@
 
     <div style="margin-top: 75px">
       <div class="d-flex justify-content-center">
-        <div v-if="items.length > 0">
-          <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in items" :key="index" />
+        <div v-if="items">
+          <div v-if="items.length > 0">
+            <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in items" :key="index" />
+          </div>
+          <div v-else>
+            <h2>No downloads</h2>
+          </div>
         </div>
         <div v-else>
-          <h2>No downloads here</h2>
           <VideoSkeletonLoader />
         </div>
       </div>
@@ -48,7 +52,6 @@
 </template>
 
 <script>
-// @ is an alias to /src
 import Header from '@/components/Header.vue'
 import VideoListItem from '@/components/VideoListItem.vue'
 import SearchBar from '@/components/SearchBar.vue'
