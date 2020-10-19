@@ -18,8 +18,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 
 app.use('/', express.static(path.join(__dirname,"../web/dist/")));
-app.use('/media/videos', express.static('videos'));
-app.use('/media/music', express.static('music'));
+app.use('/media/', express.static(settings.outputLocation));
 
 const http = require('http');
 const httpServer = http.createServer(app);
