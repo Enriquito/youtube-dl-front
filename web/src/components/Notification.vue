@@ -9,6 +9,11 @@
 <script>
 export default {
     name: 'Notification',
+    mounted(){
+        this.sockets.subscribe('systemMessages', (data) => {
+            this.open(data.type, data.messages);
+        });
+    },
     data(){
         return({
             divClass: "notification-holder",

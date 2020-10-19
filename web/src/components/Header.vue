@@ -28,34 +28,6 @@ import axios from 'axios';
 
 export default {
     name: "Header",
-    mounted(){
-        this.sockets.subscribe('systemMessages', (data) => {
-            this.$parent.$refs.notificationComp.open(data.type, data.messages);
-        });
-
-        // this.sockets.subscribe('downloadResult', (data) => {
-
-        //     if(data.code){
-        //         switch(data.code){
-        //             case 3:
-        //                 this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has been added to the queue.`);
-        //                 this.stopDownload();
-        //                 this.$store.commit('isDownloading', false);
-        //             break;
-        //             case 2:
-        //                 this.$parent.$refs.notificationComp.open('Warning','Video already in libary.');
-        //                 this.stopDownload();
-        //                 this.$store.commit('isDownloading', false);
-        //             break;
-        //             case 1:
-        //                 this.$parent.$refs.notificationComp.open('Success',`Video '${this.info.title}' has finished downloading.`);
-        //                 this.stopDownload();
-        //                 this.$store.commit('isDownloading', false);
-        //             break;
-        //         }
-        //     }
-        // });
-    },
     data(){
         return({
             info: null,
