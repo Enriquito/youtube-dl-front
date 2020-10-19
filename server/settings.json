@@ -1,1 +1,7 @@
-{"settings":{"port":3000,"defaultQuality":"720p"}}
+{
+	"settings": {
+		"port": 3000,
+		"defaultQuality": "240p",
+		"outputLocation": "./abc"
+	}
+}
