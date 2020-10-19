@@ -1,9 +1,9 @@
 <template>
   <main>
     <Notification ref="notificationComp" />
-    <SettingsWindow v-if="settings" :settings="settings" :open="this.$store.state.settingsOpen" />
+    <SettingsWindow :settings="settings" :open="this.$store.state.settingsOpen" />
     <DownloadManager :open="this.$store.state.downloadOpen" />
-    <header>
+    <header v-if="settings">
       <div class="d-flex justify-content-center">
         <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/close.svg" alt="search" />
         <img v-else @click="() => {searching = true}" class="header-icon" src="@/assets/icons/search.svg" alt="search" />
@@ -64,6 +64,10 @@ import axios from 'axios';
 export default {
   name: 'Home',
   mounted(){
+    this.sockets.subscribe('getVideos', (data) => {
+        this.items = data;
+    });
+
     this.reloadVideos();
     this.loadSettings();
   },
@@ -134,10 +138,6 @@ export default {
       });
     },
     reloadVideos(){
-      this.sockets.subscribe('getVideos', (data) => {
-        this.items = data;
-        // this.items.reverse();
-      });
       this.$socket.emit('getVideos');
     }
   },
