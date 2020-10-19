@@ -1,6 +1,7 @@
 const { spawn, exec } = require('child_process');
 const fs = require('fs');
 const {writeDatabase, readDatabase} = require('./helpers');
+const {settings} = require('./settings.json');
 
 class Media
 {
@@ -37,23 +38,16 @@ class Media
         });
     }
     GetDownloadOptions(){
-        let directory = './videos';
+        let directory = settings.outputLocation;
         const args = [];
 
-        if(this.options.directory)
-            directory = this.directory;
-
         if(this.options.audioOnly && this.options.playlist){
-            directory = './music';
             args.push('--extract-audio');
             args.push('--audio-format')
             args.push('--yes-playlist')
             args.push('mp3');
-
-        //     command = `youtube-dl --output '${directory}/${fileName}.%(ext)s' --extract-audio --audio-format mp3 --yes-playlist --ignore-errors --print-json ${url}`;
         }
         else if(this.options.audioOnly && !this.options.playlist){
-            directory = './music';
             args.push('--extract-audio');
             args.push('--audio-format')
             args.push('mp3');

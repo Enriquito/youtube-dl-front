@@ -15,6 +15,8 @@
                         <option>720p</option>
                         <option>1080p</option>
                     </select>
+                    <label>Output location</label>
+                    <input v-model="settings.outputLocation" type="text" />
                 </div>
                 <div id="settings-buttons" class="d-flex justify-content-space-between">
                     <button @click="close">Close</button>
@@ -48,7 +50,8 @@ export default {
         update(){
             axios.put('/settings',{
                 port: this.settings.port,
-                defaultQuality: this.settings.defaultQuality
+                defaultQuality: this.settings.defaultQuality,
+                outputLocation: this.settings.outputLocation
             })
             .then(result => {
                 if(result.status === 200)

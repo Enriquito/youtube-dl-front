@@ -335,6 +335,10 @@ app.put('/settings', async (req,res) => {
                     data.settings.defaultQuality = req.body.defaultQuality;
                     changesMade = true;
                     break;
+                case 'outputLocation':
+                    data.settings.outputLocation = req.body.outputLocation;
+                    changesMade = true;
+                    break;
             }
         })
 
