@@ -28,6 +28,7 @@ io.on('connection', (socket) => {
     socket.join('ydl');
 
     socket.on('getVideos', getVideos);
+    socket.on('getVideo', getVideo);
     socket.on('downloadStatus', downloadStatus);
     socket.on('DeleteDownloads', deleteDownloads);
     socket.on('download', download);
@@ -147,6 +148,32 @@ const getVideos = async () => {
     }
 };
 
+const getVideo = async id => {
+    try{
+        const database = await readDatabase();
+        let item = null;
+        let found = false;
+
+        if(database != null){
+            database.videos.forEach(el => {
+                if(el.id === id){
+                    found = true;
+                    item = el;
+                }
+            });
+        }
+
+        if(found)
+            io.to('ydl').emit('item', item);
+        else
+            io.to('ydl').emit('systemMessages', {type: "Warning", messages: "Item not found."});
+    }
+    catch(error){
+        console.log(error);
+        res.sendStatus(500);
+    }
+};
+
 const downloadStatus = async () => {
     try{
         const database = await readDatabase();
@@ -159,7 +186,7 @@ const downloadStatus = async () => {
         console.log(error);
     }
     
-}
+};
 
 const deleteDownloads = async () => {
     try{

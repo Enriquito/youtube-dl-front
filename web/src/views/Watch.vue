@@ -21,7 +21,6 @@
     </main>
 </template>
 <script>
-import axios from 'axios';
 import arrowLeft from '@/assets/icons/arrowleft.svg';
 import Notification from '@/components/Notification.vue'
 
@@ -31,14 +30,11 @@ export default {
         Notification
     },
     mounted(){
-        axios.get(`/items/${this.$route.params.id}`)
-        .then(result => {
-            this.item = result.data;
-        })
-        .catch(error => {
-            console.error(error);
-            this.$refs.notificationComp.open('Error','Could not media data from database. Please try again later.');
+        this.sockets.subscribe('item', (data) => {
+            this.item = data;
         });
+
+        this.$socket.emit('getVideo',this.$route.params.id);
     },
     data(){
         return({
