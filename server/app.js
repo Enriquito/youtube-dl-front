@@ -34,6 +34,7 @@ io.on('connection', (socket) => {
     socket.on('download', download);
     socket.on('deleteVideo', deleteVideo);
     socket.on('getVideoInfo', getVideoInfo);
+    socket.on('updateSettings', updateSettings);
 });
 
 const getVideoInfo = async url => {
@@ -212,6 +213,25 @@ const deleteDownloads = async () => {
         console.log(error);
     }
 };
+
+const updateSettings = async settings => {
+    try{
+        const data = await readSettings();
+
+        if(data === null){
+            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
+            return;
+        }
+
+        data.settings = settings;
+        await writeSettings(data);
+        io.to('ydl').emit('systemMessages', {type: "Success", messages: "Settings has been updated."});
+    }
+    catch(error){
+        console.log(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error updating settings."});
+    }
+}
 
 app.get('/', (req,res) => {
     res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });

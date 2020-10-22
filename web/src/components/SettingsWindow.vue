@@ -42,25 +42,14 @@
     </div>
 </template>
 <script>
-import axios from 'axios'
-
 export default {
     name: "SettingsWindow",
     methods:{
         update(){
-            axios.put('/settings',{
+            this.$socket.emit('updateSettings',{
                 port: this.settings.port,
                 defaultQuality: this.settings.defaultQuality,
                 outputLocation: this.settings.outputLocation
-            })
-            .then(result => {
-                if(result.status === 200)
-                    this.$parent.$refs.notificationComp.open('Information',
-                    'Settings has been updated');
-            })
-            .catch(error => {
-                console.error(error);
-                this.$parent.$refs.notificationComp.open('Error','The server encountered an error while updating the settings. Please try again.');
             });
         },
         close(){
