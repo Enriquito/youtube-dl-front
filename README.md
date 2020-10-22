@@ -5,7 +5,15 @@ Youtube-dl-front is a frontend for youtube-dl. With the easy interface you can d
 ![Download page](https://raw.githubusercontent.com/Enriquito/youtube-dl-front/master/screenshots/home.png)
 ![Download page](https://github.com/Enriquito/youtube-dl-front/blob/master/screenshots/view.png?raw=true)
 
-## Linux / MacOS Installation
+## Installation methods
+
+### Docker Installation
+To run youtube-dl-front in docker run the following command in your docker environment.
+```bash
+docker run -dp 3000:3000 enriquek/youtube-dl-front
+```
+
+### Linux / MacOS Installation
 
 [Download](http://ytdl-org.github.io/youtube-dl/download.html) the latest `youtube-dl` version.
 
@@ -32,6 +40,15 @@ git clone https://github.com/Enriquito/youtube-dl-front
 cd youtube-dl-front/server
 npm install
 ```
+## Usage
+
+Start the server with the following command.
+
+```bash
+cd youtube-dl-front/server
+node app.js
+```
+Go in your browser to http://localhost:3000
 
 ## Linux / MacOS Update
 ```bash
@@ -44,13 +61,3 @@ Terminate the current node process and restart with the following commands.
 cd youtube-dl-front/server
 node app.js
 ```
-
-## Usage
-
-Start the server with the following command.
-
-```bash
-cd youtube-dl-front/server
-node app.js
-```
-Go in your browser to http://localhost:3000
