@@ -19,7 +19,7 @@
                     </span>
                 </div>
                 <div>
-                    <img @click="() => {deleteItem(data.id)}" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
+                    <img @click="deleteItem" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
                     <a target="_blank" :href="data.videoUrl">
                         <img class="icon" src="@/assets/icons/link.svg" alt="Link" />
                     </a>
@@ -35,18 +35,17 @@
     </figure>
 </template>
 <script>
-import axios from 'axios';
+// import axios from 'axios';
+
 export default {
     name: "VideoListItem",
     props: {
         data: Object
     },
     methods: {
-        deleteItem(id){
-            axios.delete(`/items/${id}`)
-            .then(() => {
-                this.$emit('deleted', this.data);
-            })
+        deleteItem(){
+            this.$socket.emit('deleteVideo',this.data);
+            this.$emit('deleted', this.data);
         }
     },
     computed:{

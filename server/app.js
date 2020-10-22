@@ -31,7 +31,69 @@ io.on('connection', (socket) => {
     socket.on('downloadStatus', downloadStatus);
     socket.on('DeleteDownloads', deleteDownloads);
     socket.on('download', download);
+    socket.on('deleteVideo', deleteVideo);
 });
+
+const deleteVideo = async video => {
+    let database = null;
+    let found = false;
+    let delError = false;
+
+    try{
+        database = await readDatabase();
+    }
+    catch(error){
+        console.log(error);
+        console.log('Cannot read database.');
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while reading database."});
+        delError = true;
+    }
+
+    if(database != null && !delError){
+        database.videos.forEach(async (el, index) => {
+            if(el.id === video.id){
+                found = true;
+                
+                database.videos.splice(index, 1);
+
+                try{
+                    fs.unlinkSync(`${el.fileLocation}/${el.fileName}`);
+                }
+                catch(error){
+                    console.log(error);
+
+                    if(error.errno){
+                        if(error.errno === -4058){
+                            console.log('File not found.');
+                            return;
+                        }
+                    }
+
+                    io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while deleting file please try again later."});
+                }
+           }
+        });
+    }
+
+    if(delError){
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while deleting item."});
+    }
+    else if(found){
+        try{
+            await writeDatabase(database);
+            console.log(`Database record has been deleted`);
+            io.to('ydl').emit('systemMessages', {type: "Success", messages: "Item has been deleted."});
+        }
+        catch(error){
+            console.log(error);
+            console.log('Error while writing database file.');
+            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while writing to database."});
+        }
+    }
+    else{
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Item not found."});
+    }
+}
 
 const download = async options => {
     try{
