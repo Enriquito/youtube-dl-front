@@ -43,7 +43,7 @@ module.exports.readDatabase = () => {
 module.exports.writeSettings = (data) => {
     return new Promise((resolve,reject) => {
         try{
-            fs.writeFile(`./settings.json`, JSON.stringify(data, null, "\t"), (error) => {
+            fs.writeFile(`../config/settings.json`, JSON.stringify(data, null, "\t"), (error) => {
                 if(error){
                     reject(error);
                     return;
@@ -61,7 +61,7 @@ module.exports.writeSettings = (data) => {
 module.exports.readSettings = () => {
     return new Promise((resolve,reject) => {
         try{
-            fs.readFile('./settings.json', "utf8", function (error,data) {
+            fs.readFile('../config/settings.json', "utf8", function (error,data) {
                 if(error){
                     reject(error);
                     return;

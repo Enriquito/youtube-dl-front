@@ -1,7 +1,7 @@
 const { spawn, exec } = require('child_process');
 const fs = require('fs');
 const {writeDatabase, readDatabase} = require('./helpers');
-const {settings} = require('./settings.json');
+const {settings} = require('../config/settings.json');
 
 class Media
 {

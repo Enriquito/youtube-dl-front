@@ -1,4 +1,4 @@
-const {settings} = require('./settings.json');
+const {settings} = require('../config/settings.json');
 const fs = require('fs')
 const path = require('path');
 let express = require('express');
