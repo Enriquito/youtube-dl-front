@@ -35,6 +35,7 @@ io.on('connection', (socket) => {
     socket.on('deleteVideo', deleteVideo);
     socket.on('getVideoInfo', getVideoInfo);
     socket.on('updateSettings', updateSettings);
+    socket.on('getSettings', getSettings);
 });
 
 const getVideoInfo = async url => {
@@ -230,6 +231,21 @@ const updateSettings = async settings => {
     catch(error){
         console.log(error);
         io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error updating settings."});
+    }
+}
+
+const getSettings = async () => {
+    try{
+        const data = await readSettings();
+
+        if(data === null)
+            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
+
+        io.to('ydl').emit('getSettings', data);
+    }
+    catch(error){
+        console.log(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
     }
 }
 

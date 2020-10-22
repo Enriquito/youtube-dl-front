@@ -44,6 +44,13 @@
 <script>
 export default {
     name: "SettingsWindow",
+    mounted(){
+        this.sockets.subscribe('getSettings', data => {
+            this.settings = data.settings;
+        });
+
+        this.$socket.emit('getSettings');
+    },
     methods:{
         update(){
             this.$socket.emit('updateSettings',{
@@ -56,9 +63,13 @@ export default {
             this.$store.commit('settingsOpen', false);
         }
     },
+    data(){
+        return({
+            settings: null
+        });
+    },
     props:{
         open: Boolean,
-        settings: Object
     }
 }
 </script>
