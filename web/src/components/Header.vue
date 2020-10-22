@@ -24,10 +24,16 @@
     </div>
 </template>
 <script>
-import axios from 'axios';
 
 export default {
     name: "Header",
+    mounted(){
+         this.sockets.subscribe('videoInfo', (data) => {
+            this.info = data;
+            this.isFetchingInfo = false;
+            this.canDownload = true;
+        });
+    },
     data(){
         return({
             info: null,
@@ -132,19 +138,8 @@ export default {
                     return;
                 }
 
-                axios.post(`/info/`,{url: this.options.url})
-                .then(result => result.data)
-                .then(result => {
-                    this.info = result;
-                    this.isFetchingInfo = false;
-                    this.canDownload = true;
-                })
-                .catch(error => {
-                    console.error(error);
-                    this.canDownload = false;
-                    this.isFetchingInfo = false;
-                    this.$parent.$refs.notificationComp.open('Error','The server could not fetch the video info. Check your url and try again.');
-                });
+                this.canDownload = false;
+                this.$socket.emit('getVideoInfo',this.options.url);
             }
             catch(error){
                 this.isFetchingInfo = false;

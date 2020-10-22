@@ -32,7 +32,21 @@ io.on('connection', (socket) => {
     socket.on('DeleteDownloads', deleteDownloads);
     socket.on('download', download);
     socket.on('deleteVideo', deleteVideo);
+    socket.on('getVideoInfo', getVideoInfo);
 });
+
+const getVideoInfo = async url => {
+    try{
+        const info = await Media.GetDownloadInfo(url);
+
+        if(info != null)
+            io.to('ydl').emit('videoInfo', info);
+    }
+    catch(error){
+        console.log(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while fetching info."});
+    }
+}
 
 const deleteVideo = async video => {
     let database = null;
