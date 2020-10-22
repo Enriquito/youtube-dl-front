@@ -143,7 +143,6 @@ export default {
             }
             catch(error){
                 this.isFetchingInfo = false;
-                this.$parent.$refs.notificationComp.open('Error','The server encountered an error.');
                 console.error(error);
             }
         },
