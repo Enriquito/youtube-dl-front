@@ -28,7 +28,7 @@ class Media
                 });
 
                 await writeDatabase(db);
-
+                this.io.to('ydl').emit('downloadStatus', db);
                 this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download '${fileInfo.title} has been added to the queue.`});
                 resolve({success: true, messages: `Download '${fileInfo.title} has been added to the queue.`, code: 3});
             }
@@ -145,7 +145,9 @@ class Media
                         return;
                     }
 
-                    resolve(JSON.parse(stdout));
+                    const obj = JSON.parse(stdout);
+
+                    resolve(obj);
                 });
             }
             catch(error){
