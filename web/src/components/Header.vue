@@ -106,9 +106,14 @@ export default {
                 while(SearchingDefaultQuality)
 
                 if(SearchingDefaultQuality){
-                    this.$parent.$refs.notificationComp.open('Error','Error finding default quality. Please select manualy.');
-                    this.$store.commit('isDownloading', false);
-                    return;
+                    if(this.options.playlist){
+                        console.log('Downloading max quality');
+                    }
+                    else{
+                        this.$parent.$refs.notificationComp.open('Error','Error finding default quality. Please select manualy.');
+                        this.$store.commit('isDownloading', false);
+                        return;
+                    }
                 }
                 else
                     console.info(`Downloading quality: ${qualities[(qualityIndex - round)]}`)
@@ -132,14 +137,15 @@ export default {
             try{
                 if(this.isPlaylist(this.options.url)){
                     this.options.playlist = true;
-                    this.canDownload = false;
-                    this.options.url = "";
-                    this.$parent.$refs.notificationComp.open('Information','Playlists downloads are not available. (yet)');
-                    return;
+                    this.canDownload = true;
+                    this.$parent.$refs.notificationComp.open('Warning','Downloading playlists does not support quality select yet. Downloading max quality.');
+                    // this.$parent.$refs.notificationComp.open('Information','Playlists downloads are not available. (yet)');
+                    // return;
                 }
-
-                this.canDownload = false;
-                this.$socket.emit('getVideoInfo',this.options.url);
+                else{
+                    this.canDownload = false;
+                    this.$socket.emit('getVideoInfo',this.options.url);
+                }
             }
             catch(error){
                 this.isFetchingInfo = false;
