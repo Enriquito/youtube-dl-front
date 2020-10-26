@@ -40,7 +40,11 @@ export default {
             });
         });
 
-        this.$socket.emit('downloadStatus');
+        // this.$socket.emit('downloadStatus');
+
+        setInterval(() => {
+            this.$socket.emit('downloadStatus');
+        }, 1000);
     },
     data(){
         return({
@@ -52,15 +56,6 @@ export default {
         });
     },
     methods:{
-        // deleteList(){
-        //     this.$socket.emit('DeleteDownloads');
-
-        //     this.data.forEach((el, index) => {
-        //         if(el.status !== 'downloading' || el.status !== 'queued'){
-        //             this.data.splice(index, 1);
-        //         }
-        //     });
-        // },
         checkIfFinished(){
             if(this.item === null)
                 return;
