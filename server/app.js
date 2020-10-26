@@ -128,20 +128,21 @@ const download = async options => {
 
         if(options.playlist){
             console.log(`Downloading playlist: ${options.url}`);
-            const playlistItems = await media.PreparePlayListItems();
+            const playlist = await media.PreparePlayListItems();
+            const playlistItems = playlist[0];  
+            const info = playlist[1];          
 
-            if(isDownloading(database.downloads)){
-                playlistItems.forEach(m => {
-                    m.AddToQueue();
-                });
+            console.log(info);
+
+            for(let i = 1; i < playlistItems.length; i++){
+                playlistItems[i].options.playlist = info;
+                await playlistItems[i].AddToQueue();
             }
-            else{
-                for(let i = 1; i < playlistItems.length; i++){
-                    await playlistItems[i].AddToQueue();
-                }
 
+            if(!isDownloading(database.downloads)){
                 Media.downloadQueueItems(io);
             }
+
         }
         else if(isDownloading(database.downloads)){
             media.AddToQueue();

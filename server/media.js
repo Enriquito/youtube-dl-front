@@ -2,6 +2,7 @@ const { spawn, exec } = require('child_process');
 const fs = require('fs');
 const {writeDatabase, readDatabase} = require('./helpers');
 const {settings} = require('../config/settings.json');
+const { resolve } = require('path');
 
 class Media
 {
@@ -93,7 +94,7 @@ class Media
         });
     }
     PreparePlayListItems(){
-        return new Promise(async (resolve, reject) => {
+        const getPlaylist = new Promise(async (resolve, reject) => {
             try{
                 const download = spawn('youtube-dl', ['--skip-download', '--dump-json', '--flat-playlist', this.url]);
                 const temp = [];
@@ -128,6 +129,37 @@ class Media
                 reject(error);
             }
         });
+
+        const getPlaylistInfo = new Promise(async (resolve, reject) => {
+            try{
+                const download = spawn('youtube-dl', ['--skip-download', '--dump-json', this.url]);
+                let tik = 0;
+                let temp = null;
+
+                download.stdout.on('data',async data => {
+                    if(data.toString().match(/^\{/).length === 1 && tik == 0){
+                        const obj = JSON.parse(data.toString());
+                        temp = obj;
+                        tik++;
+                    }                
+                });
+
+                download.on('close', async () => {
+                    const info = {
+                        uploader: temp.playlist_uploader,
+                        title: temp.playlist_title,
+                        id: temp.playlist_id
+                    }
+
+                    resolve(info);
+                });
+            }
+            catch(error){
+                reject(error);
+            }
+        });
+        
+        return Promise.all([getPlaylist, getPlaylistInfo]);
     }
     GetInfo(){
         return new Promise((resolve, reject) => {
@@ -152,6 +184,7 @@ class Media
             }
             catch(error){
                 console.log(error);
+                this.io.to('ydl').emit('systemMessages', {type: "Error", messages: `${error.messages.messages}`});
                 reject({success: false, messages: error, code: 100});
             }
         });
@@ -299,7 +332,7 @@ class Media
             }
             catch(error){
                 console.log(error);
-                this.io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while downloading video."});
+                this.io.to('ydl').emit('systemMessages', {type: "Error", messages: `${error.messages.messages}`});
                 reject({success: false, messages: error, code: 100});
                 return;
             }
