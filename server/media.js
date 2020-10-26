@@ -53,7 +53,7 @@ class Media
             args.push('mp3');
         }
         else if(this.options.playlist){
-
+            console.log('a');
         }
         else if(this.options.format && this.options.audioFormat){
             args.push(`-f`);
@@ -92,10 +92,48 @@ class Media
             });
         });
     }
+    PreparePlayListItems(){
+        return new Promise(async (resolve, reject) => {
+            try{
+                const download = spawn('youtube-dl', ['--skip-download', '--dump-json', '--flat-playlist', this.url]);
+                const temp = [];
+
+                download.stdout.on('data',async data => {
+                    if(data.toString().match(/^\{/).length === 1){
+                        const obj = JSON.parse(data.toString());
+                        temp.push(obj);
+                    }                
+                });
+
+                const playlist = [];
+
+                download.on('close', async () => {
+                    for(let i = 0; i < temp.length; i++){
+                        const m = new Media();
+                        m.url = `https://www.youtube.com/watch?v=${temp[i].id}`;
+                        m.options = {
+                            format: null,
+                            audioFormat: null,
+                            audioOnly: false,
+                            playlist: false
+                        };
+                        m.io = this.io;
+                        playlist.push(m);
+                    }
+
+                    resolve(playlist);
+                });
+            }
+            catch(error){
+                reject(error);
+            }
+        });
+    }
     GetInfo(){
         return new Promise((resolve, reject) => {
             try{
                 let command;
+
                 if(this.options.format && this.options.audioFormat)
                     command = `youtube-dl --skip-download --dump-json -f ${this.options.format}+${this.options.audioFormat} ${this.url}`;
                 else
@@ -163,7 +201,7 @@ class Media
                     fname = `${fname}.${extention}`;
 
                 if(this.CheckForDoubleVideos(db, fname)){
-                    resolve({success: false, messages: 'Item already excists', code: 2});
+                    resolve({success: false, messages: 'Item already excist', code: 2});
                     return;
                 }
 
@@ -252,7 +290,7 @@ class Media
                     });
 
                     if(haveQueueItems)
-                        this.downloadQueueItems();
+                        Media.downloadQueueItems(this.io);
 
                     resolve({success: true, messages: "Download successfull", code: 1});
                 });
@@ -265,7 +303,7 @@ class Media
             }
         });
     }
-    async downloadQueueItems(){
+    static async downloadQueueItems(io){
         const db = await readDatabase();
 
         for(let i = 0; i < db.downloads.length; i++){
@@ -273,12 +311,13 @@ class Media
 
             if(el.status === 'queued'){
                 const media = new Media();
-                media.io = this.io;
+                media.io = io;
 
                 media.url = el.url;
                 media.options = el.options;
 
-                await media.Download();
+                media.Download();
+                return;
             }
         }
     }

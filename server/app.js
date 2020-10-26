@@ -126,11 +126,29 @@ const download = async options => {
             playlist: options.playlist
         };
 
-        if(isDownloading(database.downloads))
-            media.AddToQueue();
-        else
-            media.Download();
+        if(options.playlist){
+            console.log(`Downloading playlist: ${options.url}`);
+            const playlistItems = await media.PreparePlayListItems();
 
+            if(isDownloading(database.downloads)){
+                playlistItems.forEach(m => {
+                    m.AddToQueue();
+                });
+            }
+            else{
+                for(let i = 1; i < playlistItems.length; i++){
+                    await playlistItems[i].AddToQueue();
+                }
+
+                Media.downloadQueueItems(io);
+            }
+        }
+        else if(isDownloading(database.downloads)){
+            media.AddToQueue();
+        }
+        else{
+            media.Download();
+        }
     }
     catch(error){
         console.log(error);
