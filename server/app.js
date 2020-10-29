@@ -70,7 +70,7 @@ const deleteVideo = async video => {
         database.videos.forEach(async (el, index) => {
             if(el.id === video.id){
                 found = true;
-                
+
                 database.videos.splice(index, 1);
 
                 try{
@@ -129,10 +129,10 @@ const download = async options => {
         if(options.playlist){
             console.log(`Downloading playlist: ${options.url}`);
             const playlist = await media.PreparePlayListItems();
-            const playlistItems = playlist[0];  
-            const info = playlist[1];          
+            const playlistItems = playlist[0];
+            const info = playlist[1];
 
-            console.log(info);
+            // console.log(info);
 
             for(let i = 1; i < playlistItems.length; i++){
                 playlistItems[i].options.playlist = info;
@@ -206,7 +206,7 @@ const downloadStatus = async () => {
     catch(error){
         console.log(error);
     }
-    
+
 };
 
 const deleteDownloads = async () => {
@@ -425,7 +425,7 @@ app.delete('/items/:id', async (req,res) => {
         database.videos.forEach(async (el, index) => {
             if(el.id === req.params.id){
                 found = true;
-                
+
                 database.videos.splice(index, 1);
 
                 try{

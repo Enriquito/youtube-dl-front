@@ -2,7 +2,6 @@ const { spawn, exec } = require('child_process');
 const fs = require('fs');
 const {writeDatabase, readDatabase} = require('./helpers');
 const {settings} = require('../config/settings.json');
-const { resolve } = require('path');
 
 class Media
 {
@@ -54,7 +53,7 @@ class Media
             args.push('mp3');
         }
         else if(this.options.playlist){
-            console.log('a');
+            // console.log('a');
         }
         else if(this.options.format && this.options.audioFormat){
             args.push(`-f`);
@@ -103,7 +102,7 @@ class Media
                     if(data.toString().match(/^\{/).length === 1){
                         const obj = JSON.parse(data.toString());
                         temp.push(obj);
-                    }                
+                    }
                 });
 
                 const playlist = [];
@@ -130,6 +129,7 @@ class Media
             }
         });
 
+        // To-Do get plalist info
         const getPlaylistInfo = new Promise(async (resolve, reject) => {
             try{
                 const download = spawn('youtube-dl', ['--skip-download', '--dump-json', this.url]);
@@ -137,29 +137,36 @@ class Media
                 let temp = null;
 
                 download.stdout.on('data',async data => {
-                    if(data.toString().match(/^\{/).length === 1 && tik == 0){
-                        const obj = JSON.parse(data.toString());
-                        temp = obj;
-                        tik++;
-                    }                
+                    const match = data.toString().match(/^\{/);
+
+                    if(match !== null && tik === 0){
+                        // console.log(data.toString());
+                        // const obj = JSON.parse(data.toString());
+                        // temp = obj;
+                        // tik++;
+                    }
                 });
 
-                download.on('close', async () => {
+                download.on('close', async data => {
+
                     const info = {
-                        uploader: temp.playlist_uploader,
-                        title: temp.playlist_title,
-                        id: temp.playlist_id
+                        // uploader: temp.playlist_uploader,
+                        // title: temp.playlist_title,
+                        // id: temp.playlist_id
                     }
 
-                    resolve(info);
+                    console.log(temp);
+                    // console.log(tik);
+
+                    resolve(data);
                 });
             }
             catch(error){
                 reject(error);
             }
         });
-        
-        return Promise.all([getPlaylist, getPlaylistInfo]);
+
+        return Promise.all([getPlaylist]);
     }
     GetInfo(){
         return new Promise((resolve, reject) => {
@@ -310,7 +317,7 @@ class Media
                     db.downloads[downloadsIndex].status = 'finished';
                     db.videos.push(this.info);
                     await writeDatabase(db);
-                    
+
                     this.io.to('ydl').emit('downloadStatus', db);
                     this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `${fileInfo.title} has finished downloading`});
                     this.io.to('ydl').emit('getVideos', db.videos.reverse());
