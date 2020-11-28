@@ -100,8 +100,13 @@ class Media
 
                 download.stdout.on('data',async data => {
                     if(data.toString().match(/^\{/).length === 1){
-                        const obj = JSON.parse(data.toString());
-                        temp.push(obj);
+                        try{
+                            const obj = JSON.parse(data.toString());
+                            temp.push(obj);
+                        }
+                        catch(error){
+                            console.log(error);
+                        }
                     }
                 });
 
@@ -235,7 +240,7 @@ class Media
                 else
                     extention = fileInfo.ext;
 
-                fname = `${fileInfo.title.replace(/[:<>"/|?*]/, '')}`;
+                fname = `${fileInfo.title.replace(/[:<>"/|?*]/g, '')}`;
 
                 if(formatNote !== undefined)
                     fname = `${fname} - ${formatNote}.${extention}`;
@@ -258,8 +263,7 @@ class Media
                 db.downloads.push({
                     id: fileInfo.id,
                     title: fileInfo.title,
-                    status: 'downloading',
-                    downloadStatus: 0
+                    status: 'downloading'
                 });
 
                 this.io.to('ydl').emit('downloadStatus', db);
