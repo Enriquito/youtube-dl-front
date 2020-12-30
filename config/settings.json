@@ -2,6 +2,10 @@
 	"settings": {
 		"port": 3000,
 		"defaultQuality": "144p",
-		"outputLocation": "./videos"
+		"outputLocation": "./videos",
+		"authentication": {
+			"username": "",
+			"password": ""
+		}
 	}
 }
