@@ -1,4 +1,4 @@
-const {settings} = require('../config/settings.json');
+const settings = require('../config/settings.json');
 const fs = require('fs')
 const path = require('path');
 let express = require('express');
@@ -236,15 +236,14 @@ const deleteDownloads = async () => {
 
 const updateSettings = async settings => {
     try{
-        const data = await readSettings();
+        let data = await readSettings();
 
         if(data === null){
             io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
             return;
         }
 
-        data.settings = settings;
-        await writeSettings(data);
+        await writeSettings(settings);
         io.to('ydl').emit('systemMessages', {type: "Success", messages: "Settings has been updated."});
     }
     catch(error){
