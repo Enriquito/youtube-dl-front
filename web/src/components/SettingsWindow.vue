@@ -4,7 +4,7 @@
             <div v-if="settings">
                 <h3>Settings</h3>
                 <div>
-                    <label for="port-number">Application port</label>
+                    <label for="port-number">Application port *</label>
                     <input id="port-number" v-model="settings.port" type="number" min="1" max="65535" />
                     <label for="default-quality">Default quality</label>
                     <select v-model="settings.defaultQuality" id="default-quality">
@@ -18,10 +18,16 @@
                     <label>Output location</label>
                     <input v-model="settings.outputLocation" type="text" />
                 </div>
-                <div id="settings-buttons" class="d-flex justify-content-space-between">
-                    <button @click="close">Close</button>
-                    <button @click="update">Save</button>
+                <div>
+                    <div>
+                        <small>* Restart of application required</small>
+                    </div>
+                    <div id="settings-buttons" class="d-flex justify-content-space-between">
+                        <button @click="close">Close</button>
+                        <button @click="update">Save</button>
+                    </div>
                 </div>
+                
             </div>
             <div v-else>
                 <h3>Settings</h3>
@@ -33,10 +39,16 @@
                     <div style="width: 150px" class="skeleton-label"></div>
                     <div style="width: 250px" class="skeleton-input"></div>
                 </div>
-                <div id="settings-buttons" class="d-flex justify-content-space-between">
-                    <button @click="close">Close</button>
-                    <button disabled>Save</button>
+                <div>
+                    <div>
+                        <small>* Restart of application required</small>
+                    </div>
+                    <div id="settings-buttons" class="d-flex justify-content-space-between">
+                        <button @click="close">Close</button>
+                        <button disabled>Save</button>
+                    </div>
                 </div>
+                
             </div>
         </div>
     </div>
@@ -46,7 +58,7 @@ export default {
     name: "SettingsWindow",
     mounted(){
         this.sockets.subscribe('getSettings', data => {
-            this.settings = data.settings;
+            this.settings = data;
         });
 
         this.$socket.emit('getSettings');
