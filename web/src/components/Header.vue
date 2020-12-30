@@ -138,9 +138,7 @@ export default {
                 if(this.isPlaylist(this.options.url)){
                     this.options.playlist = true;
                     this.canDownload = true;
-                    this.$parent.$refs.notificationComp.open('Warning','Downloading playlists does not support quality select yet. Downloading max quality.');
-                    // this.$parent.$refs.notificationComp.open('Information','Playlists downloads are not available. (yet)');
-                    // return;
+                    this.$parent.$refs.notificationComp.open('Info','Playlists are downloaded with the default quality settings.');
                 }
                 else{
                     this.canDownload = false;
