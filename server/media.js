@@ -1,7 +1,6 @@
 const { spawn, exec } = require('child_process');
 const fs = require('fs');
-const {writeDatabase, readDatabase} = require('./helpers');
-const {settings} = require('../config/settings.json');
+const {writeDatabase, readDatabase, readSettings} = require('./helpers');
 
 class Media
 {
@@ -10,6 +9,43 @@ class Media
         this.options = options;
         this.info;
         this.io;
+    }
+
+    async GetDefaultQualityFormat(url){
+        try{
+            const settings = await readSettings();
+            const quality = settings.defaultQuality;
+
+            const formats = {
+                format: null,
+                audioFormat: null
+            }
+
+            const result = await Media.GetDownloadInfo(url);
+
+            for(let i = 0; i < result.formats.length; i++){
+                const format = result.formats[i];
+
+                if(format.ext == "m4a"){
+                    formats.audioFormat = format.format_id;
+                }
+
+                if(format.ext == "mp4"){
+                    if(format.format_note === quality){
+                        formats.format = format.format_id
+                    }
+                }
+            }
+            
+            if(formats.format !== null || formats.audioFormat !== null)
+                return formats;
+            else
+                return null;
+        }
+        catch(error){
+            console.log('get default quality');
+            console.log(error);
+        }
     }
 
     AddToQueue(){
@@ -37,8 +73,19 @@ class Media
             }
         });
     }
-    GetDownloadOptions(){
-        let directory = settings.outputLocation;
+    async GetDownloadOptions(){
+        let settings = null;
+        let directory = "./videos";
+
+        try{
+            settings = await readSettings();
+            directory = settings.outputLocation;
+        }
+        catch(error){
+            console.log(error);
+            return;
+        }
+
         const args = [];
 
         if(this.options.audioOnly && this.options.playlist){
@@ -123,6 +170,14 @@ class Media
                             playlist: false
                         };
                         m.io = this.io;
+
+                        const result = await this.GetDefaultQualityFormat(m.url);
+
+                        if(result !== null){
+                            m.options.format = result.format;
+                            m.options.audioFormat = result.audioFormat
+                        }
+                       
                         playlist.push(m);
                     }
 
@@ -227,7 +282,8 @@ class Media
             try{
                 console.log(`Download started for file: ${this.url}`);
 
-                const downloadOptions = this.GetDownloadOptions();
+                const downloadOptions = await this.GetDownloadOptions();
+                
                 let fileInfo = await this.GetInfo(this.url,this.options);
                 let formatNote = this.GetFormat(fileInfo);
                 let db = await readDatabase();
@@ -283,7 +339,6 @@ class Media
                             db = await readDatabase();
                             status = parseInt(downloadStatus[1]);
                             oldStatus = status;
-
 
                             db.downloads[downloadsIndex].downloadStatus = status;
                             this.io.to('ydl').emit('downloadStatus', db);
