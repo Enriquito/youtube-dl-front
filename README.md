@@ -10,7 +10,7 @@ Youtube-dl-front is a frontend for youtube-dl. With the easy interface you can d
 ### Docker
 To run youtube-dl-front in docker run the following command in your docker environment.
 ```bash
-docker run -d -v </your/video/path>:/youtube-dl-front/server/videos -p 3000:3000 --name ydlf  enriquek/youtube-dl-front
+docker run -d -v </your/video/path>:/youtube-dl-front/server/videos -p 3000:3000 --name ydlf  enriquek/youtube-dl-front:latest
 ```
 
 ### Linux / MacOS
