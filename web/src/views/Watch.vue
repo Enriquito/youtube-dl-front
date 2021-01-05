@@ -12,7 +12,7 @@
         <div v-if="this.item" class="d-flex justify-content-center" style="margin-top: 80px">
             <div style="width: 1024px;">
                 <video v-if="this.item.extention != 'mp3'" :src="`/media/${this.item.fileName}`" controls />
-                <video v-else :style="`background: url(${item.thumbnails[4].url}); background-size:cover;`" :src="`media/${this.item.fileName}`" controls />
+                <video v-else :style="`background: url(${getBestThumbnailUrl}); background-size:cover;`" :src="`/media/${this.item.fileName}`" controls />
                 <h3 style="margin-bottom: 0;">{{this.item.title}}</h3>
                 <strong>{{this.item.uploader}}</strong>
                 <p style="margin-top: 10px">{{this.item.description}}</p>
@@ -41,6 +41,11 @@ export default {
             item: null,
             arrowLeftIcon: arrowLeft
         });
+    },
+    computed:{
+        getBestThumbnailUrl(){
+            return this.item.thumbnails[this.item.thumbnails.length - 1].url;
+        }
     }
 }
 </script>
