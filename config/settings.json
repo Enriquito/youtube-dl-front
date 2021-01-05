@@ -1,7 +1,5 @@
 {
-	"settings": {
-		"port": 3000,
-		"defaultQuality": "720p",
-		"outputLocation": "./videos"
-	}
+	"port": 3000,
+	"defaultQuality": "144p",
+	"outputLocation": "./videos"
 }

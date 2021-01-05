@@ -1,0 +1,137 @@
+{
+	"videos": [],
+	"downloads": [
+		{
+			"id": "MnjALU4Bus8",
+			"title": "Smoothie Madness (Episode TWO)",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=MnjALU4Bus8",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		},
+		{
+			"id": "04YCjsiairI",
+			"title": "Smoothie Madness (Episode THREE) | Francine vs. Jessica",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=04YCjsiairI",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		},
+		{
+			"id": "lw-iG4I3T2s",
+			"title": "Smoothie Madness (Episode FOUR) | Leticia Returns",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=lw-iG4I3T2s",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		},
+		{
+			"id": "fQOGJlAhHbk",
+			"title": "Smoothie Madness (Episode FIVE) | Co-host Contest",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=fQOGJlAhHbk",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		},
+		{
+			"id": "FuPn5mupxxE",
+			"title": "Smoothie Madness (Episode SIX) | Garlic or Salmon?!?",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=FuPn5mupxxE",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		},
+		{
+			"id": "yR9zOSoUDU8",
+			"title": "Smoothie Madness TV Pilot Pitch! (Episode 7)",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=yR9zOSoUDU8",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		},
+		{
+			"id": "XY6D_9c6sKY",
+			"title": "Smoothie Madness (Episode 8) | Season 2 Finale!",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=XY6D_9c6sKY",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		},
+		{
+			"id": "hUn-rDWl6c0",
+			"title": "Smoothie Madness: THE DOCUMENTARY",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=hUn-rDWl6c0",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		},
+		{
+			"id": "G4avUUBcNDQ",
+			"title": "Smoothie Madness (Episode 9) | Virtual Episode!",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=G4avUUBcNDQ",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		},
+		{
+			"id": "2UGdTO5VCp0",
+			"title": "Smoothie Madness (Episode 10) | Higher Stakes!",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=2UGdTO5VCp0",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		},
+		{
+			"id": "TqlNp9Lk0cM",
+			"title": "Smoothie Madness Holiday Special (Episode 11)",
+			"status": "queued",
+			"downloadStatus": 0,
+			"url": "https://www.youtube.com/watch?v=TqlNp9Lk0cM",
+			"options": {
+				"format": "160",
+				"audioFormat": "140",
+				"audioOnly": false
+			}
+		}
+	]
+}

@@ -1,7 +1,7 @@
 <template>
   <main>
     <Notification ref="notificationComp" />
-    <SettingsWindow :settings="settings" :open="this.$store.state.settingsOpen" />
+    <SettingsWindow :open="this.$store.state.settingsOpen" />
     <DownloadManager :open="this.$store.state.downloadOpen" />
     <header v-if="settings">
       <div class="d-flex justify-content-center">
@@ -59,7 +59,6 @@ import Notification from '@/components/Notification.vue'
 import SettingsWindow from '@/components/SettingsWindow.vue'
 import DownloadManager from '@/components/DownloadManager.vue'
 import VideoSkeletonLoader from '@/components/VideoSkeletonLoader.vue'
-import axios from 'axios';
 
 export default {
   name: 'Home',
@@ -68,8 +67,11 @@ export default {
         this.items = data;
     });
 
+    this.sockets.subscribe('getSettings', (data) => {
+      this.settings = data;
+    });
+
     this.reloadVideos();
-    this.loadSettings();
   },
   components: {
     Header,
@@ -107,29 +109,6 @@ export default {
       //   this.itemsToShow = this.items;
       // else
       //   this.itemsToShow = results;
-    },
-    loadData(){
-      axios.get('/items')
-      .then(result => {
-        this.items = result.data.videos;
-        // this.items.reverse();
-        this.searchResults(null);
-      })
-      .catch(error => {
-        console.error(error);
-        this.$refs.notificationComp.open('Error','Could not fetch data from database. Please try again later.');
-      });
-    },
-    loadSettings(){
-      axios.get(`/settings`)
-        .then(result => result.data)
-        .then(result => {
-            this.settings = result.settings;
-        })
-        .catch(error => {
-            console.error(error);
-            this.$refs.notificationComp.open('Error','The server encountered an error while fetshing the settings data. Please try again.');
-        });
     },
     removeDeletedItem(value){
       this.items.forEach((el,index) => {

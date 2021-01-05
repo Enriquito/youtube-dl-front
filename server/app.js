@@ -1,4 +1,4 @@
-const {settings} = require('../config/settings.json');
+const settings = require('../config/settings.json');
 const fs = require('fs')
 const path = require('path');
 let express = require('express');
@@ -28,10 +28,89 @@ io.on('connection', (socket) => {
     socket.join('ydl');
 
     socket.on('getVideos', getVideos);
+    socket.on('getVideo', getVideo);
     socket.on('downloadStatus', downloadStatus);
     socket.on('DeleteDownloads', deleteDownloads);
     socket.on('download', download);
+    socket.on('deleteVideo', deleteVideo);
+    socket.on('getVideoInfo', getVideoInfo);
+    socket.on('updateSettings', updateSettings);
+    socket.on('getSettings', getSettings);
 });
+
+const getVideoInfo = async url => {
+    try{
+        const info = await Media.GetDownloadInfo(url);
+
+        if(info != null)
+            io.to('ydl').emit('videoInfo', info);
+    }
+    catch(error){
+        console.log(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while fetching info."});
+    }
+}
+
+const deleteVideo = async video => {
+    let database = null;
+    let found = false;
+    let delError = false;
+
+    try{
+        database = await readDatabase();
+    }
+    catch(error){
+        console.log(error);
+        console.log('Cannot read database.');
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while reading database."});
+        delError = true;
+    }
+
+    if(database != null && !delError){
+        database.videos.forEach(async (el, index) => {
+            if(el.id === video.id){
+                found = true;
+
+                database.videos.splice(index, 1);
+
+                try{
+                    fs.unlinkSync(`${el.fileLocation}/${el.fileName}`);
+                }
+                catch(error){
+                    console.log(error);
+
+                    if(error.errno){
+                        if(error.errno === -4058){
+                            console.log('File not found.');
+                            return;
+                        }
+                    }
+
+                    io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while deleting file please try again later."});
+                }
+           }
+        });
+    }
+
+    if(delError){
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while deleting item."});
+    }
+    else if(found){
+        try{
+            await writeDatabase(database);
+            console.log(`Database record has been deleted`);
+            io.to('ydl').emit('systemMessages', {type: "Success", messages: "Item has been deleted."});
+        }
+        catch(error){
+            console.log(error);
+            console.log('Error while writing database file.');
+            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while writing to database."});
+        }
+    }
+    else{
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Item not found."});
+    }
+}
 
 const download = async options => {
     try{
@@ -47,11 +126,30 @@ const download = async options => {
             playlist: options.playlist
         };
 
-        if(isDownloading(database.downloads))
-            media.AddToQueue();
-        else
-            media.Download();
+        if(options.playlist){
+            console.log(`Downloading playlist: ${options.url}`);
+            const playlist = await media.PreparePlayListItems();
+            const playlistItems = playlist[0];
+            const info = playlist[1];
 
+            // console.log(info);
+
+            for(let i = 1; i < playlistItems.length; i++){
+                playlistItems[i].options.playlist = info;
+                await playlistItems[i].AddToQueue();
+            }
+
+            if(!isDownloading(database.downloads)){
+                Media.downloadQueueItems(io);
+            }
+
+        }
+        else if(isDownloading(database.downloads)){
+            media.AddToQueue();
+        }
+        else{
+            media.Download();
+        }
     }
     catch(error){
         console.log(error);
@@ -71,6 +169,32 @@ const getVideos = async () => {
     }
 };
 
+const getVideo = async id => {
+    try{
+        const database = await readDatabase();
+        let item = null;
+        let found = false;
+
+        if(database != null){
+            database.videos.forEach(el => {
+                if(el.id === id){
+                    found = true;
+                    item = el;
+                }
+            });
+        }
+
+        if(found)
+            io.to('ydl').emit('item', item);
+        else
+            io.to('ydl').emit('systemMessages', {type: "Warning", messages: "Item not found."});
+    }
+    catch(error){
+        console.log(error);
+        res.sendStatus(500);
+    }
+};
+
 const downloadStatus = async () => {
     try{
         const database = await readDatabase();
@@ -82,8 +206,8 @@ const downloadStatus = async () => {
     catch(error){
         console.log(error);
     }
-    
-}
+
+};
 
 const deleteDownloads = async () => {
     try{
@@ -109,6 +233,39 @@ const deleteDownloads = async () => {
         console.log(error);
     }
 };
+
+const updateSettings = async settings => {
+    try{
+        let data = await readSettings();
+
+        if(data === null){
+            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
+            return;
+        }
+
+        await writeSettings(settings);
+        io.to('ydl').emit('systemMessages', {type: "Success", messages: "Settings has been updated."});
+    }
+    catch(error){
+        console.log(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error updating settings."});
+    }
+}
+
+const getSettings = async () => {
+    try{
+        const data = await readSettings();
+
+        if(data === null)
+            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
+
+        io.to('ydl').emit('getSettings', data);
+    }
+    catch(error){
+        console.log(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
+    }
+}
 
 app.get('/', (req,res) => {
     res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });
@@ -267,7 +424,7 @@ app.delete('/items/:id', async (req,res) => {
         database.videos.forEach(async (el, index) => {
             if(el.id === req.params.id){
                 found = true;
-                
+
                 database.videos.splice(index, 1);
 
                 try{

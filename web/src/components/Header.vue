@@ -24,10 +24,16 @@
     </div>
 </template>
 <script>
-import axios from 'axios';
 
 export default {
     name: "Header",
+    mounted(){
+         this.sockets.subscribe('videoInfo', (data) => {
+            this.info = data;
+            this.isFetchingInfo = false;
+            this.canDownload = true;
+        });
+    },
     data(){
         return({
             info: null,
@@ -56,10 +62,10 @@ export default {
             this.$store.commit('isDownloading', true);
             let SearchingDefaultQuality = true;
 
-            if(this.info !== null)
-                this.options.soundQuality = this.getBestAudio;
-
             if(this.options.videoQuality === "Quality" && !this.options.audioOnly){
+                if(this.info !== null)
+                    this.options.soundQuality = this.getBestAudio;
+
                 const qualities = [
                     '144p',
                     '240p',
@@ -100,9 +106,14 @@ export default {
                 while(SearchingDefaultQuality)
 
                 if(SearchingDefaultQuality){
-                    this.$parent.$refs.notificationComp.open('Error','Error finding default quality. Please select manualy.');
-                    this.$store.commit('isDownloading', false);
-                    return;
+                    if(this.options.playlist){
+                        console.log('Downloading max quality');
+                    }
+                    else{
+                        this.$parent.$refs.notificationComp.open('Error','Error finding default quality. Please select manualy.');
+                        this.$store.commit('isDownloading', false);
+                        return;
+                    }
                 }
                 else
                     console.info(`Downloading quality: ${qualities[(qualityIndex - round)]}`)
@@ -126,29 +137,16 @@ export default {
             try{
                 if(this.isPlaylist(this.options.url)){
                     this.options.playlist = true;
-                    this.canDownload = false;
-                    this.options.url = "";
-                    this.$parent.$refs.notificationComp.open('Information','Playlists downloads are not available. (yet)');
-                    return;
-                }
-
-                axios.post(`/info/`,{url: this.options.url})
-                .then(result => result.data)
-                .then(result => {
-                    this.info = result;
-                    this.isFetchingInfo = false;
                     this.canDownload = true;
-                })
-                .catch(error => {
-                    console.error(error);
+                    this.$parent.$refs.notificationComp.open('Info','Playlists are downloaded with the default quality settings.');
+                }
+                else{
                     this.canDownload = false;
-                    this.isFetchingInfo = false;
-                    this.$parent.$refs.notificationComp.open('Error','The server could not fetch the video info. Check your url and try again.');
-                });
+                    this.$socket.emit('getVideoInfo',this.options.url);
+                }
             }
             catch(error){
                 this.isFetchingInfo = false;
-                this.$parent.$refs.notificationComp.open('Error','The server encountered an error.');
                 console.error(error);
             }
         },

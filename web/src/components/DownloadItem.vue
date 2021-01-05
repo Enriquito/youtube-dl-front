@@ -1,16 +1,25 @@
 <template>
     <div class="item-holder">
-        <span>{{title}}</span>
-        <progress v-if="showProgress" :value="progressValue" max="100"></progress>
+        <div class="d-flex">
+            <span class="video-title">{{item.title}}</span>
+            <!-- <img @click="stopDownload" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" /> -->
+        </div>
+        <progress v-if="showProgress" :value="item.downloadStatus" max="100"></progress>
     </div>
 </template>
 <script>
 export default {
     name: "DownloadManager",
     props:{
-        title: String,
-        progressValue: Number,
+        item: Object,
         showProgress: Boolean
+    },
+    methods:{
+        stopDownload(){
+             this.$socket.emit('stopDownload', this.item.id);
+             document.querySelector('.video-title').style.textDecoration = "line-through";
+             alert('Werkt nog niet. Afmaken.');
+        }
     }
 }
 </script>
@@ -38,5 +47,8 @@ span{
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+}
+img{
+    cursor: pointer;
 }
 </style>

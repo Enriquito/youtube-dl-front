@@ -2,19 +2,18 @@
     <div id="download-manager" :class="windowClass">
         <div class="d-flex justify-content-between">
             <h5 style="cursor:pointer;">Downloads</h5>
-            <img @click="deleteList" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
         </div>
         <div>
             <ul v-if="isDownloading">
                 <li>
-                    <DownloadItem :showProgress="true" :title="item.title" :progressValue="item.downloadStatus" />
+                    <DownloadItem :showProgress="true" :item="item" />
                 </li>
             </ul>
         </div>
         <div>
             <ul v-if="queueItems.length > 0">
                 <li v-for="(item, index) in queueItems" :key="item.id">
-                    <DownloadItem v-if="index <= 10" :showProgress="false" :title="item.title" :progressValue="item.downloadStatus" />
+                    <DownloadItem v-if="index <= 10" :showProgress="false" :item="item" />
                 </li>
             </ul>
         </div>
@@ -41,7 +40,11 @@ export default {
             });
         });
 
-        this.$socket.emit('downloadStatus');
+        // this.$socket.emit('downloadStatus');
+
+        setInterval(() => {
+            this.$socket.emit('downloadStatus');
+        }, 1000);
     },
     data(){
         return({
@@ -53,15 +56,6 @@ export default {
         });
     },
     methods:{
-        deleteList(){
-            this.$socket.emit('DeleteDownloads');
-
-            this.data.forEach((el, index) => {
-                if(el.status !== 'downloading' || el.status !== 'queued'){
-                    this.data.splice(index, 1);
-                }
-            });
-        },
         checkIfFinished(){
             if(this.item === null)
                 return;
