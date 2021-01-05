@@ -62,10 +62,10 @@ export default {
             this.$store.commit('isDownloading', true);
             let SearchingDefaultQuality = true;
 
-            if(this.info !== null)
-                this.options.soundQuality = this.getBestAudio;
-
             if(this.options.videoQuality === "Quality" && !this.options.audioOnly){
+                if(this.info !== null)
+                    this.options.soundQuality = this.getBestAudio;
+
                 const qualities = [
                     '144p',
                     '240p',
