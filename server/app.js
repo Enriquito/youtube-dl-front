@@ -36,7 +36,28 @@ io.on('connection', (socket) => {
     socket.on('getVideoInfo', getVideoInfo);
     socket.on('updateSettings', updateSettings);
     socket.on('getSettings', getSettings);
+    socket.on('emptyDatabase', emptyDatabase);
 });
+
+const emptyDatabase = async () => {
+    try{
+        const database = await readDatabase();
+
+        if(database === null)
+            throw new Error("Cannot load database file.");
+
+        database.videos = [];
+        database.downloads = [];
+
+        await writeDatabase(database);
+        await getVideos();
+
+        io.to('ydl').emit('systemMessages', {type: "Success", messages: "Database has been emptied"});
+    }
+    catch(error){
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: error});
+    }
+}
 
 const getVideoInfo = async url => {
     try{
