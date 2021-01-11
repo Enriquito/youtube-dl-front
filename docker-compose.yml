@@ -5,5 +5,4 @@ youtube-dl-front:
       - 3000:3000
     volumes:
       - /opt/youtube-dl-front/videos:/youtube-dl-front/server/videos
-      - /opt/youtube-dl-front/music:/youtube-dl-front/server/music
       - /opt/youtube-dl-front/config/database.json:/youtube-dl-front/config/database.json:rw
