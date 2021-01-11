@@ -1,7 +1,7 @@
 <template>
     <div class="d-flex justify-content-center">
         <div style="position: relative;">
-            <input placeholder="Paste video url" @blur="getInfo" v-model="options.url" type="url" />
+            <input placeholder="Paste video or playlist url" @blur="getInfo" v-model="options.url" type="url" />
             <button v-if="canDownload" @click="sendUrl">Download</button>
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
             <button v-else-if="!canDownload" disabled>Download</button>
@@ -239,6 +239,8 @@ input[type="url"]
     width: 411px;
     outline: none;
     border: none;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 select
 {
@@ -284,5 +286,26 @@ button
     border-color: rgba(118, 118, 118, 0.3);
     color: -internal-light-dark(graytext, rgb(170, 170, 170));
     background-color: -internal-light-dark(rgb(255, 255, 255), rgb(59, 59, 59));
+}
+@media (max-width: 720px) {
+    input[type="url"]
+    {
+        width: auto !important;
+    }
+    button
+    {
+        width: auto;
+        min-width: auto;
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+    .audio-button
+    {
+        display: none;
+    }
+    select
+    {
+        display: none;
+    }
 }
 </style>

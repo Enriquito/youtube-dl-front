@@ -128,4 +128,21 @@ figure figcaption strong a
     border-bottom-right-radius: 5px;
     cursor: inherit;
 }
+@media (max-width: 720px) {
+    figure
+    {
+        width: auto;
+        padding: 10px;
+        display: block !important;
+    }
+    figure .yt-image
+    {
+        width: 100% !important;
+        height: inherit !important;
+    }
+    .media-type-icon
+    {
+        left: auto !important;
+    }
+}
 </style>
