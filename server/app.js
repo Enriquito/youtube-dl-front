@@ -60,10 +60,12 @@ const removeDownload = async id => {
 
                 for(let i = 0; i < dirItems.length; i++){
                     const file = dirItems[i];
-                    const match = file.match(/.*.part/)
+                    const match = file.match(/.*.part/);
 
-                    if(match.length > 0){
-                        fs.unlinkSync(`${settings.outputLocation}/${file}`);
+                    if(match !== null){
+                        if(match.length > 0){
+                            fs.unlinkSync(`${settings.outputLocation}/${file}`);
+                        }
                     }
                 };
 
