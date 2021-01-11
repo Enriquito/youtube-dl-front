@@ -1,11 +1,8 @@
-#Just an example file.
 youtube-dl-front:
-    #change image when you have uploaded to dockerhub
-    image: root/youtube-dl-front
+    image: enriquek/youtube-dl-front
     container_name: youtube-dl-front
     ports:
       - 3000:3000
     volumes:
       - /opt/youtube-dl-front/videos:/youtube-dl-front/server/videos
-      - /opt/youtube-dl-front/music:/youtube-dl-front/server/music
       - /opt/youtube-dl-front/config/database.json:/youtube-dl-front/config/database.json:rw
