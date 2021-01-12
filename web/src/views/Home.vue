@@ -189,6 +189,8 @@ header .download-ani
     background: #34495e;
     padding: 10px;
     justify-content: center;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
   }
 }
 </style>

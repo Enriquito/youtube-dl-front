@@ -192,4 +192,23 @@ export default {
     list-style-type: none;
     padding: 10px 0;
 }
+@media (max-width: 720px) {
+    #download-manager
+    {
+        width: 100%;
+        top: auto !important;
+    }
+    @keyframes openm{
+    0%{
+        left: -1000;
+    }
+    50%{
+        left: 35px;
+    }
+    100%{
+        left: 0px;
+        height: auto;
+    }
+}
+}
 </style>
