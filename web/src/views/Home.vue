@@ -5,12 +5,12 @@
     <DownloadManager :open="this.$store.state.downloadOpen" />
     <header v-if="settings">
       <div class="d-flex justify-content-center">
-        <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/close.svg" alt="search" />
-        <img v-else @click="() => {searching = true}" class="header-icon" src="@/assets/icons/search.svg" alt="search" />
+        <!-- <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/close.svg" alt="search" /> -->
+        <!-- <img class="header-icon" src="@/assets/icons/search.svg" alt="search" /> -->
 
-        <SearchBar v-if="searching" @searchResults="searchResults" :items="items" />
-        <Header v-else :defaultQuality="settings.defaultQuality" />
-        <div class="d-flex align-self-center" style="position: absolute;right: 15px;cursor: pointer;">
+        <!-- <SearchBar v-if="searching" @searchResults="searchResults" :items="items" /> -->
+        <Header :defaultQuality="settings.defaultQuality" />
+        <div class="d-flex align-self-center icon-group">
           <svg @click="toggleSettingsOpen" class="icon gear-icon" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
               width="512px" height="512px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
             <g>
@@ -35,12 +35,12 @@
 
     <div style="margin-top: 75px">
       <div class="d-flex justify-content-center">
-        <div v-if="items">
+        <div id="holder" v-if="items">
           <div v-if="items.length > 0">
             <VideoListItem @deleted="removeDeletedItem" :data="video" v-for="(video, index) in items" :key="index" />
           </div>
           <div v-else>
-            <h2>No downloads</h2>
+            <h2 style="text-align: center">No downloads</h2>
           </div>
         </div>
         <div v-else>
@@ -54,7 +54,7 @@
 <script>
 import Header from '@/components/Header.vue'
 import VideoListItem from '@/components/VideoListItem.vue'
-import SearchBar from '@/components/SearchBar.vue'
+// import SearchBar from '@/components/SearchBar.vue'
 import Notification from '@/components/Notification.vue'
 import SettingsWindow from '@/components/SettingsWindow.vue'
 import DownloadManager from '@/components/DownloadManager.vue'
@@ -76,7 +76,6 @@ export default {
   components: {
     Header,
     VideoListItem,
-    SearchBar,
     Notification,
     SettingsWindow,
     DownloadManager,
@@ -167,6 +166,31 @@ header .download-ani
   }
   100%{
     fill: #2ecc71;
+  }
+}
+.icon-group
+{
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+}
+@media (max-width: 720px) {
+  #holder
+  {
+    width: 100%;
+    margin-bottom: 30px;
+  }
+  .icon-group
+  {
+    bottom: 0;
+    right: 0 !important;
+    position: fixed !important;
+    width: 100%;
+    background: #34495e;
+    padding: 10px;
+    justify-content: center;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
   }
 }
 </style>

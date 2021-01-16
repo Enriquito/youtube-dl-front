@@ -73,6 +73,7 @@ class Media
             }
         });
     }
+
     async GetDownloadOptions(){
         let settings = null;
         let directory = "./videos";
@@ -124,6 +125,7 @@ class Media
             args: args
         };
     }
+
     static GetDownloadInfo(url){
         return new Promise((resolve, reject) => {
 
@@ -139,6 +141,7 @@ class Media
             });
         });
     }
+
     PreparePlayListItems(){
         const getPlaylist = new Promise(async (resolve, reject) => {
             try{
@@ -228,6 +231,7 @@ class Media
 
         return Promise.all([getPlaylist]);
     }
+
     GetInfo(){
         return new Promise((resolve, reject) => {
             try{
@@ -256,6 +260,7 @@ class Media
             }
         });
     }
+
     CheckForDoubleVideos(database, fname){
         let found = false;
 
@@ -267,6 +272,7 @@ class Media
 
         return found;
     }
+
     GetFormat(fileInfo){
         let formatNote;
 
@@ -277,6 +283,7 @@ class Media
 
         return formatNote;
     }
+
     Download(){
         return new Promise(async (resolve, reject) => {
             try{
@@ -316,17 +323,20 @@ class Media
 
                 let downloadsIndex = (db.downloads.length);
 
+                const download = spawn('youtube-dl', downloadOptions.args);
+
                 db.downloads.push({
                     id: fileInfo.id,
                     title: fileInfo.title,
-                    status: 'downloading'
+                    status: 'downloading',
+                    processId: download.pid,
+                    url: this.url,
+                    options: this.options
                 });
 
                 this.io.to('ydl').emit('downloadStatus', db);
 
                 await writeDatabase(db);
-
-                const download = spawn('youtube-dl', downloadOptions.args);
 
                 let status;
                 let oldStatus = 0;
@@ -347,6 +357,16 @@ class Media
                 });
 
                 download.on('close', async () => {
+
+                    if(!fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
+                        const db = await readDatabase();
+
+                        if(db.downloads[downloadsIndex].status === "stopped"){
+                            console.log('stopped');
+                            return;
+                        }
+                            
+                    }
 
                     while(fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
                         fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${fname}`);
@@ -404,6 +424,7 @@ class Media
             }
         });
     }
+
     static async downloadQueueItems(io){
         const db = await readDatabase();
 

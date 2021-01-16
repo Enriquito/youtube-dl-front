@@ -1,10 +1,10 @@
 <template>
     <div v-if="open" class="d-flex justify-content-center" id="settings-holder">
         <div class="align-self-center d-flex" id="settings-window">
-            <div v-if="settings">
+            <div style="width: 100%;" v-if="settings">
                 <h3>Settings</h3>
-                <div>
-                    <label for="port-number">Application port *</label>
+                <div style="width: 100%;">
+                    <label for="port-number">Application port **</label>
                     <input id="port-number" v-model="settings.port" type="number" min="1" max="65535" />
                     <label for="default-quality">Default quality</label>
                     <select v-model="settings.defaultQuality" id="default-quality">
@@ -15,12 +15,15 @@
                         <option>720p</option>
                         <option>1080p</option>
                     </select>
-                    <label>Output location</label>
-                    <input v-model="settings.outputLocation" type="text" />
+                    <label for="output-location">Output location **</label>
+                    <input id="output-location" v-model="settings.outputLocation" type="text" />
+                    <label>Empty database</label>
+                    <button id="empty-database-button" @click="emptyDatabase">Empty</button>
                 </div>
                 <div>
-                    <div>
-                        <small>* Restart of application required</small>
+                    <div style="position: absolute; bottom: 60px;">
+                        <small>** Restart of application required.</small>
+                        <small style="display: block; margin-left: 15px; margin-top: -5px;">Non docker instances only.</small>
                     </div>
                     <div id="settings-buttons" class="d-flex justify-content-space-between">
                         <button @click="close">Close</button>
@@ -41,7 +44,7 @@
                 </div>
                 <div>
                     <div>
-                        <small>* Restart of application required</small>
+                        <small>** Restart of application required. Non docker instances only.</small>
                     </div>
                     <div id="settings-buttons" class="d-flex justify-content-space-between">
                         <button @click="close">Close</button>
@@ -70,6 +73,14 @@ export default {
                 defaultQuality: this.settings.defaultQuality,
                 outputLocation: this.settings.outputLocation
             });
+        },
+        emptyDatabase(){
+            const result = confirm("Are you sure you want to empty your database?");
+
+            if(!result)
+                return;
+
+            this.$socket.emit('emptyDatabase');
         },
         close(){
             this.$store.commit('settingsOpen', false);
@@ -113,18 +124,36 @@ export default {
 }
 #settings-window div #settings-buttons button
 {
-    padding: 10px;
     width: 100px;
     border-radius: 10px;
-    border: none;
     margin: 0 10px;
     font-weight: bold;
     outline: none;
 }
-#settings-window div div label,input, select
+#settings-window div div label,input, select, #empty-database-button
 {
     display:block;
-    width: 200px;
+    width: 100%;
+}
+#settings-window div div label
+{
+    margin: .5rem;
+}
+#settings-window div div input, select, #settings-window div #settings-buttons button
+{
+    background: #FFF;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+#empty-database-button
+{
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #FFF;
+    background: tomato;
+    padding: 5px 10px;
+    font-weight: bold;
 }
 #settings-window div div .skeleton-label
 {

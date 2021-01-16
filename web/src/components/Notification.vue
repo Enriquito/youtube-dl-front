@@ -86,4 +86,26 @@ export default {
   30% {right: 40px;}
   100% {right: -500px;}
 }
+@media (max-width: 720px)
+{
+    .notification-holder
+    {
+        bottom: 55px !important;
+        width: 100% !important;
+        top: auto;
+        height: 100px;
+    }
+    @keyframes slideIn
+    {
+        0% {right: -500px;}
+        60% {right: 40px;}
+        100% {right: 0;}
+    }
+    @keyframes slideOut
+    {
+        0% {right: 0;}
+        30% {right: 40px;}
+        100% {right: -500px;}
+    }
+}
 </style>

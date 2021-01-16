@@ -3,14 +3,19 @@
         <div class="d-flex justify-content-between">
             <h5 style="cursor:pointer;">Downloads</h5>
         </div>
-        <div>
-            <ul v-if="isDownloading">
+        <div v-for="item in data" :key="item.id">
+            <ul v-if="item.status == 'downloading'">
                 <li>
                     <DownloadItem :showProgress="true" :item="item" />
                 </li>
             </ul>
         </div>
         <div>
+            <ul v-if="pausedOrStoppedItems.length > 0">
+                <li v-for="(item, index) in pausedOrStoppedItems" :key="item.id">
+                    <DownloadItem v-if="index <= 10" :showProgress="true" :item="item" />
+                </li>
+            </ul>
             <ul v-if="queueItems.length > 0">
                 <li v-for="(item, index) in queueItems" :key="item.id">
                     <DownloadItem v-if="index <= 10" :showProgress="false" :item="item" />
@@ -40,8 +45,6 @@ export default {
             });
         });
 
-        // this.$socket.emit('downloadStatus');
-
         setInterval(() => {
             this.$socket.emit('downloadStatus');
         }, 1000);
@@ -49,7 +52,6 @@ export default {
     data(){
         return({
             data: [],
-            fetchInterval: null,
             isDownloading: false,
             item: null,
             windowClass: ""
@@ -91,6 +93,17 @@ export default {
 
             this.data.forEach(el => {
                 if(el.status === 'queued'){
+                    q.push(el);
+                }
+            });
+
+            return q;
+        },
+        pausedOrStoppedItems(){
+            const q = [];
+
+            this.data.forEach(el => {
+                if(el.status === 'stopped' || el.status === 'paused'){
                     q.push(el);
                 }
             });
@@ -155,7 +168,7 @@ export default {
     position: fixed;
     top: 10px;
     left: -1000px;
-    width: 230px;
+    width: 250px;
     height: 45px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     background: #FFF;
@@ -165,7 +178,7 @@ export default {
 
 }
 #download-manager:hover{
-    width: 300px;
+    width: 350px;
 }
 #download-manager progress
 {
@@ -178,5 +191,24 @@ export default {
 #download-manager ul li{
     list-style-type: none;
     padding: 10px 0;
+}
+@media (max-width: 720px) {
+    #download-manager
+    {
+        width: 100%;
+        top: auto !important;
+    }
+    @keyframes openm{
+    0%{
+        left: -1000;
+    }
+    50%{
+        left: 35px;
+    }
+    100%{
+        left: 0px;
+        height: auto;
+    }
+}
 }
 </style>

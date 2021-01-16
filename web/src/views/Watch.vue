@@ -10,7 +10,7 @@
             </router-link>
         </header>
         <div v-if="this.item" class="d-flex justify-content-center" style="margin-top: 80px">
-            <div style="width: 1024px;">
+            <div id="content" style="">
                 <video v-if="this.item.extention != 'mp3'" :src="`/media/${this.item.fileName}`" controls />
                 <video v-else :style="`background: url(${getBestThumbnailUrl}); background-size:cover;`" :src="`/media/${this.item.fileName}`" controls />
                 <h3 style="margin-bottom: 0;">{{this.item.title}}</h3>
@@ -56,5 +56,24 @@ video
     width: 1024px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     outline: none;
+}
+#content
+{
+    width: 1024px;
+}
+@media (max-width: 720px)
+{
+    video
+    {
+        width: 100% !important;
+    }
+    #content
+    {
+        width: 100% !important;
+    }
+    #content h3, strong, p
+    {
+        padding: 10px
+    }
 }
 </style>
