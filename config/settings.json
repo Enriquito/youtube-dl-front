@@ -4,6 +4,7 @@
 	"outputLocation": "./videos",
 	"authentication" : {
 		"username" : null,
-		"password" : null
+		"password" : null,
+		"twoFactor" : false
 	}
 }
