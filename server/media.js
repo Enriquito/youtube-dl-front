@@ -77,10 +77,17 @@ class Media
     async GetDownloadOptions(){
         let settings = null;
         let directory = "./videos";
+        let username = null;
+        let password = null;
 
         try{
             settings = await readSettings();
             directory = settings.outputLocation;
+
+            if(settings.authentication.username != null && settings.authentication.password != null){
+                username = settings.authentication.username;
+                password = settings.authentication.password;
+            }
         }
         catch(error){
             console.log(error);
@@ -111,6 +118,14 @@ class Media
 
         }
         else{
+            if(username !== null && password !== null){
+                args.push(`--username`);
+                args.push(username);
+
+                args.push(`--password`);
+                args.push(password);
+            }
+
             args.push(`--recode-video`);
             args.push(`mp4`);
         }
@@ -127,18 +142,36 @@ class Media
     }
 
     static GetDownloadInfo(url){
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
+            try{
+                let command;
+                let commandPart = "";
+                let commandAuth = "";
+                const settings = await readSettings();
 
-            let command = `youtube-dl -J ${url}`;
-
-            exec(command, (error, stdout, stderr) => {
-                if(error){
-                    reject(error);
-                    return;
+                if(settings.authentication.username !== null && settings.authentication.password !== null){
+                    if(!settings.authentication.twoFactor)
+                        commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password}`;
+                    else
+                        commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password} --twofactor ''`;
                 }
 
-                resolve(JSON.parse(stdout));
-            });
+                command = `youtube-dl ${commandAuth} -J ${url}`;
+
+                exec(command, (error, stdout, stderr) => {
+                    if(error){
+                        reject(error);
+                        return;
+                    }
+    
+                    resolve(JSON.parse(stdout));
+                });
+            }
+            catch(error){
+                console.log(error);
+                this.io.to('ydl').emit('systemMessages', {type: "Error", messages: `${error.messages.messages}`});
+                reject({success: false, messages: error, code: 100});
+            }
         });
     }
 
@@ -233,14 +266,22 @@ class Media
     }
 
     GetInfo(){
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try{
                 let command;
+                let commandPart;
+                let commandAuth = "";
+                const settings = await readSettings();
 
+                if(settings.authentication.username !== null && settings.authentication.password !== null)
+                    commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password}`;
+                
                 if(this.options.format && this.options.audioFormat)
-                    command = `youtube-dl --skip-download --dump-json -f ${this.options.format}+${this.options.audioFormat} ${this.url}`;
+                    commandPart = `--skip-download --dump-json -f ${this.options.format}+${this.options.audioFormat} ${this.url}`;         
                 else
-                    command = `youtube-dl --skip-download --dump-json ${this.url}`;
+                    commandPart = `--skip-download --dump-json ${this.url}`;
+
+                command = `youtube-dl ${commandAuth} ${commandPart}`
 
                 exec(command, (error, stdout, stderr) => {
                     if(error){
@@ -292,12 +333,12 @@ class Media
                 const downloadOptions = await this.GetDownloadOptions();
                 
                 let fileInfo = await this.GetInfo(this.url,this.options);
+                this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download started for ${fileInfo.title}`});
                 let formatNote = this.GetFormat(fileInfo);
                 let db = await readDatabase();
                 let extention;
                 let fname;
-                this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download started for ${fileInfo.title}`});
-
+                
                 if(this.options.audioOnly)
                         extention = "mp3";
                 else
@@ -311,7 +352,7 @@ class Media
                     fname = `${fname}.${extention}`;
 
                 if(this.CheckForDoubleVideos(db, fname)){
-                    resolve({success: false, messages: 'Item already excist', code: 2});
+                    resolve({success: false, messages: 'Item already exist', code: 2});
                     return;
                 }
 
