@@ -40,7 +40,19 @@ io.on('connection', (socket) => {
     socket.on('stopDownload', stopDownload);
     socket.on('resumeDownload', resumeDownload);
     socket.on('removeDownload', removeDownload);
+    socket.on('getPlaylist', getPlaylistInfo);
 });
+
+const getPlaylistInfo = async url => {
+    try{
+        const info  = await Media.getPlaylistInfo(url);
+        io.to('ydl').emit('getPlaylist', info);
+    }
+    catch(error){
+        console.log(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while fetching playlist info."});
+    }
+}
 
 const removeDownload = async id => {
     try{
