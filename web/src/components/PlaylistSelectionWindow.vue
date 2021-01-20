@@ -3,13 +3,24 @@
         <div class="align-self-center d-flex" id="settings-window">
             <div style="width: 100%;">
                   <h3>Playlist selection</h3>
-                  <h6 v-if="this.playlistInfo">{{this.playlistInfo[0].playlist_title}}</h6>
+                  <h6 v-if="this.playlistInfo">{{this.playlistInfo[0].playlist_title}} by: {{this.playlistInfo[0].playlist_uploader}}</h6>
                   
                   <div id="list-holder" style="width: 100%;">
-                      <figure>
-                          <figcaption class="d-flex" v-for="(item, index) in this.playlistInfo" :key="index">
-                              <small>{{index + 1}}</small>
-                              <strong>{{item.title}}</strong>
+                      <figure v-for="(item, index) in this.playlistInfo" :key="index">
+                          <figcaption>
+                              <div class="d-flex">
+                                    <div class="item-index">
+                                        <small>{{item.playlist_index}}</small>
+                                        <input type="checkbox" />
+                                    </div>
+                                <div class="item-name">
+                                    <strong>{{item.title}}</strong>
+                                </div>
+                              </div>
+                        
+                              <div class="item-uploader">
+                                  <small>{{item.uploader}}</small>
+                              </div>
                           </figcaption>
                       </figure>
                   </div>
@@ -61,10 +72,38 @@ export default {
 
 #list-holder
 {
-    border: 1px solid black;
     height: 350px;
-   
 }
+#list-holder figure
+{
+    cursor: pointer;
+}
+#list-holder figure:hover
+{
+    background: rgba(28, 240, 35, 0.5);
+    border-radius: 5px;
+    /* color: rgb(119, 119, 119); */
+}
+#list-holder figure figcaption .item-index
+{
+    padding: 10px;
+    /* padding-left: 0; */
+}
+#list-holder figure figcaption .item-name
+{
+    padding: 10px;
+    max-width: 350px;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+}
+#list-holder figure figcaption .item-uploader
+{
+    margin-left: 37px;
+    margin-top: -15px;
+}
+
 #settings-window::-webkit-scrollbar
 {
   display: none;
