@@ -139,6 +139,9 @@ export default {
                     this.options.playlist = true;
                     this.canDownload = true;
                     this.$parent.$refs.notificationComp.open('Info','Playlists are downloaded with the default quality settings.');
+
+                    this.$socket.emit('getPlaylist',this.options.url);
+                    this.$store.commit('playlistSelectionOpen', true);
                 }
                 else{
                     this.canDownload = false;
@@ -181,6 +184,9 @@ export default {
         },
         getFormats(){
             const formats = [];
+
+            if(this.isPlaylist(this.options.url))
+                return;
 
             try{
                 for(let i = 0; i < this.info.formats.length; i++){
