@@ -3,7 +3,7 @@
         <div class="align-self-center d-flex" id="settings-window">
             <div style="width: 100%;" v-if="settings">
                 <h3>Settings</h3>
-                <div style="width: 100%;">
+                <div id="input-holder" style="">
                     <label for="port-number">Application port **</label>
                     <input id="port-number" v-model="settings.port" type="number" min="1" max="65535" />
                     <label for="default-quality">Default quality</label>
@@ -17,17 +17,23 @@
                     </select>
                     <label for="output-location">Output location **</label>
                     <input id="output-location" v-model="settings.outputLocation" type="text" />
+                    
+                    <label for="username">Authentication</label>
+                    <input v-model="settings.authentication.username" type="text" id="username" placeholder="Username" />
+                    <input v-model="settings.authentication.password" style="margin-top: 10px;" type="password" id="password" placeholder="Password" />
+
                     <label>Empty database</label>
                     <button id="empty-database-button" @click="emptyDatabase">Empty</button>
-                </div>
-                <div>
-                    <div style="position: absolute; bottom: 60px;">
+                    <div style="position: absolute; top: 15px; right: 5px">
                         <small>** Restart of application required.</small>
                         <small style="display: block; margin-left: 15px; margin-top: -5px;">Non docker instances only.</small>
                     </div>
+                </div>
+                <div>
+                    
                     <div id="settings-buttons" class="d-flex justify-content-space-between">
                         <button @click="close">Close</button>
-                        <button @click="update">Save</button>
+                        <button class="save" @click="update">Save</button>
                     </div>
                 </div>
                 
@@ -59,6 +65,14 @@
 <script>
 export default {
     name: "SettingsWindow",
+    data(){
+        return({
+            settings: null
+        });
+    },
+    props:{
+        open: Boolean,
+    },
     mounted(){
         this.sockets.subscribe('getSettings', data => {
             this.settings = data;
@@ -68,10 +82,20 @@ export default {
     },
     methods:{
         update(){
+            if(this.settings.authentication.username === "")
+                this.settings.authentication.username = null;
+
+            if(this.settings.authentication.password === "")
+                this.settings.authentication.password = null;
+            
             this.$socket.emit('updateSettings',{
                 port: this.settings.port,
                 defaultQuality: this.settings.defaultQuality,
-                outputLocation: this.settings.outputLocation
+                outputLocation: this.settings.outputLocation,
+                authentication : {
+                    username : this.settings.authentication.username,
+                    password : this.settings.authentication.password
+                }
             });
         },
         emptyDatabase(){
@@ -85,14 +109,6 @@ export default {
         close(){
             this.$store.commit('settingsOpen', false);
         }
-    },
-    data(){
-        return({
-            settings: null
-        });
-    },
-    props:{
-        open: Boolean,
     }
 }
 </script>
@@ -130,6 +146,11 @@ export default {
     font-weight: bold;
     outline: none;
 }
+.save
+{
+    background: #03c9a9 !important;
+    color: #FFF;
+}
 #settings-window div div label,input, select, #empty-database-button
 {
     display:block;
@@ -154,6 +175,22 @@ export default {
     background: tomato;
     padding: 5px 10px;
     font-weight: bold;
+}
+#input-holder
+{
+    width: 100%;
+    overflow-y: scroll;
+    height: 380px;
+    padding-bottom: 10px;
+}
+#input-holder::-webkit-scrollbar
+{
+  display: none;
+}
+#input-holder
+{
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 #settings-window div div .skeleton-label
 {
