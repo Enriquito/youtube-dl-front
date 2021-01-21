@@ -100,15 +100,9 @@ class Media
             args.push('--audio-format')
             args.push('mp3');
         }
-        else if(this.options.playlist){
-            // console.log('a');
-        }
         else if(this.options.format && this.options.audioFormat){
             args.push(`-f`);
             args.push(`${this.options.format}+${this.options.audioFormat}`);
-        }
-        else if(this.options.format && this.options.audioFormat !== null){
-
         }
         else{
             args.push(`--recode-video`);
@@ -203,18 +197,18 @@ class Media
                 let temp = [];
 
                 download.stdout.on('data',async data => {
-                    if(data.toString().match(/^\{/).length === 1){
-                        try{
+                    try{
+                        if(data.toString().match(/^\{/).length === 1){
                             const obj = JSON.parse(data.toString());
                             temp.push(obj);
                         }
-                        catch(error){
-                            console.log(error);
-                        }
+                    }
+                    catch(error){
+                        console.log(error);
                     }
                 });
 
-                download.on('close', async data => {
+                download.on('close', () => {
                     resolve(temp);
                 });
             }

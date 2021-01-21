@@ -239,43 +239,64 @@ const deleteVideo = async video => {
     }
 }
 
-const download = async options => {
+const download = async data => {
     try{
         const database = await readDatabase();
-        const media = new Media();
-        media.io = io;
+        const itemList = [];
 
-        media.url = options.url;
-        media.options = {
-            format: options.videoQuality,
-            audioFormat: options.soundQuality,
-            audioOnly: options.audioOnly,
-            playlist: options.playlist
-        };
+        if(data.list.length > 1){
+            for(let i = 0; i < data.list.length; i++){
+                const media = new Media();
+                media.io = io;
+                media.url = data.list[i].url;
+                media.options = {
+                    format: data.list[i].videoQuality,
+                    audioFormat: data.list[i].soundQuality,
+                    audioOnly: data.list[i].audioOnly,
+                    playlist: data.list[i].playlist
+                };
 
-        if(options.playlist){
-            console.log(`Downloading playlist: ${options.url}`);
-            const playlist = await media.PreparePlayListItems();
-            const playlistItems = playlist[0];
-            const info = playlist[1];
+                const result = await media.GetDefaultQualityFormat(media.url);
 
-            // console.log(info);
+                if(result !== null){
+                    media.options.format = result.format;
+                    media.options.audioFormat = result.audioFormat
+                }
 
-            for(let i = 1; i < playlistItems.length; i++){
-                playlistItems[i].options.playlist = info;
-                await playlistItems[i].AddToQueue();
+                itemList.push(media);
+            }
+
+            console.log(`Downloading playlist.`);
+
+            for(let i = 0; i < itemList.length; i++){
+                await itemList[i].AddToQueue();
             }
 
             if(!isDownloading(database.downloads)){
                 Media.downloadQueueItems(io);
             }
-
         }
-        else if(isDownloading(database.downloads)){
-            media.AddToQueue();
+        else if(data.list.length === 1){
+            const item = data.list[0];
+            const media = new Media();
+            media.io = io;
+            media.url = item.url;
+            media.options = {
+                format: item.videoQuality,
+                audioFormat: item.soundQuality,
+                audioOnly: item.audioOnly,
+                playlist: item.playlist
+            };
+
+            if(isDownloading(database.downloads)){
+                media.AddToQueue();
+            }
+            else{
+                media.Download();
+            }
         }
         else{
-            media.Download();
+            console.log('No download data found.');
         }
     }
     catch(error){
