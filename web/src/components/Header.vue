@@ -59,6 +59,16 @@ export default {
             this.options.url = "";
         },
         sendUrl(){
+            if(this.isPlaylist(this.options.url)){
+                this.options.playlist = true;
+                this.canDownload = true;
+
+                this.$socket.emit('getPlaylist',this.options.url);
+                this.$store.commit('playlistSelectionOpen', true);
+                this.stopDownload();
+                return;
+            }
+
             this.$store.commit('isDownloading', true);
             let SearchingDefaultQuality = true;
 
@@ -123,31 +133,25 @@ export default {
             this.stopDownload();
         },
         getInfo(){
-            this.isFetchingInfo = true;
-
-            if(this.options.url === ""){
-                this.canDownload = false;
-                return;
-            }
-            else if(this.options.audioOnly){
-                this.canDownload = true;
-                return
-            }
-
             try{
                 if(this.isPlaylist(this.options.url)){
-                    this.options.playlist = true;
-                    this.canDownload = true;
-                    // this.$parent.$refs.notificationComp.open('Info','Playlists are downloaded with the default quality settings.');
+                this.canDownload = true;
+                return;
+                }
+                
+                this.isFetchingInfo = true;
 
-                    this.$socket.emit('getPlaylist',this.options.url);
-                    this.$store.commit('playlistSelectionOpen', true);
-                    this.stopDownload();
-                }
-                else{
+                if(this.options.url === ""){
                     this.canDownload = false;
-                    this.$socket.emit('getVideoInfo',this.options.url);
+                    return;
                 }
+                else if(this.options.audioOnly){
+                    this.canDownload = true;
+                    return
+                }
+
+                this.canDownload = false;
+                this.$socket.emit('getVideoInfo',this.options.url);
             }
             catch(error){
                 this.isFetchingInfo = false;
