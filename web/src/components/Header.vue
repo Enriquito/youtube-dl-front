@@ -119,7 +119,7 @@ export default {
                     console.info(`Downloading quality: ${qualities[(qualityIndex - round)]}`)
             }
 
-            this.$socket.emit('download',this.options);
+            this.$socket.emit('download',{list: [this.options]});
             this.stopDownload();
         },
         getInfo(){
@@ -138,10 +138,11 @@ export default {
                 if(this.isPlaylist(this.options.url)){
                     this.options.playlist = true;
                     this.canDownload = true;
-                    this.$parent.$refs.notificationComp.open('Info','Playlists are downloaded with the default quality settings.');
+                    // this.$parent.$refs.notificationComp.open('Info','Playlists are downloaded with the default quality settings.');
 
                     this.$socket.emit('getPlaylist',this.options.url);
                     this.$store.commit('playlistSelectionOpen', true);
+                    this.stopDownload();
                 }
                 else{
                     this.canDownload = false;

@@ -58,7 +58,7 @@ import VideoListItem from '@/components/VideoListItem.vue'
 // import SearchBar from '@/components/SearchBar.vue'
 import Notification from '@/components/Notification.vue'
 import SettingsWindow from '@/components/SettingsWindow.vue'
-import PlaylistSelectionWindow from '@/components/PlaylistSelectionWindow.vue'
+import PlaylistSelectionWindow from '@/components/playlistSelection/Window.vue'
 import DownloadManager from '@/components/DownloadManager.vue'
 import VideoSkeletonLoader from '@/components/VideoSkeletonLoader.vue'
 
