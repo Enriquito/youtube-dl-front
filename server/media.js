@@ -77,10 +77,17 @@ class Media
     async GetDownloadOptions(){
         let settings = null;
         let directory = "./videos";
+        let username = null;
+        let password = null;
 
         try{
             settings = await readSettings();
             directory = settings.outputLocation;
+
+            if(settings.authentication.username != null && settings.authentication.password != null){		
+                username = settings.authentication.username;		
+                password = settings.authentication.password;		
+            }
         }
         catch(error){
             console.log(error);
@@ -104,6 +111,13 @@ class Media
             args.push(`-f`);
             args.push(`${this.options.format}+${this.options.audioFormat}`);
         }
+        else if(username !== null && password !== null){		
+            args.push(`--username`);		
+            args.push(`'${username}'`);		
+
+            args.push(`--password`);		
+            args.push(`'${password}'`);		
+        }
         else{
             args.push(`--recode-video`);
             args.push(`mp4`);
@@ -121,18 +135,32 @@ class Media
     }
 
     static GetDownloadInfo(url){
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
+            try{				
+                let commandAuth = "";		
+                const settings = await readSettings();
 
-            let command = `youtube-dl -J ${url}`;
-
-            exec(command, (error, stdout, stderr) => {
-                if(error){
-                    reject(error);
-                    return;
+                if(settings.authentication.username !== null && settings.authentication.password !== null){		
+                    if(!settings.authentication.twoFactor)		
+                        commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password}`;		
+                    else		
+                        commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password} --twofactor ''`;		
                 }
 
-                resolve(JSON.parse(stdout));
-            });
+                exec(`youtube-dl ${commandAuth} -J ${url}`, (error, stdout, stderr) => {
+                    if(error){
+                        reject(error);
+                        return;
+                    }
+
+                    resolve(JSON.parse(stdout));
+                })
+            }
+            catch(error){
+                console.log(error);		
+                this.io.to('ydl').emit('systemMessages', {type: "Error", messages: `${error.messages.messages}`});		
+                reject({success: false, messages: error, code: 100});
+            }
         });
     }
 
@@ -193,24 +221,41 @@ class Media
     static getPlaylistInfo (url) {
         return new Promise(async (resolve, reject) => {
             try{
-                const download = spawn('youtube-dl', ['--skip-download', '--dump-json', url]);
-                let temp = [];
+                let start = 1;
+                let end = 11;
+                const step = 10;
+                let a = 1;
 
-                download.stdout.on('data',async data => {
-                    try{
-                        if(data.toString().match(/^\{/).length === 1){
-                            const obj = JSON.parse(data.toString());
-                            temp.push(obj);
-                        }
-                    }
-                    catch(error){
-                        console.log(error);
-                    }
-                });
+                const data = [];
 
-                download.on('close', () => {
-                    resolve(temp);
-                });
+                for(let i = 0; i < a; i++){
+                    await new Promise((resolve, reject) => {
+                        exec(`youtube-dl --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} '${url}'`, (error, stdout, stderr) => {
+                            if (error) {
+                                reject(error.message);
+                                return;
+                            }
+                            if (stderr) {
+                                reject(stderr);
+                                return;
+                            }
+        
+                            if(JSON.parse(stdout).entries.length >= step){
+                                start += step;
+                                end += step;
+                                a++;
+                            }
+        
+                            JSON.parse(stdout).entries.forEach(item => {
+                                data.push(item);
+                            });
+
+                            resolve();
+                        });
+                    });
+                }
+
+                resolve(data);
             }
             catch(error){
                 reject(error);
