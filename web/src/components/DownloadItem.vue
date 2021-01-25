@@ -4,9 +4,14 @@
             <span class="video-title">{{item.title}}</span>
         </div>
         <div class="d-flex align-items-center">
-            <progress v-if="showProgress" :value="item.downloadStatus" max="100"></progress>
+            <progress v-if="showProgress && item.status == 'downloading'" :value="item.downloadStatus" max="100"></progress>
+            <div class="download-status-converting" v-else-if="showProgress && item.status == 'converting'">
+                <span>Converting video</span>
+                <span id="dots"></span>
+            </div>
+            
             <div class="d-flex justify-content-end">
-                <svg @click="stopDownload" v-if="item.status != 'stopped' && item.status != 'queued'" class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg @click="stopDownload" v-if="item.status != 'stopped' && item.status != 'queued' && item.status != 'converting'" class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7 7H17V17H7V7Z" fill="#000" />
                 </svg>
                 <svg @click="resumeDownload" v-if="item.status == 'stopped'" class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -28,6 +33,16 @@ export default {
         item: Object,
         showProgress: Boolean
     },
+    data(){
+        return({
+            interval: null
+        })
+    },
+    mounted(){
+        if(this.item.status === 'converting'){
+            this.dotInterval();
+        }
+    },
     methods:{
         stopDownload(){
             this.$socket.emit('stopDownload', this.item.processId);
@@ -41,38 +56,73 @@ export default {
         },
         removeDownload(){
             this.$socket.emit('removeDownload', this.item.id);
+        },
+        dotInterval(){
+            this.interval = setInterval(() => {
+                const txt = document.getElementById('dots').innerHTML;
+
+                if(txt.length < 4 && txt.length >= 0)
+                    document.getElementById('dots').innerHTML = txt + ".";
+                else if(txt.length === 4)
+                    document.getElementById('dots').innerHTML = "";
+
+            }, 1500)
+        }
+    },
+    watch:{
+        item: {
+            handler(val){
+                if(val.status === 'converting'){
+                    this.dotInterval();
+                }
+            },
+            deep: true
         }
     }
 }
 </script>
 <style scoped>
-@keyframes slideIn{
-    0%{
+@keyframes slideIn
+{
+    0%
+    {
         position: relative;
         left: -328px;
     }
-    100%{
+    100%
+    {
         left: auto;
     }
 }
-.item-holder{
+.item-holder
+{
     animation: slideIn forwards 0.5s;
     translate: all;
 }
-progress {
+progress
+{
     padding: 10px;
     width: 100%;
 }
-span{
+span.video-title
+{
     display: block;
     max-width: 250px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
 }
-.icon{
+.icon
+{
     cursor: pointer;
     width: 20px;
     height: 20px;
+}
+.download-status-converting
+{
+    display: inline-block;
+    font-style: italic;
+    text-align: center;
+    font-size: 0.85em;
 }
 </style>

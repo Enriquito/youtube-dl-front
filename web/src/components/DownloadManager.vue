@@ -4,7 +4,7 @@
             <h5 style="cursor:pointer;">Downloads</h5>
         </div>
         <div v-for="item in data" :key="item.id">
-            <ul v-if="item.status == 'downloading'">
+            <ul v-if="item.status == 'downloading' || item.status == 'converting'">
                 <li>
                     <DownloadItem :showProgress="true" :item="item" />
                 </li>
@@ -44,10 +44,6 @@ export default {
                 }
             });
         });
-
-        setInterval(() => {
-            this.$socket.emit('downloadStatus');
-        }, 1000);
     },
     data(){
         return({

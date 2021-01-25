@@ -382,6 +382,12 @@ class Media
                             oldStatus = status;
 
                             db.downloads[downloadsIndex].downloadStatus = status;
+
+                            if(status === 100){
+                                db.downloads[downloadsIndex].status = "converting"; 
+                                await writeDatabase(db);
+                            }
+                                
                             this.io.to('ydl').emit('downloadStatus', db);
                         }
                     }

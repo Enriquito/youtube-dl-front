@@ -73,7 +73,7 @@ export default {
       this.settings = data;
     });
 
-    this.reloadVideos();
+    this.$socket.emit('getVideos');
   },
   components: {
     Header,
@@ -117,9 +117,6 @@ export default {
         if(el.id === value.id)
           this.items.splice(index, 1);
       });
-    },
-    reloadVideos(){
-      this.$socket.emit('getVideos');
     }
   },
   computed:{
