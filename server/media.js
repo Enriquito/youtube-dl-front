@@ -84,9 +84,9 @@ class Media
             settings = await readSettings();
             directory = settings.outputLocation;
 
-            if(settings.authentication.username != null && settings.authentication.password != null){
-                username = settings.authentication.username;
-                password = settings.authentication.password;
+            if(settings.authentication.username != null && settings.authentication.password != null){		
+                username = settings.authentication.username;		
+                password = settings.authentication.password;		
             }
         }
         catch(error){
@@ -107,25 +107,18 @@ class Media
             args.push('--audio-format')
             args.push('mp3');
         }
-        else if(this.options.playlist){
-            // console.log('a');
-        }
         else if(this.options.format && this.options.audioFormat){
             args.push(`-f`);
             args.push(`${this.options.format}+${this.options.audioFormat}`);
         }
-        else if(this.options.format && this.options.audioFormat !== null){
+        else if(username !== null && password !== null){		
+            args.push(`--username`);		
+            args.push(`'${username}'`);		
 
+            args.push(`--password`);		
+            args.push(`'${password}'`);		
         }
         else{
-            if(username !== null && password !== null){
-                args.push(`--username`);
-                args.push(username);
-
-                args.push(`--password`);
-                args.push(password);
-            }
-
             args.push(`--recode-video`);
             args.push(`mp4`);
         }
@@ -143,33 +136,29 @@ class Media
 
     static GetDownloadInfo(url){
         return new Promise(async (resolve, reject) => {
-            try{
-                let command;
-                let commandPart = "";
-                let commandAuth = "";
+            try{				
+                let commandAuth = "";		
                 const settings = await readSettings();
 
-                if(settings.authentication.username !== null && settings.authentication.password !== null){
-                    if(!settings.authentication.twoFactor)
-                        commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password}`;
-                    else
-                        commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password} --twofactor ''`;
+                if(settings.authentication.username !== null && settings.authentication.password !== null){		
+                    if(!settings.authentication.twoFactor)		
+                        commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password}`;		
+                    else		
+                        commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password} --twofactor ''`;		
                 }
 
-                command = `youtube-dl ${commandAuth} -J ${url}`;
-
-                exec(command, (error, stdout, stderr) => {
+                exec(`youtube-dl ${commandAuth} -J ${url}`, (error, stdout, stderr) => {
                     if(error){
                         reject(error);
                         return;
                     }
-    
+
                     resolve(JSON.parse(stdout));
-                });
+                })
             }
             catch(error){
-                console.log(error);
-                this.io.to('ydl').emit('systemMessages', {type: "Error", messages: `${error.messages.messages}`});
+                console.log(error);		
+                this.io.to('ydl').emit('systemMessages', {type: "Error", messages: `${error.messages.messages}`});		
                 reject({success: false, messages: error, code: 100});
             }
         });
@@ -225,63 +214,64 @@ class Media
             }
         });
 
-        // To-Do get plalist info
-        const getPlaylistInfo = new Promise(async (resolve, reject) => {
+        return Promise.all([getPlaylist]);
+    }
+
+    // To-Do get plalist info
+    static getPlaylistInfo (url) {
+        return new Promise(async (resolve, reject) => {
             try{
-                const download = spawn('youtube-dl', ['--skip-download', '--dump-json', this.url]);
-                let tik = 0;
-                let temp = null;
+                let start = 1;
+                let end = 11;
+                const step = 10;
+                let a = 1;
 
-                download.stdout.on('data',async data => {
-                    const match = data.toString().match(/^\{/);
+                const data = [];
 
-                    if(match !== null && tik === 0){
-                        // console.log(data.toString());
-                        // const obj = JSON.parse(data.toString());
-                        // temp = obj;
-                        // tik++;
-                    }
-                });
+                for(let i = 0; i < a; i++){
+                    await new Promise((resolve, reject) => {
+                        exec(`youtube-dl --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${url}`, (error, stdout, stderr) => {
+                            if (error) {
+                                reject(error.message);
+                                return;
+                            }
+                            if (stderr) {
+                                reject(stderr);
+                                return;
+                            }
+        
+                            if(JSON.parse(stdout).entries.length >= step){
+                                start += step;
+                                end += step;
+                                a++;
+                            }
+        
+                            JSON.parse(stdout).entries.forEach(item => {
+                                data.push(item);
+                            });
 
-                download.on('close', async data => {
+                            resolve();
+                        });
+                    });
+                }
 
-                    const info = {
-                        // uploader: temp.playlist_uploader,
-                        // title: temp.playlist_title,
-                        // id: temp.playlist_id
-                    }
-
-                    console.log(temp);
-                    // console.log(tik);
-
-                    resolve(data);
-                });
+                resolve(data);
             }
             catch(error){
                 reject(error);
             }
         });
-
-        return Promise.all([getPlaylist]);
     }
 
     GetInfo(){
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             try{
                 let command;
-                let commandPart;
-                let commandAuth = "";
-                const settings = await readSettings();
 
-                if(settings.authentication.username !== null && settings.authentication.password !== null)
-                    commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password}`;
-                
                 if(this.options.format && this.options.audioFormat)
-                    commandPart = `--skip-download --dump-json -f ${this.options.format}+${this.options.audioFormat} ${this.url}`;         
+                    command = `youtube-dl --skip-download --dump-json -f ${this.options.format}+${this.options.audioFormat} ${this.url}`;
                 else
-                    commandPart = `--skip-download --dump-json ${this.url}`;
-
-                command = `youtube-dl ${commandAuth} ${commandPart}`
+                    command = `youtube-dl --skip-download --dump-json ${this.url}`;
 
                 exec(command, (error, stdout, stderr) => {
                     if(error){
@@ -333,12 +323,12 @@ class Media
                 const downloadOptions = await this.GetDownloadOptions();
                 
                 let fileInfo = await this.GetInfo(this.url,this.options);
-                this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download started for ${fileInfo.title}`});
                 let formatNote = this.GetFormat(fileInfo);
                 let db = await readDatabase();
                 let extention;
                 let fname;
-                
+                this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download started for ${fileInfo.title}`});
+
                 if(this.options.audioOnly)
                         extention = "mp3";
                 else
@@ -352,7 +342,7 @@ class Media
                     fname = `${fname}.${extention}`;
 
                 if(this.CheckForDoubleVideos(db, fname)){
-                    resolve({success: false, messages: 'Item already exist', code: 2});
+                    resolve({success: false, messages: 'Item already excist', code: 2});
                     return;
                 }
 

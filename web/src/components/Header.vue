@@ -2,9 +2,11 @@
     <div class="d-flex justify-content-center">
         <div style="position: relative;">
             <input placeholder="Paste video or playlist url" @blur="getInfo" v-model="options.url" type="url" />
-            <button v-if="canDownload" @click="sendUrl">Download</button>
+            <button v-if="canDownload && !options.playlist" @click="sendUrl">Download</button>
+            <button v-else-if="canDownload && options.playlist" @click="selectPlaylistItems">Select items</button>
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
             <button v-else-if="!canDownload" disabled>Download</button>
+            
         </div>
         <div>
             <button @click="selectAudioOnly" v-if="options.audioOnly" class="audio-button" id="audio-button-active">Audio</button>
@@ -57,6 +59,13 @@ export default {
             this.info = null;
             this.canDownload = true;
             this.options.url = "";
+        },
+        selectPlaylistItems(){
+            this.$socket.emit('getPlaylist',this.options.url);
+            this.$store.commit('playlistSelectionOpen', true);
+            this.options.url = "";
+            this.canDownload = false;
+            this.isFetchingInfo = false;
         },
         sendUrl(){
             this.$store.commit('isDownloading', true);
@@ -119,31 +128,30 @@ export default {
                     console.info(`Downloading quality: ${qualities[(qualityIndex - round)]}`)
             }
 
-            this.$socket.emit('download',this.options);
+            this.$socket.emit('download',{list: [this.options]});
             this.stopDownload();
         },
         getInfo(){
-            this.isFetchingInfo = true;
-
-            if(this.options.url === ""){
-                this.canDownload = false;
-                return;
-            }
-            else if(this.options.audioOnly){
-                this.canDownload = true;
-                return
-            }
-
             try{
                 if(this.isPlaylist(this.options.url)){
-                    this.options.playlist = true;
                     this.canDownload = true;
-                    this.$parent.$refs.notificationComp.open('Info','Playlists are downloaded with the default quality settings.');
+                    this.options.playlist = true;
+                    return;
                 }
-                else{
+                
+                this.isFetchingInfo = true;
+
+                if(this.options.url === ""){
                     this.canDownload = false;
-                    this.$socket.emit('getVideoInfo',this.options.url);
+                    return;
                 }
+                else if(this.options.audioOnly){
+                    this.canDownload = true;
+                    return
+                }
+
+                this.canDownload = false;
+                this.$socket.emit('getVideoInfo',this.options.url);
             }
             catch(error){
                 this.isFetchingInfo = false;
@@ -181,6 +189,9 @@ export default {
         },
         getFormats(){
             const formats = [];
+
+            if(this.isPlaylist(this.options.url))
+                return;
 
             try{
                 for(let i = 0; i < this.info.formats.length; i++){

@@ -7,6 +7,7 @@ export default new Vuex.Store({
   state: {
     downloadOpen: true,
     settingsOpen: false,
+    playlistSelectionOpen: false,
     isDownloading: false
   },
   mutations: {
@@ -15,6 +16,9 @@ export default new Vuex.Store({
     },
     settingsOpen(state, value) {
       state.settingsOpen = value;
+    },
+    playlistSelectionOpen(state, value) {
+      state.playlistSelectionOpen = value;
     },
     isDownloading(state, value){
         state.isDownloading = value;
@@ -26,6 +30,9 @@ export default new Vuex.Store({
     },
     settingsOpen: state => {
       return state.settingsOpen;
+    },
+    playlistSelectionOpen: state => {
+      return state.playlistSelectionOpen;
     },
     isDownloading: state => {
         return state.isDownloading;
