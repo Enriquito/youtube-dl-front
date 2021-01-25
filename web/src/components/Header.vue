@@ -2,9 +2,11 @@
     <div class="d-flex justify-content-center">
         <div style="position: relative;">
             <input placeholder="Paste video or playlist url" @blur="getInfo" v-model="options.url" type="url" />
-            <button v-if="canDownload" @click="sendUrl">Download</button>
+            <button v-if="canDownload && !options.playlist" @click="sendUrl">Download</button>
+            <button v-else-if="canDownload && options.playlist" @click="selectPlaylistItems">Select items</button>
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
             <button v-else-if="!canDownload" disabled>Download</button>
+            
         </div>
         <div>
             <button @click="selectAudioOnly" v-if="options.audioOnly" class="audio-button" id="audio-button-active">Audio</button>
@@ -58,17 +60,14 @@ export default {
             this.canDownload = true;
             this.options.url = "";
         },
+        selectPlaylistItems(){
+            this.$socket.emit('getPlaylist',this.options.url);
+            this.$store.commit('playlistSelectionOpen', true);
+            this.options.url = "";
+            this.canDownload = false;
+            this.isFetchingInfo = false;
+        },
         sendUrl(){
-            if(this.isPlaylist(this.options.url)){
-                this.options.playlist = true;
-                this.canDownload = true;
-
-                this.$socket.emit('getPlaylist',this.options.url);
-                this.$store.commit('playlistSelectionOpen', true);
-                this.stopDownload();
-                return;
-            }
-
             this.$store.commit('isDownloading', true);
             let SearchingDefaultQuality = true;
 
@@ -135,8 +134,9 @@ export default {
         getInfo(){
             try{
                 if(this.isPlaylist(this.options.url)){
-                this.canDownload = true;
-                return;
+                    this.canDownload = true;
+                    this.options.playlist = true;
+                    return;
                 }
                 
                 this.isFetchingInfo = true;

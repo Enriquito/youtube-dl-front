@@ -230,7 +230,7 @@ class Media
 
                 for(let i = 0; i < a; i++){
                     await new Promise((resolve, reject) => {
-                        exec(`youtube-dl --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} '${url}'`, (error, stdout, stderr) => {
+                        exec(`youtube-dl --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${url}`, (error, stdout, stderr) => {
                             if (error) {
                                 reject(error.message);
                                 return;
