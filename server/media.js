@@ -1,5 +1,6 @@
 const { spawn, exec } = require('child_process');
 const fs = require('fs');
+const Database = require("./database");
 const {writeDatabase, readDatabase, readSettings} = require('./helpers');
 
 class Media
@@ -9,6 +10,9 @@ class Media
         this.options = options;
         this.info;
         this.io;
+
+        this.db = new Database();
+        
     }
 
     async GetDefaultQualityFormat(url){
@@ -432,6 +436,7 @@ class Media
 
                     db.downloads[downloadsIndex].status = 'finished';
                     db.videos.push(this.info);
+                    this.saveVideo(this.info);
                     await writeDatabase(db);
 
                     this.io.to('ydl').emit('downloadStatus', db);
@@ -460,6 +465,44 @@ class Media
                 return;
             }
         });
+    }
+
+    async saveVideo(data){
+        // this.info = {
+        //     thumbnails : fileInfo.thumbnails,
+        //     title: fileInfo.title,
+        //     resolution: {
+        //         width: fileInfo.width,
+        //         heigth: fileInfo.height
+        //     },
+        //     tags : fileInfo.tags,
+        //     duration : fileInfo.duration,
+        //     uploader : fileInfo.uploader,
+        //     viewCount : fileInfo.view_count,
+        //     id : fileInfo.id,
+        //     description : fileInfo.description,
+        //     uploaderUrl : fileInfo.channel_url,
+        //     extention : extention,
+        //     format : fileInfo.format_note,
+        //     videoUrl : fileInfo.webpage_url,
+        //     fileLocation: downloadOptions.directory,
+        //     fileName: fname
+        // }
+
+        const db = this.db.connect();
+        const insertPrefix = "INSERT INTO videos (title, uploader_url, view_count, duration, video_url, video_proivder_id, uploader_name, description)";
+        const values = `VALUES(${data.title}, ${data.uploaderUrl}, ${data.viewCount}, ${data.duration}, ${data.videoUrl}, ${data.id}, ${data.uploader}, ${data.description})`;
+
+        db.serialize(() => {
+            db.database.run(`${insertPrefix} ${values}`, (error) => {
+                if(error){
+                    console.error(error);
+                    return;
+                }
+
+                console.log("Video saved");
+            });
+        })
     }
 
     static async downloadQueueItems(io){
