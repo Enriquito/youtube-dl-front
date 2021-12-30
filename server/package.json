@@ -5,7 +5,8 @@
   "main": "app.js",
   "dependencies": {
     "express": "^4.17.2",
-    "socket.io": "^2.4.1"
+    "socket.io": "^2.4.1",
+    "sqlite3": "^5.0.2"
   },
   "devDependencies": {},
   "scripts": {
