@@ -9,3 +9,6 @@ web/.env
 web/.DS_Store
 
 .DS_Store
+
+# sqlite database
+*.db
