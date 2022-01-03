@@ -12,3 +12,4 @@ web/.DS_Store
 
 # sqlite database
 *.db
+server/test.js
