@@ -9,10 +9,7 @@ class Media
         this.url = url;
         this.options = options;
         this.info;
-        this.io;
-
-        this.db = new Database();
-        
+        this.io;        
     }
 
     async GetDefaultQualityFormat(url){
@@ -436,7 +433,8 @@ class Media
 
                     db.downloads[downloadsIndex].status = 'finished';
                     db.videos.push(this.info);
-                    this.saveVideo(this.info);
+                    console.log(this.info);
+                    // this.saveVideo(this.info);
                     await writeDatabase(db);
 
                     this.io.to('ydl').emit('downloadStatus', db);
@@ -489,12 +487,12 @@ class Media
         //     fileName: fname
         // }
 
-        const db = this.db.connect();
-        const insertPrefix = "INSERT INTO videos (title, uploader_url, view_count, duration, video_url, video_proivder_id, uploader_name, description)";
-        const values = `VALUES(${data.title}, ${data.uploaderUrl}, ${data.viewCount}, ${data.duration}, ${data.videoUrl}, ${data.id}, ${data.uploader}, ${data.description})`;
+        const db = await new Database();
+        const insertPrefix = "INSERT INTO videos (title, uploader_url, view_count, duration, video_url, video_provider_id, uploader_name, description)";
+	    const values = `VALUES('${data.title}', '${data.uploaderUrl}', ${data.viewCount}, ${data.duration}, '${data.videoUrl}', '${data.id}', '${data.uploader}', '${data.description}')`;
 
         db.serialize(() => {
-            db.database.run(`${insertPrefix} ${values}`, (error) => {
+            db.run(`${insertPrefix} ${values}`, (error) => {
                 if(error){
                     console.error(error);
                     return;

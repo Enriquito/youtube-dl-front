@@ -6,9 +6,8 @@ class Database {
 	}
 
 	async connect(){
-		return new Promise((resolve, reject) => {
+		const db = new Promise((resolve, reject) => {
 			this.database = new sqlite3.Database('./database.db', async (err) => {
-	
 				if (err) {
 				  console.error(err.message);
 				  reject(err);
@@ -16,19 +15,18 @@ class Database {
 				}
 			
 				console.log('Connected to the database.');
-
-				const isFirstUse = await db.isFirstUse();
-	
-				if(isFirstUse){
-					await db.createTables();
-				}
-				else{
-					console.log("tables")
-				}
+				
+				resolve(this.database);
 			});
-
-			resolve(this.database);
 		});
+
+		const isFirstUse = await this.isFirstUse();
+	
+		if(isFirstUse){
+			await this.createTables();
+		}
+
+		return db;
 	}
 
 	async isFirstUse(){
@@ -134,19 +132,33 @@ class Database {
 		});
 	}
 
+	purge(){
+		return new Promise((resolve, reject) => {
+			const videosTable = "DELETE FROM videos";
+			const tagsTable = "DELETE FROM tags";
+			const tagLinksTable = "DELETE FROM tag_links";
+			const thumbnailsTable = "DELETE FROM thumbnails";
 
+			this.database.serialize((error) => {
+				if(error)
+					reject();
+
+				this.database
+				.run(videosTable)
+				.run(tagsTable)
+				.run(tagLinksTable)
+				.run(thumbnailsTable)
+			});
+
+			console.log("Tables have been cleared.");
+
+			this.close();
+
+			resolve();
+		});
+	}
 }
 
 const db = new Database();
-
-// db.connect().then(async () => {
-// 	db.database.serialize(() => {
-// 		db.database.each("SELECT * FROM tags", (err,  row) => {
-// 			console.log(row);
-// 		});
-
-// 		db.close()
-// 	})
-// })
 
 module.exports = Database;
