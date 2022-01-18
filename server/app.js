@@ -3,6 +3,16 @@ const fs = require('fs')
 const path = require('path');
 let express = require('express');
 const bodyParser = require('body-parser');
+const Database = require("./database");
+
+try{
+    Database.checkFirstUse()
+}
+catch(error){
+    console.error("Error: Cannot create database.");
+    console.error(error);
+}
+
 const Media = require('./media');
 const {
     writeDatabase,

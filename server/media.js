@@ -1,6 +1,7 @@
 const { spawn, exec } = require('child_process');
 const fs = require('fs');
 const Database = require("./database");
+const Video = require("./video");
 const {writeDatabase, readDatabase, readSettings} = require('./helpers');
 
 class Media
@@ -433,8 +434,26 @@ class Media
 
                     db.downloads[downloadsIndex].status = 'finished';
                     db.videos.push(this.info);
-                    console.log(this.info);
-                    // this.saveVideo(this.info);
+                    // console.log(this.info);
+                    // await this.saveVideo(this.info);
+                    
+                    const video = new Video();
+
+                    video.title = this.info.title;
+                    video.uploaderUrl = this.info.uploaderUrl;
+                    video.viewCount = this.info.viewCount;
+                    video.duration = this.info.duration;
+                    video.extention = this.info.extention;
+                    video.fileName = this.info.fileName;
+                    video.fileLocation = this.info.fileLocation;
+                    video.url = this.info.videoUrl;
+                    video.videoProviderId = this.info.id;
+                    video.uploaderName = this.info.uploader;
+                    video.description = this.info.description;
+                    video.tags = this.info.tags;
+                    video.thumbnails = this.info.thumbnails;
+
+                    await video.save();
                     await writeDatabase(db);
 
                     this.io.to('ydl').emit('downloadStatus', db);
@@ -466,6 +485,7 @@ class Media
     }
 
     async saveVideo(data){
+        
         // this.info = {
         //     thumbnails : fileInfo.thumbnails,
         //     title: fileInfo.title,
@@ -487,20 +507,26 @@ class Media
         //     fileName: fname
         // }
 
-        const db = await new Database();
-        const insertPrefix = "INSERT INTO videos (title, uploader_url, view_count, duration, video_url, video_provider_id, uploader_name, description)";
-	    const values = `VALUES('${data.title}', '${data.uploaderUrl}', ${data.viewCount}, ${data.duration}, '${data.videoUrl}', '${data.id}', '${data.uploader}', '${data.description}')`;
+        const db  = await Database.connect();
+    
+        const insertVideoPrefix = "INSERT INTO videos (title, uploader_url, view_count, duration, file_extention, file_name, file_location, video_url, video_provider_id, uploader_name, description)";
+        const videoValues = [data.title, data.uploaderUrl, data.viewCount, data.duration, data.extention, data.fileName, data.fileLocation, data.videoUrl, data.id, data.uploader, data.description];
+        
+        const insertTags = "INSERT INTO tags (tag)";
+        const tagValues = []
 
         db.serialize(() => {
-            db.run(`${insertPrefix} ${values}`, (error) => {
+            db.run(`${insertVideoPrefix} VALUES(?,?,?,?,?,?,?,?,?,?,?)`, videoValues, (error) => {
                 if(error){
                     console.error(error);
                     return;
                 }
-
+    
                 console.log("Video saved");
             });
         })
+
+        Database.close(db);
     }
 
     static async downloadQueueItems(io){

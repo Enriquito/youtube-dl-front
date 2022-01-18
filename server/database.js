@@ -1,13 +1,10 @@
 const sqlite3 = require('sqlite3').verbose();
 
 class Database {
-	constructor(){
-		this.database;
-	}
 
-	async connect(){
+	static async connect(){
 		const db = new Promise((resolve, reject) => {
-			this.database = new sqlite3.Database('./database.db', async (err) => {
+			const database = new sqlite3.Database('./database.db', async (err) => {
 				if (err) {
 				  console.error(err.message);
 				  reject(err);
@@ -16,22 +13,27 @@ class Database {
 			
 				console.log('Connected to the database.');
 				
-				resolve(this.database);
+				resolve(database);
 			});
 		});
-
-		const isFirstUse = await this.isFirstUse();
-	
-		if(isFirstUse){
-			await this.createTables();
-		}
-
+		
 		return db;
 	}
 
-	async isFirstUse(){
+	static async checkFirstUse(){
+		const db  = await Database.connect();
+		const isFirstUse = await Database.isFirstUse(db);
+	
+		if(isFirstUse){
+			await Database.createTables(db);
+		}
+
+		Database.close(db);
+	}
+
+	static async isFirstUse(db){
 		return new Promise((resolve, reject) => {
-			this.database.run(`SELECT id FROM videos`, async (err) => {
+			db.run(`SELECT id FROM videos`, async (err) => {
 				if (err) {
 					const noTableResult = err.message.match(/(no such table)/g);
 	
@@ -39,16 +41,16 @@ class Database {
 						resolve(true);
 						return;
 					}
-						
 				}
 				else
+				{
 					resolve(false);
+				}
 			});
 		});
-		
 	}
 
-	createTables(){
+	static async createTables(db){
 		console.log("Creating tables...");
 
 		const createTagTable = `
@@ -64,10 +66,13 @@ class Database {
 			uploader_url TEXT NOT NULL,
 			view_count bigINTEGER  NOT NULL,
 			duration mediumINTEGER NOT NULL,
+			file_extention TEXT NOT NULL,
+			file_location TEXT NOT NULL,
+			file_name TEXT NOT NULL,
 			video_url TEXT NOT NULL,
 			video_provider_id TEXT NOT NULL,
 			uploader_name TEXT NOT NULL,
-			description text NOT NULL
+			description TEXT NOT NULL
 			);`;
 		
 		const createTagLinksTable = `
@@ -108,10 +113,9 @@ class Database {
 
 			COMMIT;
 			`;
-
 		
-		this.database.serialize(() => {
-			this.database
+		db.serialize(() => {
+			db
 			.run(createVideosTable)
 			.run(createTagTable)
 			.run(createTagLinksTable)
@@ -120,11 +124,10 @@ class Database {
 		})
 
 		console.log("Tables created");
-		this.close();
 	}
 
-	close(){
-		this.database.close((err) => {
+	static close(db){
+		db.close((err) => {
 			if (err) {
 			  return console.error(err.message);
 			}
@@ -132,7 +135,7 @@ class Database {
 		});
 	}
 
-	purge(){
+	static purge(){
 		return new Promise((resolve, reject) => {
 			const videosTable = "DELETE FROM videos";
 			const tagsTable = "DELETE FROM tags";
