@@ -17,7 +17,7 @@ class Video{
         this.tags;
         this.thumbnails;
     }
-    
+
     // Storing data
 
     async save(){
@@ -148,11 +148,11 @@ class Video{
         })
     }
 
-    static all(){
+    static all(limitStart = 0, limitEnd = 30){
         return new Promise(async (resolve, reject) => {
             let db = await Database.connect();
 
-            db.all("SELECT * FROM videos", async (error, rows) => {
+            db.all("SELECT * FROM videos LIMIT ?,?", [limitStart,limitEnd], async (error, rows) => {
                 if(error){
                     console.error(error);
                     reject(error);
@@ -248,6 +248,11 @@ class Video{
                     return;
                 }
 
+                if(row === null || row === undefined){
+                    resolve(null);
+                    return;
+                }
+
                 const video = new Video();
                 
                 video.id = row.id;
@@ -270,24 +275,17 @@ class Video{
 
     static async find(id){
         return new Promise(async (resolve, reject) => {
-            let db = null;
-            
-            try{
-                db = await Database.connect();
+            const video = await this.getVideo(id);
 
-                const video = await this.getVideo(id);
-                video.tags = await this.getTags(video.id);
-                video.thumbnails = await this.getThumbnails(video.id);
+            if(video === null){ 
+                reject("Video not found.");
+                return;
+            }
 
-                resolve(video);
-            }
-            catch(error){
-                console.error(error);
-                reject(error);
-            }
-            finally{
-                Database.close(db);
-            }
+            video.tags = await this.getTags(video.id);
+            video.thumbnails = await this.getThumbnails(video.id);
+
+            resolve(video);
         });
     }
 }
