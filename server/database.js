@@ -1,7 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 
 class Database {
-
 	static async connect(){
 		const db = new Promise((resolve, reject) => {
 			const database = new sqlite3.Database('./database.db', async (err) => {
@@ -21,14 +20,28 @@ class Database {
 	}
 
 	static async checkFirstUse(){
-		const db  = await Database.connect();
-		const isFirstUse = await Database.isFirstUse(db);
-	
-		if(isFirstUse){
-			await Database.createTables(db);
-		}
+		return new Promise(async (resolve, reject) => {
+			let db = null;
+			try{
+				db  = await Database.connect();
 
-		Database.close(db);
+				const isFirstUse = await Database.isFirstUse(db);
+
+				if(isFirstUse){
+					await Database.createTables(db);
+				}
+
+				resolve();
+			}
+			catch(error){
+				console.error(error);
+				reject();
+			}
+			finally{
+				Database.close(db);
+			}
+		})
+		
 	}
 
 	static async isFirstUse(db){
