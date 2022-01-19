@@ -17,6 +17,8 @@ class Video{
         this.tags;
         this.thumbnails;
     }
+    
+    // Storing data
 
     async save(){
         let db = null;
@@ -72,7 +74,7 @@ class Video{
                         reject(error);
                         return;
                     }
-                    
+
                     resolve(this.lastID);
                 });
             });
@@ -105,22 +107,6 @@ class Video{
         });
     }
 
-    async checkTag(db, tag){
-        return new Promise((resolve, reject) => {
-            db.serialize(() => {
-                db.get(`SELECT * FROM tags WHERE tag = ?`, [tag], (error,row) => {
-                    if(error){
-                        console.error(error);
-                        reject(error);
-                        return;
-                    }
-                    
-                    resolve(row);
-                });
-            });
-        })
-    }
-
     async saveThumbnail(db, thumbnail){
         return new Promise((resolve,reject) => {
             const values = [
@@ -142,6 +128,167 @@ class Video{
             })
         });
         
+    }
+
+    // End storing data
+
+    async checkTag(db, tag){
+        return new Promise((resolve, reject) => {
+            db.serialize(() => {
+                db.get(`SELECT * FROM tags WHERE tag = ?`, [tag], (error,row) => {
+                    if(error){
+                        console.error(error);
+                        reject(error);
+                        return;
+                    }
+                    
+                    resolve(row);
+                });
+            });
+        })
+    }
+
+    static all(){
+        return new Promise(async (resolve, reject) => {
+            let db = await Database.connect();
+
+            db.all("SELECT * FROM videos", async (error, rows) => {
+                if(error){
+                    console.error(error);
+                    reject(error);
+                    return;
+                }
+
+                const videos = [];
+
+                for(let i = 0; i < rows.length; i++){
+                    const row = rows[i];
+                    const video = new Video();
+
+                    video.id = row.id;
+                    video.title = row.title;
+                    video.uploaderUrl = row.uploader_url;
+                    video.viewCount = row.view_count;
+                    video.duration = row.duration;
+                    video.extention = row.file_extention;
+                    video.fileLocation = row.file_location;
+                    video.fileName = row.file_name;
+                    video.url = row.video_url;
+                    video.videoProviderId = row.video_provider_id;
+                    video.uploaderName = row.uploader_name;
+                    video.description = row.description;
+
+                    try{
+                        video.tags = await this.getTags(video.id);
+                        video.thumbnails = await this.getThumbnails(video.id);
+                        videos.push(video);
+                    }
+                    catch(error){
+                        console.error(error);
+                    }
+                }
+
+                resolve(videos)
+            });   
+
+            Database.close(db);
+        });
+    }
+
+    static async getTags(videoId){
+        return new Promise(async (resolve, reject) => {
+            let db = await Database.connect();
+
+            const tagQuery = `SELECT t.tag FROM tags t
+                        JOIN tag_links tl ON tl.tag = t.id
+                        WHERE tl.video = ?`;
+                        
+            db.all(tagQuery, videoId, (error, rows) => {
+                if(error){
+                    console.error(error);
+                    reject(error);
+                    return;
+                }
+
+                const tags = [];
+
+                rows.forEach(row => {
+                    tags.push(row.tag);
+                })
+
+                resolve(tags);
+            })
+        });
+    }
+
+    static async getThumbnails(videoId){
+        return new Promise(async (resolve, reject) => {     
+            let db = await Database.connect();
+
+            db.all("SELECT height, width, resolution, url FROM thumbnails WHERE video = ?", videoId, (error, rows) => {
+                if(error){
+                    console.error(error);
+                    reject(error);
+                    return;
+                }
+
+                resolve(rows);
+            });
+        });
+    }
+
+    static async getVideo(videoId){
+        return new Promise(async (resolve, reject) => {
+            let db = await Database.connect();
+
+            db.get("SELECT * FROM videos WHERE id = ? ", videoId, (error, row) => {
+                if(error){
+                    console.error(error);
+                    reject(error);
+                    return;
+                }
+
+                const video = new Video();
+                
+                video.id = row.id;
+                video.title = row.title;
+                video.uploaderUrl = row.uploader_url;
+                video.viewCount = row.view_count;
+                video.duration = row.duration;
+                video.extention = row.file_extention;
+                video.fileLocation = row.file_location;
+                video.fileName = row.file_name;
+                video.url = row.video_url;
+                video.videoProviderId = row.video_provider_id;
+                video.uploaderName = row.uploader_name;
+                video.description = row.description;
+
+                resolve(video);
+            })
+        });
+    }
+
+    static async find(id){
+        return new Promise(async (resolve, reject) => {
+            let db = null;
+            
+            try{
+                db = await Database.connect();
+
+                const video = await this.getVideo(id);
+                video.tags = await this.getTags(video.id);
+                video.thumbnails = await this.getThumbnails(video.id);
+
+                resolve(video);
+            }
+            catch(error){
+                console.error(error);
+                reject(error);
+            }
+            finally{
+                Database.close(db);
+            }
+        });
     }
 }
 
