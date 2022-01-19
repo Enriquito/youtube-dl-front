@@ -31,6 +31,7 @@ app.use('/', express.static(path.join(__dirname,"../web/dist/")));
 app.use('/media/', express.static(settings.outputLocation));
 
 const http = require('http');
+const Video = require('./video');
 const httpServer = http.createServer(app);
 const io = require('socket.io')(httpServer);
 
@@ -318,8 +319,10 @@ const getVideos = async () => {
     try{
         const database = await readDatabase();
 
+        const videos = await Video.all();
+
         if(database != null)
-            io.to('ydl').emit('getVideos', database.videos.reverse());
+            io.to('ydl').emit('getVideos', videos.reverse());
 
     }
     catch(error){
@@ -329,21 +332,10 @@ const getVideos = async () => {
 
 const getVideo = async id => {
     try{
-        const database = await readDatabase();
-        let item = null;
-        let found = false;
+        const video = await Video.find(id);
 
-        if(database != null){
-            database.videos.forEach(el => {
-                if(el.id === id){
-                    found = true;
-                    item = el;
-                }
-            });
-        }
-
-        if(found)
-            io.to('ydl').emit('item', item);
+        if(video !== null || video !== undefined)
+            io.to('ydl').emit('item', video);
         else
             io.to('ydl').emit('systemMessages', {type: "Warning", messages: "Item not found."});
     }
