@@ -454,6 +454,7 @@ class Media
                     video.thumbnails = this.info.thumbnails;
 
                     await video.save();
+                    
                     await writeDatabase(db);
 
                     this.io.to('ydl').emit('downloadStatus', db);
@@ -482,51 +483,6 @@ class Media
                 return;
             }
         });
-    }
-
-    async saveVideo(data){
-        
-        // this.info = {
-        //     thumbnails : fileInfo.thumbnails,
-        //     title: fileInfo.title,
-        //     resolution: {
-        //         width: fileInfo.width,
-        //         heigth: fileInfo.height
-        //     },
-        //     tags : fileInfo.tags,
-        //     duration : fileInfo.duration,
-        //     uploader : fileInfo.uploader,
-        //     viewCount : fileInfo.view_count,
-        //     id : fileInfo.id,
-        //     description : fileInfo.description,
-        //     uploaderUrl : fileInfo.channel_url,
-        //     extention : extention,
-        //     format : fileInfo.format_note,
-        //     videoUrl : fileInfo.webpage_url,
-        //     fileLocation: downloadOptions.directory,
-        //     fileName: fname
-        // }
-
-        const db  = await Database.connect();
-    
-        const insertVideoPrefix = "INSERT INTO videos (title, uploader_url, view_count, duration, file_extention, file_name, file_location, video_url, video_provider_id, uploader_name, description)";
-        const videoValues = [data.title, data.uploaderUrl, data.viewCount, data.duration, data.extention, data.fileName, data.fileLocation, data.videoUrl, data.id, data.uploader, data.description];
-        
-        const insertTags = "INSERT INTO tags (tag)";
-        const tagValues = []
-
-        db.serialize(() => {
-            db.run(`${insertVideoPrefix} VALUES(?,?,?,?,?,?,?,?,?,?,?)`, videoValues, (error) => {
-                if(error){
-                    console.error(error);
-                    return;
-                }
-    
-                console.log("Video saved");
-            });
-        })
-
-        Database.close(db);
     }
 
     static async downloadQueueItems(io){
