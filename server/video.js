@@ -25,31 +25,37 @@ class Video{
             db  = await Database.connect();
     
             this.id = await this.saveVideo(db);
-            console.log(this.tags);
+
+            if(this.id === null){
+                console.error("Error creating video");
+                return;
+            }
 
             const tags = [];
 
             for(let i = 0; i < this.tags.length; i++){
                 const check = await this.checkTag(db, this.tags[i]);
 
-                if(check == undefined){
+                if(check == undefined)
                     tags.push(await this.saveTag(db, this.tags[i]));
-                }
-                else{
+                else
                     tags.push(check.id);
-                }
-                
             }
 
             for(let i = 0; i < tags.length; i++){
                 await this.saveTagLinks(db, tags[i]);
             }
+
+            for(let i = 0; i < this.thumbnails.length; i++){
+                await this.saveThumbnail(db, this.thumbnails[i]);
+            }
+
+            console.log("Video saved");
         }
         catch(error){
-            console.log(error);
+            console.error(error);
         }
         finally{
-            console.log("Video saved");
             Database.close(db);
         }
     }
@@ -66,6 +72,7 @@ class Video{
                         reject(error);
                         return;
                     }
+                    
                     resolve(this.lastID);
                 });
             });
@@ -79,8 +86,6 @@ class Video{
                     console.error(error);
                     return;
                 }
-
-                console.log("created tag link");
             });
 		})
     }
@@ -114,6 +119,29 @@ class Video{
                 });
             });
         })
+    }
+
+    async saveThumbnail(db, thumbnail){
+        return new Promise((resolve,reject) => {
+            const values = [
+                this.id,
+                thumbnail.height,
+                thumbnail.width,
+                thumbnail.resolution,
+                thumbnail.url
+            ]
+            db.serialize(() => {
+                db.run("INSERT INTO thumbnails (video, height, width, resolution, url) VALUES(?,?,?,?,?)", values, function(error){
+                    if(error){
+                        reject(error);
+                        return;
+                    }
+
+                    resolve();
+                })
+            })
+        });
+        
     }
 }
 
