@@ -4,15 +4,6 @@ const path = require('path');
 let express = require('express');
 const bodyParser = require('body-parser');
 const Database = require("./database");
-
-try{
-    Database.checkFirstUse()
-}
-catch(error){
-    console.error("Error: Cannot create database.");
-    console.error(error);
-}
-
 const Media = require('./media');
 const {
     writeDatabase,
@@ -34,6 +25,21 @@ const http = require('http');
 const Video = require('./video');
 const httpServer = http.createServer(app);
 const io = require('socket.io')(httpServer);
+
+Database.checkFirstUse()
+.then(() => {
+    // get settings data
+})
+.then(() => {
+    httpServer.listen(port, () => {
+        console.log(`HTTP Server running on port ${port}`);
+    });
+})
+.catch(error => {
+    console.log(error);
+});
+
+
 
 io.on('connection', (socket) => {
     socket.join('ydl');
@@ -685,6 +691,3 @@ app.put('/settings', async (req,res) => {
     }
 });
 
-httpServer.listen(port, () => {
-    console.log(`HTTP Server running on port ${port}`);
-});
