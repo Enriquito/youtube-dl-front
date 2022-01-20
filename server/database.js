@@ -68,6 +68,7 @@ class Database {
 
 		const createSettingsTable = `
 			CREATE TABLE settings (
+			id INTEGER NOT NULL
 			port INTEGER NOT NULL,
 			default_quality TEXT NOT NULL,
 			output_location TEXT NOT NULL,
@@ -78,7 +79,7 @@ class Database {
 
 		const createSettingsValues = `
 			INSERT INTO settings (port, default_quality, output_location)
-			VALUES(3000, '720p', './videos')
+			VALUES(1, 3000, '720p', './videos')
 		`;
 
 		const createTagTable = `
