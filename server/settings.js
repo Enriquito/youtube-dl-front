@@ -12,6 +12,38 @@ class Settings{
         }
     }
 
+    async update(){
+        return new Promise(async (resolve, reject) => {
+            let db = null;
+
+            try{
+                db  = await Database.connect();
+
+                const updateData = [
+                    this.port,
+                    this.outputLocation,
+                    this.defaultQuality,
+                    this.authentication.username,
+                    this.authentication.password,
+                    this.authentication.twofa,
+                    1
+                ];
+
+                db.run(`UPDATE settings SET port = ?, output_location = ?, default_quality = ?, authentication_username = ?, authentication_password = ?, authentication_2fa = ? WHERE id = ?`, updateData, async (error) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    
+                    resolve();
+                });
+            }
+            catch(error){
+                reject(error);
+            }
+		});
+    }
+
     async load(){
         return new Promise(async (resolve, reject) => {
             let db = null;
