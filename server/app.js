@@ -1,9 +1,9 @@
-const settings = require('../config/settings.json');
 const fs = require('fs')
 const path = require('path');
 let express = require('express');
 const bodyParser = require('body-parser');
 const Database = require("./database");
+const Settings = require("./settings");
 const Media = require('./media');
 const {
     writeDatabase,
@@ -13,33 +13,32 @@ const {
     isDownloading
     } = require('./helpers');
 const app = express();
-const port = settings.port;
-
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json());
-
-app.use('/', express.static(path.join(__dirname,"../web/dist/")));
-app.use('/media/', express.static(settings.outputLocation));
-
-const http = require('http');
-const Video = require('./video');
-const httpServer = http.createServer(app);
-const io = require('socket.io')(httpServer);
+const settings = new Settings();
 
 Database.checkFirstUse()
 .then(() => {
-    // get settings data
-})
-.then(() => {
-    httpServer.listen(port, () => {
-        console.log(`HTTP Server running on port ${port}`);
-    });
+    settings.load()
+        .then(() => {
+            httpServer.listen(settings.port, () => {
+                console.log(`HTTP Server running on port ${settings.port}`);
+            });
+
+            app.use('/media/', express.static(settings.outputLocation));
+        });
 })
 .catch(error => {
     console.log(error);
 });
 
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json());
 
+app.use('/', express.static(path.join(__dirname,"../web/dist/")));
+
+const http = require('http');
+const Video = require('./video');
+const httpServer = http.createServer(app);
+const io = require('socket.io')(httpServer);
 
 io.on('connection', (socket) => {
     socket.join('ydl');
@@ -74,7 +73,7 @@ const getPlaylistInfo = async url => {
 const removeDownload = async id => {
     try{
         const database = await readDatabase();
-        const settings = await readSettings();
+        await settings.load();
 
         if(database === null)
             throw new Error("Error reading database file");
@@ -410,12 +409,12 @@ const updateSettings = async settings => {
 
 const getSettings = async () => {
     try{
-        const data = await readSettings();
+        await settings.load();
 
-        if(data === null)
+        if(settings === null)
             io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
 
-        io.to('ydl').emit('getSettings', data);
+        io.to('ydl').emit('getSettings', settings);
     }
     catch(error){
         console.log(error);
