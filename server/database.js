@@ -22,6 +22,7 @@ class Database {
 	static async checkFirstUse(){
 		return new Promise(async (resolve, reject) => {
 			let db = null;
+
 			try{
 				db  = await Database.connect();
 
@@ -41,7 +42,6 @@ class Database {
 				Database.close(db);
 			}
 		})
-		
 	}
 
 	static async isFirstUse(db){
@@ -65,6 +65,21 @@ class Database {
 
 	static async createTables(db){
 		console.log("Creating tables...");
+
+		const createSettingsTable = `
+			CREATE TABLE settings (
+			port INTEGER NOT NULL,
+			default_quality TEXT NOT NULL,
+			output_location TEXT NOT NULL,
+			authentication_username TEXT,
+			authentication_password TEXT,
+			authentication_2fa INTEGER
+		)`;
+
+		const createSettingsValues = `
+			INSERT INTO settings (port, default_quality, output_location)
+			VALUES(3000, '720p', './videos')
+		`;
 
 		const createTagTable = `
 			CREATE TABLE tags (
@@ -129,6 +144,8 @@ class Database {
 		
 		db.serialize(() => {
 			db
+			.run(createSettingsTable)
+			.run(createSettingsValues)
 			.run(createVideosTable)
 			.run(createTagTable)
 			.run(createTagLinksTable)
