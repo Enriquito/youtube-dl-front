@@ -82,6 +82,23 @@ class Database {
 			VALUES(1, 3000, '720p', './videos')
 		`;
 
+		const createDownloadTable = `
+			CREATE TABLE "downloads" (
+				"id"	INTEGER,
+				"video_id"	TEXT NOT NULL,
+				"title"	TEXT NOT NULL,
+				"status"	TEXT NOT NULL,
+				"process_id"	INTEGER NOT NULL,
+				"url"	TEXT NOT NULL,
+				"format"	TEXT NOT NULL,
+				"audio_format"	TEXT NOT NULL,
+				"audio_only"	NUMERIC NOT NULL,
+				"playlist"	NUMERIC NOT NULL,
+				"download_status" INTEGER NOT NULL,
+				PRIMARY KEY("id" AUTOINCREMENT)
+			);
+		`;
+
 		const createTagTable = `
 			CREATE TABLE tags (
 			id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -147,6 +164,7 @@ class Database {
 			db
 			.run(createSettingsTable)
 			.run(createSettingsValues)
+			.run(createDownloadTable)
 			.run(createVideosTable)
 			.run(createTagTable)
 			.run(createTagLinksTable)
