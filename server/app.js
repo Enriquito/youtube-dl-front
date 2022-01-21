@@ -346,7 +346,6 @@ const getVideo = async id => {
     }
     catch(error){
         console.log(error);
-        res.sendStatus(500);
     }
 };
 
@@ -389,16 +388,22 @@ const deleteDownloads = async () => {
     }
 };
 
-const updateSettings = async settings => {
+const updateSettings = async newSettings => {
     try{
-        let data = await readSettings();
-
-        if(data === null){
+        if(settings === null){
             io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
             return;
         }
 
-        await writeSettings(settings);
+        settings.port = newSettings.port;
+        settings.defaultQuality = newSettings.defaultQuality;
+        settings.outputLocation = newSettings.outputLocation;
+        settings.authentication.username = newSettings.authentication.username;
+        settings.authentication.password = newSettings.authentication.password;
+        // settings.authentication.twofa = newSettings.authentication.password;
+        
+        settings.update();
+
         io.to('ydl').emit('systemMessages', {type: "Success", messages: "Settings has been updated."});
     }
     catch(error){
