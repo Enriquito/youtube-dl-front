@@ -27,7 +27,7 @@ class Download{
         }
     }
 
-    async all(){
+    static async all(){
         let db = null
         try{
             db = await Database.connect();
