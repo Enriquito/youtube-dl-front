@@ -1,7 +1,7 @@
 const { spawn, exec } = require('child_process');
 const fs = require('fs');
-const Database = require("./database");
 const Video = require("./video");
+const Download = require("./download");
 const {writeDatabase, readDatabase, readSettings} = require('./helpers');
 
 class Media
