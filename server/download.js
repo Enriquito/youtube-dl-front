@@ -112,6 +112,19 @@ class Download{
             }
         });
     }
+
+    remove(){
+        return new Promise(async (resolve, reject) => {
+            try{
+                await Database.run("DELETE FROM downloads WHERE id = ?", this.id);
+                resolve();
+            }
+            catch(error){
+                console.error(error);
+                reject(error);
+            }
+        });
+    }
 }
 
 module.exports = Download;
