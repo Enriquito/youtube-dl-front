@@ -2,9 +2,7 @@ const { spawn, exec } = require('child_process');
 const fs = require('fs');
 const Video = require("./video");
 const Download = require("./download");
-const Settings = require("./settings");
-const settings = new Settings();
-settings.load();
+const Settings = require('./settings');
 
 class Media
 {
@@ -12,12 +10,13 @@ class Media
         this.url = url;
         this.options = options;
         this.info;
-        this.io;        
+        this.io;
+        this.settings = new Settings();
     }
 
     async GetDefaultQualityFormat(url){
         try{
-            const quality = settings.defaultQuality;
+            const quality = this.settings.defaultQuality;
 
             const formats = {
                 format: null,
@@ -82,17 +81,16 @@ class Media
     }
 
     async GetDownloadOptions(){
-        let settings = null;
         let directory = "./videos";
         let username = null;
         let password = null;
 
         try{
-            directory = settings.outputLocation;
+            directory = this.settings.outputLocation;
 
-            if(settings.authentication.username != null && settings.authentication.password != null){		
-                username = settings.authentication.username;		
-                password = settings.authentication.password;		
+            if(this.settings.authentication.username != null && this.settings.authentication.password != null){		
+                username = this.settings.authentication.username;		
+                password = this.settings.authentication.password;		
             }
         }
         catch(error){
@@ -142,11 +140,14 @@ class Media
 
     static GetDownloadInfo(url){
         return new Promise(async (resolve, reject) => {
-            try{				
-                let commandAuth = "";		
+            try{		
+                const settings = new Settings();
+                await settings.load();		
+
+                let commandAuth = "";	
 
                 if(settings.authentication.username !== null && settings.authentication.password !== null){		
-                    if(!settings.authentication.twoFactor)		
+                    if(!this.settings.authentication.twoFactor)		
                         commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password}`;		
                     else		
                         commandAuth = `--username ${settings.authentication.username} --password ${settings.authentication.password} --twofactor ''`;		
