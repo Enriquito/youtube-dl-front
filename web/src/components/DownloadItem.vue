@@ -43,6 +43,10 @@ export default {
             this.dotInterval();
         }
     },
+    beforeUnmount(){
+        clearInterval(this.interval);
+        console.log("unmount");
+    },
     methods:{
         stopDownload(){
             this.$socket.emit('stopDownload', this.item.processId);
