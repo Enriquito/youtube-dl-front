@@ -14,11 +14,7 @@ class Settings{
 
     async update(){
         return new Promise(async (resolve, reject) => {
-            let db = null;
-
             try{
-                db  = await Database.connect();
-
                 const updateData = [
                     this.port,
                     this.outputLocation,
@@ -29,16 +25,12 @@ class Settings{
                     1
                 ];
 
-                db.run(`UPDATE settings SET port = ?, output_location = ?, default_quality = ?, authentication_username = ?, authentication_password = ?, authentication_2fa = ? WHERE id = ?`, updateData, async (error) => {
-                    if (error) {
-                        reject(error);
-                        return;
-                    }
-                    
-                    resolve();
-                });
+                await Database.run("UPDATE settings SET port = ?, output_location = ?, default_quality = ?, authentication_username = ?, authentication_password = ?, authentication_2fa = ? WHERE id = ?", updateData)
+
+                resolve();
             }
             catch(error){
+                console.error(error);
                 reject(error);
             }
 		});
@@ -46,28 +38,20 @@ class Settings{
 
     async load(){
         return new Promise(async (resolve, reject) => {
-            let db = null;
-
             try{
-                db  = await Database.connect();
+                const result = await Database.get("SELECT * FROM settings");
 
-                db.get(`SELECT * FROM settings`, async (error, row) => {
-                    if (error) {
-                        reject(error);
-                        return;
-                    }
-    
-                    this.port = row.port;
-                    this.outputLocation = row.output_location;
-                    this.defaultQuality = row.default_quality;
-                    this.authentication.username = row.authentication_username;
-                    this.authentication.password = row.authentication_password;
-                    this.authentication.twofa = row.authentication_2fa;
-                    
-                    resolve();
-                });
+                this.port = result.data.port;
+                this.outputLocation = result.data.output_location;
+                this.defaultQuality = result.data.default_quality;
+                this.authentication.username = result.data.authentication_username;
+                this.authentication.password = result.data.authentication_password;
+                this.authentication.twofa = result.data.authentication_2fa;
+
+                resolve();
             }
             catch(error){
+                console.error(error);
                 reject(error);
             }
 		});
