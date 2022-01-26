@@ -6,11 +6,7 @@ const Database = require("./database");
 const Download = require('./download');
 const Settings = require("./settings");
 const Media = require('./media');
-const {
-    writeDatabase,
-    readDatabase,
-    isDownloading
-    } = require('./helpers');
+
 const app = express();
 const settings = new Settings();
 
@@ -71,35 +67,28 @@ const getPlaylistInfo = async url => {
 
 const removeDownload = async id => {
     try{
-        const database = await readDatabase();
-        await settings.load();
+        const download = await Download.find(id);
 
-        if(database === null)
-            throw new Error("Error reading database file");
+        if(download === null){
+            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Download process not found."});
+            return;
+        }
 
-        database.downloads.forEach(async (video, index) => {
-            if(id === video.id){
-                database.downloads.splice(index, 1);
-                await writeDatabase(database);
+        // clean up .part files
+        const dirItems = fs.readdirSync(settings.outputLocation)
 
-                // clean up .part files
-                const dirItems = fs.readdirSync(settings.outputLocation)
+        for(let i = 0; i < dirItems.length; i++){
+            const file = dirItems[i];
+            const match = file.match(/.*.part/);
 
-                for(let i = 0; i < dirItems.length; i++){
-                    const file = dirItems[i];
-                    const match = file.match(/.*.part/);
-
-                    if(match !== null){
-                        if(match.length > 0){
-                            fs.unlinkSync(`${settings.outputLocation}/${file}`);
-                        }
-                    }
-                };
-
-                io.to('ydl').emit('systemMessages', {type: "Success", messages: `${video.title} has been removed from downloads.`});
-                return;
+            if(match !== null){
+                if(match.length > 0){
+                    fs.unlinkSync(`${settings.outputLocation}/${file}`);
+                }
             }
-        })
+        };
+
+        io.to('ydl').emit('systemMessages', {type: "Success", messages: `${download.title} has been removed from downloads.`});
     }
     catch(error){
         console.log(error);
@@ -109,21 +98,20 @@ const removeDownload = async id => {
 
 const resumeDownload = async id => {
     try{
-        const database = await readDatabase();
+        const download = await Download.find(id);
 
-        if(database === null)
-            throw new Error("Error reading database file");
+        if(download === null){
+            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Download process not found."});
+            return;
+        }
 
-        database.downloads.forEach(async video => {
-            if(id === video.id){
-                video.status = "queued";
-                await writeDatabase(database);
+        download.status = "queued";
 
-                if(!isDownloading(database.downloads)){
-                    Media.downloadQueueItems(io);
-                }
-            }
-        })
+        await download.update();
+
+        if(!await isDownloading()){
+            Media.downloadQueueItems(io);
+        }
     }
     catch(error){
         console.log(error);
@@ -134,21 +122,22 @@ const resumeDownload = async id => {
 const stopDownload = async processId => {
     try{
         const { spawn } = require('child_process');
-        const database = await readDatabase();
+        const downloads = await Download.all();
 
-        if(database === null)
-            throw new Error("Error reading database file");
+        if(download === null){
+            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error reading database."});
+            return;
+        }
 
-        database.downloads.forEach(async video => {
+        downloads.forEach(async video => {
             if(processId === video.processId){
                 video.status = "stopped";
                 video.processId = null;
-                await writeDatabase(database);
+                await video.update();
 
-                const stopCommand = spawn('kill', ["-9", processId]);
+                const stopCommand = spawn('kill', ["-9", video.processId]);
 
                 stopCommand.on('close', async () => {
-                    
                     io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download has been stopped for ${video.title}`});
                 });
             }
@@ -162,15 +151,7 @@ const stopDownload = async processId => {
 
 const emptyDatabase = async () => {
     try{
-        const database = await readDatabase();
-
-        if(database === null)
-            throw new Error("Cannot load database file.");
-
-        database.videos = [];
-        database.downloads = [];
-
-        await writeDatabase(database);
+        await Database.purge();
         await getVideos();
 
         io.to('ydl').emit('systemMessages', {type: "Success", messages: "Database has been emptied"});
@@ -224,8 +205,8 @@ const deleteVideo = async video => {
 
 const download = async data => {
     try{
-        const database = await readDatabase();
         const itemList = [];
+        console.log(data);
 
         if(data.list.length > 1){
             for(let i = 0; i < data.list.length; i++){
@@ -247,6 +228,7 @@ const download = async data => {
                 }
 
                 itemList.push(media);
+                
             }
 
             console.log(`Downloading playlist.`);
@@ -255,7 +237,7 @@ const download = async data => {
                 await itemList[i].AddToQueue();
             }
 
-            if(!isDownloading(database.downloads)){
+            if(!await isDownloading()){
                 Media.downloadQueueItems(io);
             }
         }
@@ -271,7 +253,7 @@ const download = async data => {
                 playlist: item.playlist
             };
 
-            if(isDownloading(database.downloads)){
+            if(await isDownloading()){
                 media.AddToQueue();
             }
             else{
@@ -327,22 +309,8 @@ const downloadStatus = async () => {
 
 const deleteDownloads = async () => {
     try{
-        const database = await readDatabase();
+        await Database.run("DELETE FROM downloads WHERE status != 'downloading' AND status != 'queued'");
 
-        if(database === null)
-            throw 'Error loading database file';
-
-        let temp = database.downloads.splice();
-
-        database.downloads.forEach((el, index) => {
-            if(el.status !== 'downloading' || el.status !== 'queued'){
-                temp = temp.splice(index, 1);
-            }
-        });
-
-        database.downloads = temp;
-
-        writeDatabase(database);
         console.log('Downloads deleted.');
     }
     catch(error){
@@ -387,6 +355,26 @@ const getSettings = async () => {
         console.log(error);
         io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
     }
+}
+
+const isDownloading = () => {
+    return new Promise(async (resolve, reject) => {
+        try{
+            const downloads = await Download.all("status = ?", "downloading");
+    
+            console.log(downloads);
+    
+            if(downloads.length > 0)
+                resolve(true)
+            else
+                resolve(false);
+        }
+        catch(error){
+            console.error(error);
+            reject(error);
+        }
+    });
+    
 }
 
 app.get('/', (req,res) => {
