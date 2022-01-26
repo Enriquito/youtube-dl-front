@@ -211,6 +211,7 @@ const download = async data => {
         if(data.list.length > 1){
             for(let i = 0; i < data.list.length; i++){
                 const media = new Media();
+                await media.settings.load();
                 media.io = io;
                 media.url = data.list[i].url;
                 media.options = {
@@ -244,6 +245,8 @@ const download = async data => {
         else if(data.list.length === 1){
             const item = data.list[0];
             const media = new Media();
+            await media.settings.load();
+            console.log(media.settings);
             media.io = io;
             media.url = item.url;
             media.options = {
