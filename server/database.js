@@ -195,12 +195,14 @@ class Database {
 			const tagsTable = "DELETE FROM tags";
 			const tagLinksTable = "DELETE FROM tag_links";
 			const thumbnailsTable = "DELETE FROM thumbnails";
+			const downloadsTable = "DELETE FROM downloads";
 
 			try{
 				await Database.run(videosTable);
 				await Database.run(tagsTable);
 				await Database.run(tagLinksTable);
 				await Database.run(thumbnailsTable);
+				await Database.run(downloadsTable);
 
 				console.log("Tables have been cleared.");
 				resolve();
