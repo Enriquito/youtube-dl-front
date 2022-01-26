@@ -45,14 +45,14 @@ class Download{
         }
     }
 
-    static async find(id){
+    static async find(values, findConditon = "id = ?"){
         return new Promise(async (resolve, reject) => {
             let db = null;
 
             try{
                 db = Database.connect();
 
-                const data = await Database.get("SELECT * FROM downloads WHERE id = ?", id);
+                const data = await Database.get(`SELECT * FROM downloads WHERE ${findConditon}`, values);
 
                 const dl = new Download();
 
@@ -80,10 +80,15 @@ class Download{
         });
     }
 
-    static async all(){
+    static async all(findConditon, values){
         return new Promise(async (resolve, reject) => {
             try{
-                const DBdownloads = await Database.all("SELECT * FROM downloads");
+                let findQuery;
+
+                if(findConditon != null)
+                    findQuery = `WHERE ${findConditon}`;
+                    
+                const DBdownloads = await Database.all(`SELECT * FROM downloads ${findQuery}`, values);
     
                 const downloads = [];
     
