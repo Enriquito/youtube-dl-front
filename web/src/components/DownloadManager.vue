@@ -31,13 +31,13 @@ export default {
     name: "DownloadManager",
     mounted() {
         this.sockets.subscribe('downloadStatus', (data) => {
-            this.data = data.downloads;
+            this.data = data;
             this.checkIfFinished();
 
             if(data === null)
                 return;
 
-            data.downloads.forEach(el => {
+            data.forEach(el => {
                 if(el.status === 'downloading'){
                     this.isDownloading = true;
                     this.item = el;
