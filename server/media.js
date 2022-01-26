@@ -53,20 +53,24 @@ class Media
     AddToQueue(){
         return new Promise(async (resolve, reject) => {
             try{
-                let db = await readDatabase();
                 let fileInfo = await this.GetInfo(this.url,this.options);
 
-                db.downloads.push({
-                    id: fileInfo.id,
-                    title: fileInfo.title,
-                    status: 'queued',
-                    downloadStatus: 0,
-                    url: this.url,
-                    options: this.options
-                });
+                const dl = new Download();
 
-                await writeDatabase(db);
-                this.io.to('ydl').emit('downloadStatus', db);
+                dl.videoId = fileInfo.id;
+                dl.title = fileInfo.title;
+                dl.status = 'queued';
+                dl.url = this.url;
+                dl.format = this.options.format;
+                dl.audioFormat = this.options.audioFormat;
+                dl.audioOnly = this.options.audioOnly;
+                dl.playlist = this.options.playlist;
+
+                await dl.save();
+
+                const allDownloads = await Download.all();
+
+                this.io.to('ydl').emit('downloadStatus', allDownloads);
                 this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download '${fileInfo.title} has been added to the queue.`});
                 resolve({success: true, messages: `Download '${fileInfo.title} has been added to the queue.`, code: 3});
             }
@@ -294,16 +298,25 @@ class Media
         });
     }
 
-    CheckForDoubleVideos(database, fname){
-        let found = false;
-
-        database.videos.forEach(video => {
-            if(video.fileName === fname){
-                found = true;
+    CheckForDoubleVideos(fname){
+        return new Promise(async (resolve, reject) => {
+            try{
+                let found = false;
+                const videos = await Video.all();
+                
+                videos.forEach(video => {
+                    if(video.fileName === fname){
+                        found = true;
+                    }
+                });
+    
+                resolve(found);
+            }
+            catch(error){
+                console.error(error);
+                reject(error);
             }
         });
-
-        return found;
     }
 
     GetFormat(fileInfo){
@@ -326,10 +339,9 @@ class Media
                 
                 let fileInfo = await this.GetInfo(this.url,this.options);
                 let formatNote = this.GetFormat(fileInfo);
-                let db = await readDatabase();
+                const allDownloads = await Download.all();
                 let extention;
                 let fname;
-                this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download started for ${fileInfo.title}`});
 
                 if(this.options.audioOnly)
                         extention = "mp3";
@@ -343,33 +355,38 @@ class Media
                 else
                     fname = `${fname}.${extention}`;
 
-                if(this.CheckForDoubleVideos(db, fname)){
+                if(await this.CheckForDoubleVideos(fname)){
                     resolve({success: false, messages: 'Item already excist', code: 2});
                     return;
                 }
 
-                db.downloads.forEach((el,index) => {
+                allDownloads.forEach((el,index) => {
                     if(el.id === fileInfo.id){
-                        db.downloads.splice(index,1);
+                        allDownloads.splice(index,1);
                     }
                 });
 
-                let downloadsIndex = (db.downloads.length);
-
                 const download = spawn('youtube-dl', downloadOptions.args);
 
-                db.downloads.push({
-                    id: fileInfo.id,
-                    title: fileInfo.title,
-                    status: 'downloading',
-                    processId: download.pid,
-                    url: this.url,
-                    options: this.options
-                });
+                this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download started for ${fileInfo.title}`});
 
-                this.io.to('ydl').emit('downloadStatus', db);
+                const dl = new Download();
 
-                await writeDatabase(db);
+                dl.videoId = fileInfo.id;
+                dl.title = fileInfo.title;
+                dl.status = 'downloading';
+                dl.processId = download.pid;
+                dl.url = this.url;
+                dl.format = this.options.format;
+                dl.audioFormat = this.options.audioFormat;
+                dl.audioOnly = this.options.audioOnly;
+                dl.playlist = this.options.playlist;
+
+                await dl.save();
+
+                allDownloads.push(dl);
+
+                this.io.to('ydl').emit('downloadStatus', allDownloads);
 
                 let status;
                 let oldStatus = 0;
@@ -379,18 +396,18 @@ class Media
 
                     if(downloadStatus != null){
                         if(parseInt(downloadStatus[1]) > oldStatus){
-                            db = await readDatabase();
                             status = parseInt(downloadStatus[1]);
                             oldStatus = status;
 
-                            db.downloads[downloadsIndex].downloadStatus = status;
+                            dl.downloadStatus = status;
+                            allDownloads[allDownloads.length - 1].downloadStatus = status;
 
                             if(status === 100){
-                                db.downloads[downloadsIndex].status = "converting"; 
-                                await writeDatabase(db);
+                                dl.status = "converting"; 
+                                dl.update();
                             }
-                                
-                            this.io.to('ydl').emit('downloadStatus', db);
+                            
+                            this.io.to('ydl').emit('downloadStatus', allDownloads);
                         }
                     }
                 });
@@ -398,74 +415,54 @@ class Media
                 download.on('close', async () => {
 
                     if(!fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
-                        const db = await readDatabase();
+                        const downloads = Download.all();
 
-                        if(db.downloads[downloadsIndex].status === "stopped"){
+                        if(downloads.status === "stopped"){
                             console.log('stopped');
                             return;
                         }
                             
                     }
 
-                    while(fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
-                        fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${fname}`);
-                    }
+                    // while(fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
+                    //     fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${fname}`);
+                    // }
 
-                    this.info = {
-                        thumbnails : fileInfo.thumbnails,
-                        title: fileInfo.title,
-                        resolution: {
-                            width: fileInfo.width,
-                            heigth: fileInfo.height
-                        },
-                        tags : fileInfo.tags,
-                        duration : fileInfo.duration,
-                        uploader : fileInfo.uploader,
-                        viewCount : fileInfo.view_count,
-                        id : fileInfo.id,
-                        description : fileInfo.description,
-                        uploaderUrl : fileInfo.channel_url,
-                        extention : extention,
-                        format : fileInfo.format_note,
-                        videoUrl : fileInfo.webpage_url,
-                        fileLocation: downloadOptions.directory,
-                        fileName: fname
-                    }
+                    dl.status = "finished";
 
-                    db.downloads[downloadsIndex].status = 'finished';
-                    db.videos.push(this.info);
-                    // console.log(this.info);
-                    // await this.saveVideo(this.info);
+                    await dl.update();
+
+                    // console.log(fileInfo);
                     
                     const video = new Video();
 
-                    video.title = this.info.title;
-                    video.uploaderUrl = this.info.uploaderUrl;
-                    video.viewCount = this.info.viewCount;
-                    video.duration = this.info.duration;
-                    video.extention = this.info.extention;
-                    video.fileName = this.info.fileName;
-                    video.fileLocation = this.info.fileLocation;
-                    video.url = this.info.videoUrl;
-                    video.videoProviderId = this.info.id;
-                    video.uploaderName = this.info.uploader;
-                    video.description = this.info.description;
-                    video.tags = this.info.tags;
-                    video.thumbnails = this.info.thumbnails;
+                    video.title = fileInfo.title;
+                    video.uploaderUrl = fileInfo.channel_url;
+                    video.viewCount = fileInfo.view_count;
+                    video.duration = fileInfo.duration;
+                    video.extention = extention;
+                    video.fileName = fileInfo.id; //was the 'fname' variable
+                    video.fileLocation = downloadOptions.directory;
+                    video.url = fileInfo.webpage_url;
+                    video.videoProviderId = fileInfo.id;
+                    video.uploaderName = fileInfo.uploader;
+                    video.description = fileInfo.description;
+                    video.tags = fileInfo.tags;
+                    video.thumbnails = fileInfo.thumbnails;
 
                     await video.save();
-                    
-                    await writeDatabase(db);
 
-                    this.io.to('ydl').emit('downloadStatus', db);
+                    const videos = await Video.all();
+                    
+                    this.io.to('ydl').emit('downloadStatus', allDownloads);
                     this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `${fileInfo.title} has finished downloading`});
-                    this.io.to('ydl').emit('getVideos', db.videos.reverse());
+                    this.io.to('ydl').emit('getVideos', videos.reverse());
 
                     console.log('Download complete');
 
                     let haveQueueItems = false;
 
-                    db.downloads.forEach(el => {
+                    allDownloads.forEach(el => {
                         if(el.status === 'queued')
                             haveQueueItems = true;
                     });
@@ -478,7 +475,7 @@ class Media
             }
             catch(error){
                 console.log(error);
-                this.io.to('ydl').emit('systemMessages', {type: "Error", messages: `${error.messages.messages}`});
+                this.io.to('ydl').emit('systemMessages', {type: "Error", messages: `${error}`});
                 reject({success: false, messages: error, code: 100});
                 return;
             }
@@ -486,10 +483,10 @@ class Media
     }
 
     static async downloadQueueItems(io){
-        const db = await readDatabase();
+        const downloads = await Download.all();
 
-        for(let i = 0; i < db.downloads.length; i++){
-            let el = db.downloads[i];
+        for(let i = 0; i < downloads.length; i++){
+            let el = downloads[i];
 
             if(el.status === 'queued'){
                 const media = new Media();
