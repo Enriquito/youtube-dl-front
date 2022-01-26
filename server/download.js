@@ -16,59 +16,100 @@ class Download{
     }
 
     async save(){
-        let db  = null;
-
         try{
-            db  = await Database.connect();
-            await this.saveDownload(db);
+            const insertVideoPrefix = "INSERT INTO downloads (video_id, title, status, process_id, url, format, audio_format, audio_only, playlist, download_status)";
+            const values = [this.videoId, this.title, this.status, this.processId, this.url, this.format, this.audioFormat, this.audioOnly, this.playlist, this.downloadStatus];
+
+            const temp = await Database.run(`${insertVideoPrefix} VALUES(?,?,?,?,?,?,?,?,?,?)`, values);
+
+            this.id = temp.data.lastID;
         }
         catch(error){
             console.error(error);
         }
     }
 
-    static async all(){
-        let db = null
+    async update(){
         try{
-            db = await Database.connect();
-            return await this.getAll(db);
+            const query = `UPDATE downloads SET video_id = ?, title = ?, status = ? , process_id = ?, url = ?, 
+                                    format = ?, audio_format = ?, audio_only = ?, playlist = ?, download_status = ? WHERE id = ?`;
+            const values = [this.videoId, this.title, this.status, this.processId, 
+                            this.url, this.format, this.audioFormat, this.audioOnly, 
+                            this.playlist, this.downloadStatus, this.id];
+
+
+            await Database.run(query, values);            
         }
         catch(error){
             console.error(error);
         }
     }
 
-    getAll(db){
-        return new Promise((resolve, reject) => {
-            db.all("SELECT * FROM downloads", (error,rows) => {
-                if(error){
-                    reject(error);
-                    console.error(error);
-                    return;
-                }
+    static async find(id){
+        return new Promise(async (resolve, reject) => {
+            let db = null;
 
-                resolve(rows);
-            });
+            try{
+                db = Database.connect();
+
+                const data = await Database.get("SELECT * FROM downloads WHERE id = ?", id);
+
+                const dl = new Download();
+
+                dl.videoId = data.id;
+                dl.title = data.title;
+                dl.status = data.status;
+                dl.processId = data.pid;
+                dl.url = data.url;
+                dl.format = data.format;
+                dl.audioFormat = data.audioFormat;
+                dl.audioOnly = data.audioOnly;
+                dl.playlist = data.playlist;
+                dl.downloadStatus = row.downloadStatus;
+
+                resolve(dl);
+            }
+            catch(error){
+                console.error(error);
+                reject(error);
+            }
+            finally{
+                Database.close(db);
+            }
+            
         });
     }
 
-    saveDownload(db){
-        return new Promise((resolve, reject) => {
-            
-            const insertVideoPrefix = "INSERT INTO downloads (video_id, title, status, process_id, url, format, audio_format, audio_only, playlist, download_status)";
-            const values = [this.videoId, this.title, this.status, this.processId, this.url, this.format, this.audioFormat, this.audioOnly, this.playlist, this.downloadStatus];
+    static async all(){
+        return new Promise(async (resolve, reject) => {
+            try{
+                const DBdownloads = await Database.all("SELECT * FROM downloads");
     
-            db.serialize(() => {
-                db.run(`${insertVideoPrefix} VALUES(?,?,?,?,?,?,?,?,?,?)`, values, function(error){
-                    if(error){
-                        console.error(error);
-                        reject(error);
-                        return;
-                    }
-
-                    resolve(this.lastID);
+                const downloads = [];
+    
+                DBdownloads.data.forEach(row => {
+                    const dl = new Download();
+    
+                    dl.videoId = row.id;
+                    dl.title = row.title;
+                    dl.status = row.status;
+                    dl.processId = row.pid;
+                    dl.url = row.url;
+                    dl.format = row.format;
+                    dl.audioFormat = row.audioFormat;
+                    dl.audioOnly = row.audioOnly;
+                    dl.playlist = row.playlist;
+                    dl.downloadStatus = row.downloadStatus;
+    
+                    downloads.push(dl);
                 });
-            });
+    
+                resolve(downloads);
+            }
+            catch(error){
+                console.error(error);
+                reject(error);
+            }
         });
     }
 }
