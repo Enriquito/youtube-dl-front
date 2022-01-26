@@ -20,7 +20,7 @@
                 </div>
                 <div>
                     <img @click="deleteItem" class="icon" style="height: 20px !important;" src="@/assets/icons/trash.svg" alt="Download" />
-                    <a target="_blank" :href="data.videoUrl">
+                    <a target="_blank" :href="data.url">
                         <img class="icon" src="@/assets/icons/link.svg" alt="Link" />
                     </a>
                     <a target="_blank" :href="`/file/${data.id}`">

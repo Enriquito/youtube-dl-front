@@ -11,8 +11,8 @@
         </header>
         <div v-if="this.item" class="d-flex justify-content-center" style="margin-top: 80px">
             <div id="content" style="">
-                <video v-if="this.item.extention != 'mp3'" :src="`/media/${this.item.fileName}`" controls />
-                <video v-else :style="`background: url(${getBestThumbnailUrl}); background-size:cover;`" :src="`/media/${this.item.fileName}`" controls />
+                <video v-if="this.item.extention != 'mp3'" :src="`/media/${this.item.fileName}.${this.item.extention}`" controls />
+                <video v-else :style="`background: url(${getBestThumbnailUrl}); background-size:cover;`" :src="`/media/${this.item.fileName}.${this.item.extention}`" controls />
                 <h3 style="margin-bottom: 0;">{{this.item.title}}</h3>
                 <strong>{{this.item.uploader}}</strong>
                 <p style="margin-top: 10px">{{this.item.description}}</p>
