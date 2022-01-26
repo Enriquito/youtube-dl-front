@@ -2,7 +2,9 @@ const { spawn, exec } = require('child_process');
 const fs = require('fs');
 const Video = require("./video");
 const Download = require("./download");
-const {writeDatabase, readDatabase, readSettings} = require('./helpers');
+const Settings = require("./settings");
+const settings = new Settings();
+settings.load();
 
 class Media
 {
@@ -15,7 +17,6 @@ class Media
 
     async GetDefaultQualityFormat(url){
         try{
-            const settings = await readSettings();
             const quality = settings.defaultQuality;
 
             const formats = {
@@ -87,7 +88,6 @@ class Media
         let password = null;
 
         try{
-            settings = await readSettings();
             directory = settings.outputLocation;
 
             if(settings.authentication.username != null && settings.authentication.password != null){		
@@ -144,7 +144,6 @@ class Media
         return new Promise(async (resolve, reject) => {
             try{				
                 let commandAuth = "";		
-                const settings = await readSettings();
 
                 if(settings.authentication.username !== null && settings.authentication.password !== null){		
                     if(!settings.authentication.twoFactor)		
