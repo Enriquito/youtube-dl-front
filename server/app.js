@@ -380,3 +380,29 @@ const isDownloading = () => {
 app.get('/', (req,res) => {
     res.sendFile('index.html', { root: path.join(__dirname, '../web/dist') });
 });
+
+app.get('/file/:id', async (req,res) => {
+    try{
+        const video = await Video.find(req.params.id);
+
+        console.log(video);
+
+        let file = null;
+        let found = false;
+
+        if(video !== null){
+            file = path.join(__dirname, video.fileLocation, `${video.fileName}.${video.extention}`);
+            found = fs.existsSync(file);
+        }
+
+        if(found)
+            res.download(file);
+        else
+            res.sendStatus(404);
+    }
+    catch(error){
+        console.error(error);
+        console.log('error downloading file');
+        res.sendStatus(500);
+    }
+});
