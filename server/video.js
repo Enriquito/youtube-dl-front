@@ -35,7 +35,7 @@ class Video{
                 for(let i = 0; i < this.tags.length; i++){
                     const check = await this.checkTag(this.tags[i]);
     
-                    if(check.data === null || check.data === undefined)
+                    if(check === null || check === undefined)
                         tags.push(await this.saveTag(this.tags[i]));
                     else
                         tags.push(check.id);
@@ -140,19 +140,13 @@ class Video{
 
     static all(limitStart = 0, limitEnd = 30){
         return new Promise(async (resolve, reject) => {
-            let db = await Database.connect();
-
-            db.all("SELECT * FROM videos LIMIT ?,?", [limitStart,limitEnd], async (error, rows) => {
-                if(error){
-                    console.error(error);
-                    reject(error);
-                    return;
-                }
+            try{
+                const result = await Database.all("SELECT * FROM videos LIMIT ?,?", [limitStart,limitEnd]);
 
                 const videos = [];
 
-                for(let i = 0; i < rows.length; i++){
-                    const row = rows[i];
+                for(let i = 0; i < result.data.length; i++){
+                    const row = result.data[i];
                     const video = new Video();
 
                     video.id = row.id;
@@ -168,20 +162,17 @@ class Video{
                     video.uploaderName = row.uploader_name;
                     video.description = row.description;
 
-                    try{
-                        video.tags = await this.getTags(video.id);
-                        video.thumbnails = await this.getThumbnails(video.id);
-                        videos.push(video);
-                    }
-                    catch(error){
-                        console.error(error);
-                    }
+                    video.tags = await this.getTags(video.id);
+                    video.thumbnails = await this.getThumbnails(video.id);
+                    videos.push(video);                    
                 }
 
-                resolve(videos)
-            });   
-
-            Database.close(db);
+                resolve(videos)                
+            }
+            catch(error){
+                console.error(error);
+                reject(error);
+            }
         });
     }
 
