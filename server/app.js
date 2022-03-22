@@ -183,11 +183,12 @@ const deleteVideo = async video => {
             return;
         }
 
-        
-        await vid.remove();
-        console.log(`${vid.fileLocation}/${vid.fileName}.${vid.extention}`);
-        fs.unlinkSync(`${vid.fileLocation}/${vid.fileName}.${vid.extention}`);
-        io.to('ydl').emit('systemMessages', {type: "Success", messages: "Item has been deleted."});
+        const success = await vid.remove();
+
+        if(success){
+            fs.unlinkSync(`${vid.fileLocation}/${vid.fileName}.${vid.extention}`);
+            io.to('ydl').emit('systemMessages', {type: "Success", messages: "Item has been deleted."});
+        }
     }
     catch(error){
         if(error.errno){
@@ -206,7 +207,6 @@ const deleteVideo = async video => {
 const download = async data => {
     try{
         const itemList = [];
-        console.log(data);
 
         if(data.list.length > 1){
             for(let i = 0; i < data.list.length; i++){
@@ -229,7 +229,6 @@ const download = async data => {
                 }
 
                 itemList.push(media);
-                
             }
 
             console.log(`Downloading playlist.`);
@@ -246,7 +245,7 @@ const download = async data => {
             const item = data.list[0];
             const media = new Media();
             await media.settings.load();
-            console.log(media.settings);
+
             media.io = io;
             media.url = item.url;
             media.options = {

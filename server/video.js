@@ -271,7 +271,7 @@ class Video{
                 await Database.run("DELETE FROM videos WHERE id = ?", [this.id]);
                 await Database.run("DELETE FROM thumbnails WHERE video = ?", [this.id]);
 
-                resolve();
+                resolve(true);
             }
             catch(error){
                 console.log(error);

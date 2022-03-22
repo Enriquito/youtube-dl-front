@@ -100,32 +100,31 @@ class Media
 
         const args = [];
 
-        if(this.options.audioOnly && this.options.playlist){
-            args.push('--extract-audio');
-            args.push('--audio-format')
-            args.push('--yes-playlist')
-            args.push('mp3');
-        }
-        else if(this.options.audioOnly && !this.options.playlist){
+        if(this.options.audioOnly){
             args.push('--extract-audio');
             args.push('--audio-format')
             args.push('mp3');
         }
-        else if(this.options.format && this.options.audioFormat){
+        else{
+            args.push(`--recode-video`);
+            args.push(`mp4`);
+        }
+
+        if(this.options.format && this.options.audioFormat){
             args.push(`-f`);
             args.push(`${this.options.format}+${this.options.audioFormat}`);
         }
-        else if(username !== null && password !== null){		
+
+        if(username !== null && password !== null){		
             args.push(`--username`);		
             args.push(`'${username}'`);		
 
             args.push(`--password`);		
             args.push(`'${password}'`);		
         }
-        else{
-            args.push(`--recode-video`);
-            args.push(`mp4`);
-        }
+
+        if(this.options.playlist)
+            args.push('--yes-playlist')
 
         args.push('--output');
         args.push(`${directory}/%(id)s.%(ext)s`);
@@ -298,14 +297,14 @@ class Media
         });
     }
 
-    CheckForDoubleVideos(fname){
+    CheckForDoubleVideos(videoProviderId){
         return new Promise(async (resolve, reject) => {
             try{
                 let found = false;
                 const videos = await Video.all();
                 
                 videos.forEach(video => {
-                    if(video.fileName === fname){
+                    if(video.videoProviderId === videoProviderId){
                         found = true;
                     }
                 });
@@ -330,32 +329,60 @@ class Media
         return formatNote;
     }
 
+    CreateDownloadObject(fileInfo, downloadProccesID){
+        const dl = new Download();
+
+        dl.videoId = fileInfo.id;
+        dl.title = fileInfo.title;
+        dl.status = 'downloading';
+        dl.processId = downloadProccesID;
+        dl.url = this.url;
+        dl.format = this.options.format;
+        dl.audioFormat = this.options.audioFormat;
+        dl.audioOnly = this.options.audioOnly;
+        dl.playlist = this.options.playlist;
+        dl.downloadStatus = 0;
+
+        return dl;
+    }
+
+    CreateVideoObject(fileInfo, extention, fileLocation){
+        const video = new Video();
+
+        video.title = fileInfo.title;
+        video.uploaderUrl = fileInfo.channel_url;
+        video.viewCount = fileInfo.view_count;
+        video.duration = fileInfo.duration;
+        video.extention = extention;
+        video.fileName = fileInfo.id; //was the 'fname' variable
+        video.fileLocation = fileLocation; //downloadOptions.directory;
+        video.url = fileInfo.webpage_url;
+        video.videoProviderId = fileInfo.id;
+        video.uploaderName = fileInfo.uploader;
+        video.description = fileInfo.description;
+        video.tags = fileInfo.tags;
+        video.thumbnails = fileInfo.thumbnails;
+
+        return video;
+    }
+
     Download(){
         return new Promise(async (resolve, reject) => {
             try{
                 console.log(`Download started for file: ${this.url}`);
+                
+                // Not renaming the file right now
+                // let fname = `${fileInfo.title.replace(/[:<>"/|?*]/g, '')}`;
 
                 const downloadOptions = await this.GetDownloadOptions();
-                
-                let fileInfo = await this.GetInfo(this.url,this.options);
-                let formatNote = this.GetFormat(fileInfo);
+                const fileInfo = await this.GetInfo(this.url,this.options);
                 const allDownloads = await Download.all();
-                let extention;
-                let fname;
+                let extention = fileInfo.ext;
 
-                if(this.options.audioOnly)
-                        extention = "mp3";
-                else
-                    extention = fileInfo.ext;
+                if(this.options.audioOnly) 
+                    extention = "mp3";
 
-                fname = `${fileInfo.title.replace(/[:<>"/|?*]/g, '')}`;
-
-                if(formatNote !== undefined)
-                    fname = `${fname} - ${formatNote}.${extention}`;
-                else
-                    fname = `${fname}.${extention}`;
-
-                if(await this.CheckForDoubleVideos(fname)){
+                if(await this.CheckForDoubleVideos(fileInfo.id)){
                     resolve({success: false, messages: 'Item already excist', code: 2});
                     return;
                 }
@@ -370,18 +397,7 @@ class Media
 
                 this.io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download started for ${fileInfo.title}`});
 
-                const dl = new Download();
-
-                dl.videoId = fileInfo.id;
-                dl.title = fileInfo.title;
-                dl.status = 'downloading';
-                dl.processId = download.pid;
-                dl.url = this.url;
-                dl.format = this.options.format;
-                dl.audioFormat = this.options.audioFormat;
-                dl.audioOnly = this.options.audioOnly;
-                dl.playlist = this.options.playlist;
-
+                const dl = this.CreateDownloadObject(fileInfo, download.pid);
                 await dl.save();
 
                 allDownloads.push(dl);
@@ -413,7 +429,6 @@ class Media
                 });
 
                 download.on('close', async () => {
-
                     if(!fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
                         const downloads = Download.all();
 
@@ -421,35 +436,13 @@ class Media
                             console.log('stopped');
                             return;
                         }
-                            
                     }
-
-                    // while(fs.existsSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`)){
-                    //     fs.renameSync(`${downloadOptions.directory}/${fileInfo.id}.${extention}`,`${downloadOptions.directory}/${fname}`);
-                    // }
 
                     dl.status = "finished";
 
                     await dl.update();
 
-                    // console.log(fileInfo);
-                    
-                    const video = new Video();
-
-                    video.title = fileInfo.title;
-                    video.uploaderUrl = fileInfo.channel_url;
-                    video.viewCount = fileInfo.view_count;
-                    video.duration = fileInfo.duration;
-                    video.extention = extention;
-                    video.fileName = fileInfo.id; //was the 'fname' variable
-                    video.fileLocation = downloadOptions.directory;
-                    video.url = fileInfo.webpage_url;
-                    video.videoProviderId = fileInfo.id;
-                    video.uploaderName = fileInfo.uploader;
-                    video.description = fileInfo.description;
-                    video.tags = fileInfo.tags;
-                    video.thumbnails = fileInfo.thumbnails;
-
+                    const video = this.CreateVideoObject(fileInfo, extention, downloadOptions.directory);
                     await video.save();
 
                     const videos = await Video.all();
