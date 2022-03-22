@@ -99,13 +99,32 @@ class Database {
 					"status"	TEXT NOT NULL,
 					"process_id"	INTEGER,
 					"url"	TEXT NOT NULL,
-					"format"	TEXT NOT NULL,
+					"format"	TEXT,
 					"audio_format"	TEXT,
 					"audio_only"	NUMERIC NOT NULL,
 					"playlist"	NUMERIC NOT NULL,
 					"download_status" INTEGER,
 					PRIMARY KEY("id" AUTOINCREMENT)
 				);
+			`;
+
+			const createChannelsTable = `
+					CREATE TABLE yt_channels (
+						id INTEGER,
+						url TEXT NOT NULL,
+						name TEXT NOT NULL,
+						last_scan TEXT,
+						PRIMARY KEY("id" AUTOINCREMENT)
+					);
+			`;
+
+			const createChannelVideosTable = `
+					CREATE TABLE yt_channel_videos (
+						id INTEGER,
+						video_provider_id TEXT NOT NULL,
+						download_time TEXT,
+						PRIMARY KEY("id" AUTOINCREMENT)
+					); 
 			`;
 
 			const createTagTable = `
