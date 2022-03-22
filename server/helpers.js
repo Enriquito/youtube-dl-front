@@ -88,13 +88,12 @@ module.exports.isDownloading = (downloads) => {
     return isDownloading;
 }
 
-module.exports.emitFrontEndMessages = (type, messages) => {
+module.exports.emitEvent = (type, value) => {
     const io = require('socket.io-client');
     const socket = io.connect('http://localhost:3000');
 
     socket.on('connect', () => {
-        socket.emit('emitFrontEndMessages', type, messages)
-        socket.emit('getVideos', (videos) => {console.log(videos)});
+        socket.emit('emitEvents', type, value);
         socket.disconnect();
     });
 }
