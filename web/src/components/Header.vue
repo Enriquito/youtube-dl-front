@@ -6,7 +6,6 @@
             <button v-else-if="canDownload && options.playlist" @click="selectPlaylistItems">Select items</button>
             <button v-else-if="isFetchingInfo" disabled>Loading..</button>
             <button v-else-if="!canDownload" disabled>Download</button>
-            
         </div>
         <div>
             <button @click="selectAudioOnly" v-if="options.audioOnly" class="audio-button" id="audio-button-active">Audio</button>
@@ -298,7 +297,7 @@ button
     color: -internal-light-dark(graytext, rgb(170, 170, 170));
     background-color: -internal-light-dark(rgb(255, 255, 255), rgb(59, 59, 59));
 }
-@media (max-width: 720px) {
+@media (max-width: 740px) {
     input[type="url"]
     {
         width: auto !important;

@@ -11,8 +11,17 @@
 
         <!-- <SearchBar v-if="searching" @searchResults="searchResults" :items="items" /> -->
         <Header :defaultQuality="settings.defaultQuality" />
-        <div class="d-flex align-self-center icon-group">
-          <svg @click="toggleSettingsOpen" class="icon gear-icon" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+        <div class="d-flex justify-content-center align-self-center icon-group">
+
+          <svg class="icon" version="1.1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px">
+            <path d="M8 11C10.2091 11 12 9.20914 12 7C12 4.79086 10.2091 3 8 3C5.79086 3 4 4.79086 4 7C4 9.20914 5.79086 11 8 11ZM8 9C9.10457 9 10 8.10457 10 7C10 5.89543 9.10457 5 8 5C6.89543 5 6 5.89543 6 7C6 8.10457 6.89543 9 8 9Z" />
+            <path d="M11 14C11.5523 14 12 14.4477 12 15V21H14V15C14 13.3431 12.6569 12 11 12H5C3.34315 12 2 13.3431 2 15V21H4V15C4 14.4477 4.44772 14 5 14H11Z" />
+            <path d="M22 11H16V13H22V11Z" />
+            <path d="M16 15H22V17H16V15Z"/>
+            <path d="M22 7H16V9H22V7Z"/>
+          </svg>
+
+          <svg @click="toggleSettingsOpen" class="icon gear-icon" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
               width="512px" height="512px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
             <g>
               <path d="M411.1,256c0-23.9,14.8-42.8,36.9-55.8c-4-13.3-9.3-26.2-15.8-38.2c-24.9,6.5-45-3.2-62-20.2c-16.9-16.9-22.1-37.1-15.6-62
@@ -24,12 +33,14 @@
                 M256,354.3c-54.2,0-98.3-44-98.3-98.3c0-54.3,44-98.3,98.3-98.3c54.3,0,98.3,44,98.3,98.3C354.3,310.3,310.3,354.3,256,354.3z"/>
             </g>
           </svg>
-          <svg @click="toggleDownloadsOpen" :class="downloadIconStyle" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+
+          <svg @click="toggleDownloadsOpen" :class="downloadIconStyle" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
             width="512px" height="512px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
             <path d="M383.6,322.7L278.6,423c-5.8,6-13.7,9-22.4,9c-8.7,0-16.5-3-22.4-9L128.4,322.7c-12.5-11.9-12.5-31.3,0-43.2
             c12.5-11.9,32.7-11.9,45.2,0l50.4,48.2v-217c0-16.9,14.3-30.6,32-30.6c17.7,0,32,13.7,32,30.6v217l50.4-48.2
             c12.5-11.9,32.7-11.9,45.2,0C396.1,291.4,396.1,310.7,383.6,322.7z"/>
           </svg>
+
         </div>
       </div>
     </header>
@@ -144,14 +155,8 @@ header .icon
 {
     width: 35px;
     height: 35px;
-}
-header .gear-icon
-{
-  fill: #FFF;
-}
-header .download-icon
-{
-  fill: #FFF;
+    fill: #FFF;
+    cursor: pointer;
 }
 header .download-ani
 {
@@ -172,9 +177,9 @@ header .download-ani
 {
     position: absolute;
     right: 15px;
-    cursor: pointer;
 }
-@media (max-width: 720px) {
+
+@media (max-width: 980px) {
   #holder
   {
     width: 100%;
@@ -189,8 +194,7 @@ header .download-ani
     background: #34495e;
     padding: 10px;
     justify-content: center;
-    border-top-right-radius: 10px;
-    border-top-left-radius: 10px;
+    /* border-radius: 10px; */
   }
 }
 </style>
