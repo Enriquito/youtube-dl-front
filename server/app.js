@@ -38,6 +38,10 @@ const io = require('socket.io')(httpServer);
 io.on('connection', (socket) => {
     socket.join('ydl');
 
+    socket.on('emitFrontEndMessages',function(type,messages){  
+        socket.join('ydl');
+        io.to('ydl').emit('systemMessages', {type: type, messages: messages});
+    })
     socket.on('getVideos', getVideos);
     socket.on('getVideo', getVideo);
     socket.on('downloadStatus', downloadStatus);
