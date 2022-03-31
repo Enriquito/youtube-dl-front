@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 
 class Database {
 	static async connect(){
-		const db = new Promise((resolve, reject) => {
+		return new Promise((resolve, reject) => {
 			const database = new sqlite3.Database('./database.db', async (err) => {
 				if (err) {
 				  console.error(err.message);
@@ -15,8 +15,6 @@ class Database {
 				resolve(database);
 			});
 		});
-		
-		return db;
 	}
 
 	static close(db){
@@ -101,9 +99,9 @@ class Database {
 					"url"	TEXT NOT NULL,
 					"format"	TEXT,
 					"audio_format"	TEXT,
-					"audio_only"	NUMERIC NOT NULL,
-					"playlist"	NUMERIC NOT NULL,
-					"download_status" INTEGER,
+					"audio_only"	NUMERIC DEFAULT 0,
+					"playlist"	NUMERIC DEFAULT 0,
+					"download_status" INTEGER DEFAULT 0,
 					PRIMARY KEY("id" AUTOINCREMENT)
 				);
 			`;
@@ -262,8 +260,8 @@ class Database {
 				db = await Database.connect();
 
 				db.get(query, values, function(error,row) {
-					if(error) reject(error);
-					else resolve({status: "success", data: row});
+					if(error) {reject(error);}
+					resolve({status: "success", data: row});
 				});
 			}
 			catch(error){
@@ -282,10 +280,16 @@ class Database {
 			try{
 				db = await Database.connect();
 
-				db.all(query, values, function(error,rows) {
-					if(error) reject(error);
-					else resolve({status: "success", data: rows});
-				});
+				if(values)
+					db.all(query, values, function(error,rows) {
+						if(error) reject(error);
+						else resolve({status: "success", data: rows});
+					});
+				else
+					db.all(query, function(error,rows) {
+						if(error) reject(error);
+						else resolve({status: "success", data: rows});
+					});
 			}
 			catch(error){
 				console.err(error);
