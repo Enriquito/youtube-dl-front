@@ -1,6 +1,9 @@
-const Database = require("./database");
+const Database = require('./database');
+const Video = require('./video');
 
-class Download{
+const Settings = require('./settings');
+
+class Download {
     constructor(){
         this.id;
         this.videoId;
@@ -38,7 +41,7 @@ class Download{
                             this.playlist, this.downloadStatus, this.id];
 
 
-            await Database.run(query, values);            
+            await Database.run(query, values); 
         }
         catch(error){
             console.error(error);
@@ -47,25 +50,21 @@ class Download{
 
     static async find(values, findConditon = "id = ?"){
         return new Promise(async (resolve, reject) => {
-            let db = null;
-
             try{
-                db = Database.connect();
-
                 const data = await Database.get(`SELECT * FROM downloads WHERE ${findConditon}`, values);
-
                 const dl = new Download();
 
-                dl.videoId = data.id;
-                dl.title = data.title;
-                dl.status = data.status;
-                dl.processId = data.pid;
-                dl.url = data.url;
-                dl.format = data.format;
-                dl.audioFormat = data.audioFormat;
-                dl.audioOnly = data.audioOnly;
-                dl.playlist = data.playlist;
-                dl.downloadStatus = row.downloadStatus;
+                dl.id = data.data.id;
+                dl.videoId = data.data.video_id;
+                dl.title = data.data.title;
+                dl.status = data.data.status;
+                dl.processId = data.data.pid;
+                dl.url = data.data.url;
+                dl.format = data.data.format;
+                dl.audioFormat = data.data.audioFormat;
+                dl.audioOnly = data.data.audioOnly;
+                dl.playlist = data.data.playlist;
+                dl.downloadStatus = data.data.downloadStatus;
 
                 resolve(dl);
             }
@@ -73,10 +72,6 @@ class Download{
                 console.error(error);
                 reject(error);
             }
-            finally{
-                Database.close(db);
-            }
-            
         });
     }
 
@@ -94,8 +89,9 @@ class Download{
     
                 DBdownloads.data.forEach(row => {
                     const dl = new Download();
-    
-                    dl.videoId = row.id;
+                    
+                    dl.id = row.id;
+                    dl.videoId = row.video_id;
                     dl.title = row.title;
                     dl.status = row.status;
                     dl.processId = row.pid;
@@ -126,6 +122,51 @@ class Download{
             }
             catch(error){
                 console.error(error);
+                reject(error);
+            }
+        });
+    }
+
+    toVideo(){
+        return new Promise(async (resolve, reject) => {
+            try{
+                const Downloader = require('./downloader');
+                const settings = new Settings();
+                await settings.load();
+
+                const options = {
+                    audioOnly : this.audio_only,
+                    format: this.format,
+                    audioFormat: this.audio_format,
+                    playlist: this.playlist
+                }
+        
+                const fileInfo = await Downloader.getDownloadInfo(options, this.url);
+                const video = new Video();
+                
+                video.title = fileInfo.title;
+                video.uploaderUrl = fileInfo.channel_url;
+                video.viewCount = fileInfo.view_count;
+                video.duration = fileInfo.duration;
+                
+                if(options.audioOnly)
+                    video.extention = 'mp3';
+                else
+                    video.extention = 'mp4';
+        
+                video.fileName = fileInfo.id; //was the 'fname' variable
+                video.fileLocation = settings.output_location; //downloadOptions.directory;
+                video.url = fileInfo.webpage_url;
+                video.videoProviderId = fileInfo.id;
+                video.uploaderName = fileInfo.uploader;
+                video.description = fileInfo.description;
+                video.tags = fileInfo.tags;
+                video.thumbnails = fileInfo.thumbnails;
+                video.options = options;
+        
+                resolve(video);
+            }
+            catch(error){
                 reject(error);
             }
         });
