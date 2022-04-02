@@ -260,12 +260,20 @@ class Database {
 				db = await Database.connect();
 
 				db.get(query, values, function(error,row) {
-					if(error) {reject(error);}
-					resolve({status: "success", data: row});
+					if(error)
+						reject(error);
+
+					let returnObj = {status: "success", data: row};
+					
+					if(row === undefined){
+						returnObj.data = null;
+					}
+
+					resolve(returnObj);
 				});
 			}
 			catch(error){
-				console.err(error);
+				console.err({status: "error", error: error});
 			}
 			finally{
 				Database.close(db);
