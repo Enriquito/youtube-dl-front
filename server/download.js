@@ -52,6 +52,12 @@ class Download {
         return new Promise(async (resolve, reject) => {
             try{
                 const data = await Database.get(`SELECT * FROM downloads WHERE ${findConditon}`, values);
+
+                if(data.data === null){ 
+                    resolve(null);
+                    return;
+                }
+
                 const dl = new Download();
 
                 dl.id = data.data.id;
@@ -141,7 +147,7 @@ class Download {
                     playlist: this.playlist
                 }
         
-                const fileInfo = await Downloader.getDownloadInfo(options, this.url);
+                const fileInfo = await Downloader.getDownloadInfo(this.url, options);
                 const video = new Video();
                 
                 video.title = fileInfo.title;
