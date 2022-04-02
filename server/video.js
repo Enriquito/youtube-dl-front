@@ -16,6 +16,7 @@ class Video{
         this.description;
         this.tags;
         this.thumbnails;
+        this.options;
     }
 
     // Storing data
@@ -214,12 +215,12 @@ class Video{
         });
     }
 
-    static async getVideo(videoId){
+    static async find(values, findConditon = "id = ?"){
         return new Promise(async (resolve, reject) => {
             try{
-                const vid = await Database.get("SELECT * FROM videos WHERE id = ? ", videoId);
+                const vid = await Database.get(`SELECT * FROM videos WHERE ${findConditon}`, values);
 
-                if(vid === null || vid === undefined){
+                if(vid.data === null){ 
                     resolve(null);
                     return;
                 }
@@ -238,30 +239,15 @@ class Video{
                 video.videoProviderId = vid.data.video_provider_id;
                 video.uploaderName = vid.data.uploader_name;
                 video.description = vid.data.description;
+                video.tags = await this.getTags(video.id);
+                video.thumbnails = await this.getThumbnails(video.id);
 
-                resolve(video);     
-            }  
-            catch(error){
-                console.log(error);
-                reject(error);
-            }    
-
-        });
-    }
-
-    static async find(id){
-        return new Promise(async (resolve, reject) => {
-            const video = await this.getVideo(id);
-
-            if(video.data === null){ 
-                reject("Video not found.");
-                return;
+                resolve(video);
             }
-
-            video.tags = await this.getTags(video.id);
-            video.thumbnails = await this.getThumbnails(video.id);
-
-            resolve(video);
+            catch(error){
+                reject(error);
+            }
+            
         });
     }
 
