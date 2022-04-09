@@ -3,7 +3,7 @@
         <div class="d-flex justify-content-between">
             <h5 style="cursor:pointer;">Downloads</h5>
         </div>
-        <div v-for="item in data" :key="item.id">
+        <div v-if="item" >
             <ul v-if="item.status == 'downloading' || item.status == 'converting'">
                 <li>
                     <DownloadItem :showProgress="true" :item="item" />
@@ -16,8 +16,8 @@
                     <DownloadItem v-if="index <= 10" :showProgress="true" :item="item" />
                 </li>
             </ul>
-            <ul v-if="queueItems.length > 0">
-                <li v-for="(item, index) in queueItems" :key="item.id">
+            <ul v-if="queue.length > 0">
+                <li v-for="(item, index) in queue" :key="item.id">
                     <DownloadItem v-if="index <= 10" :showProgress="false" :item="item" />
                 </li>
             </ul>
@@ -31,18 +31,19 @@ export default {
     name: "DownloadManager",
     mounted() {
         this.sockets.subscribe('downloadStatus', (data) => {
-            this.data = data;
-            this.checkIfFinished();
-
-            if(data === null)
+            if(data === undefined)
                 return;
 
-            data.forEach(el => {
-                if(el.status === 'downloading'){
-                    this.isDownloading = true;
-                    this.item = el;
-                }
-            });
+            if(data == null)
+                this.checkIfFinished();
+
+            this.item = data;
+            this.isDownloading = true;
+        });
+
+        this.sockets.subscribe('downloadQueue', (data) => {
+            console.log(data);
+            this.queue = data;
         });
     },
     data(){
@@ -50,20 +51,18 @@ export default {
             data: [],
             isDownloading: false,
             item: null,
-            windowClass: ""
+            windowClass: "",
+            queue: []
         });
     },
     methods:{
         checkIfFinished(){
-            if(this.item === null)
-                return;
-
-            this.data.forEach(el => {
-                if(this.item.id === el.id && el.status === 'finished'){
-                    this.isDownloading = false;
-                    this.$store.commit('isDownloading', false);
-                }
-            });
+            if(this.item.status === 'finished'){
+                this.isDownloading = false;
+                this.item = null;
+                this.$store.commit('isDownloading', false);
+                this.$socket.emit('downloadQueue');
+            }
         }
     },
     watch:{
@@ -74,6 +73,7 @@ export default {
             else{
                 this.windowClass = "open-manager";
                 this.$socket.emit('downloadStatus');
+                this.$socket.emit('downloadQueue');
             }
         }
     },
@@ -84,33 +84,11 @@ export default {
         DownloadItem
     },
     computed:{
-        queueItems(){
-            const q = [];
-
-            this.data.forEach(el => {
-                if(el.status === 'queued'){
-                    q.push(el);
-                }
-            });
-
-            return q;
-        },
         pausedOrStoppedItems(){
             const q = [];
 
-            this.data.forEach(el => {
+            this.queue.forEach(el => {
                 if(el.status === 'stopped' || el.status === 'paused'){
-                    q.push(el);
-                }
-            });
-
-            return q;
-        },
-        finishedItems(){
-            const q = [];
-
-            this.data.forEach(el => {
-                if(el.status === 'finished'){
                     q.push(el);
                 }
             });
