@@ -5,7 +5,8 @@ const bodyParser = require('body-parser');
 const Database = require("./database");
 const Download = require('./download');
 const Settings = require("./settings");
-const Media = require('./media');
+const Video = require('./video');
+const Downloader = require('./downloader');
 
 const app = express();
 const settings = new Settings();
@@ -19,6 +20,14 @@ Database.checkFirstUse()
             });
 
             app.use('/media/', express.static(settings.outputLocation));
+
+            Downloader.loadQueue()
+                .then(() => {
+                    Downloader.start();
+                })
+                .catch(error => {
+                    console.error(error);
+                });
         });
 })
 .catch(error => {
@@ -31,7 +40,6 @@ app.use(bodyParser.json());
 app.use('/', express.static(path.join(__dirname,"../web/dist/")));
 
 const http = require('http');
-const Video = require('./video');
 const httpServer = http.createServer(app);
 const io = require('socket.io')(httpServer);
 
@@ -42,7 +50,7 @@ io.on('connection', (socket) => {
         socket.join('ydl');
         io.to('ydl').emit(type, value);        
     })
-    
+
     socket.on('getVideos', getVideos);
     socket.on('getVideo', getVideo);
     socket.on('downloadStatus', downloadStatus);
@@ -57,11 +65,22 @@ io.on('connection', (socket) => {
     socket.on('resumeDownload', resumeDownload);
     socket.on('removeDownload', removeDownload);
     socket.on('getPlaylist', getPlaylistInfo);
+    socket.on('downloadQueue', downloadQueue);
 });
+
+const downloadQueue = async () => {
+    try{
+        io.to('ydl').emit('downloadQueue', Downloader.queue);
+    }
+    catch(error){
+        console.log(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while fetching queue info."});
+    }
+}
 
 const getPlaylistInfo = async url => {
     try{
-        const info  = await Media.getPlaylistInfo(url);
+        const info  = await Downloader.getPlaylistInfo(url);
         io.to('ydl').emit('getPlaylist', info);
     }
     catch(error){
@@ -78,6 +97,8 @@ const removeDownload = async id => {
             io.to('ydl').emit('systemMessages', {type: "Error", messages: "Download process not found."});
             return;
         }
+
+        await download.remove();
 
         // clean up .part files
         const dirItems = fs.readdirSync(settings.outputLocation)
@@ -113,10 +134,6 @@ const resumeDownload = async id => {
         download.status = "queued";
 
         await download.update();
-
-        if(!await isDownloading()){
-            Media.downloadQueueItems(io);
-        }
     }
     catch(error){
         console.log(error);
@@ -168,7 +185,7 @@ const emptyDatabase = async () => {
 
 const getVideoInfo = async url => {
     try{
-        const info = await Media.GetDownloadInfo(url);
+        const info = await Downloader.getDownloadInfo(url, null);
 
         if(info != null)
             io.to('ydl').emit('videoInfo', info);
@@ -211,64 +228,20 @@ const deleteVideo = async video => {
 
 const download = async data => {
     try{
-        const itemList = [];
+        if(data.list.length === 0) 
+            return;
 
-        if(data.list.length > 1){
-            for(let i = 0; i < data.list.length; i++){
-                const media = new Media();
-                await media.settings.load();
-                media.io = io;
-                media.url = data.list[i].url;
-                media.options = {
-                    format: data.list[i].videoQuality,
-                    audioFormat: data.list[i].soundQuality,
-                    audioOnly: data.list[i].audioOnly,
-                    playlist: data.list[i].playlist
-                };
+        for(let i = 0; i < data.list.length; i++){
+            const item = data.list[i];
 
-                const result = await media.GetDefaultQualityFormat(media.url);
-
-                if(result !== null){
-                    media.options.format = result.format;
-                    media.options.audioFormat = result.audioFormat
-                }
-
-                itemList.push(media);
-            }
-
-            console.log(`Downloading playlist.`);
-
-            for(let i = 0; i < itemList.length; i++){
-                await itemList[i].AddToQueue();
-            }
-
-            if(!await isDownloading()){
-                Media.downloadQueueItems(io);
-            }
-        }
-        else if(data.list.length === 1){
-            const item = data.list[0];
-            const media = new Media();
-            await media.settings.load();
-
-            media.io = io;
-            media.url = item.url;
-            media.options = {
+            const options = {
                 format: item.videoQuality,
                 audioFormat: item.soundQuality,
                 audioOnly: item.audioOnly,
                 playlist: item.playlist
             };
 
-            if(await isDownloading()){
-                media.AddToQueue();
-            }
-            else{
-                media.Download();
-            }
-        }
-        else{
-            console.log('No download data found.');
+            Downloader.addToQueue(item.url, options);
         }
     }
     catch(error){
@@ -304,10 +277,10 @@ const getVideo = async id => {
 
 const downloadStatus = async () => {
     try{
-        const downloads = await Download.all();
+        const download = await Download.find('downloading', 'status = ?');
 
-        if(downloads != null)
-            io.to('ydl').emit('downloadStatus', downloads);
+        if(download != null)
+            io.to('ydl').emit('downloadStatus', download);
     }
     catch(error){
         console.log(error);
@@ -362,26 +335,6 @@ const getSettings = async () => {
         console.log(error);
         io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
     }
-}
-
-const isDownloading = () => {
-    return new Promise(async (resolve, reject) => {
-        try{
-            const downloads = await Download.all("status = ?", "downloading");
-    
-            console.log(downloads);
-    
-            if(downloads.length > 0)
-                resolve(true)
-            else
-                resolve(false);
-        }
-        catch(error){
-            console.error(error);
-            reject(error);
-        }
-    });
-    
 }
 
 app.get('/', (req,res) => {
