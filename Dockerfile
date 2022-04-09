@@ -13,8 +13,14 @@ RUN git clone https://github.com/Enriquito/youtube-dl-front
 
 # Clone when working in the development branch
 #RUN git clone -b development https://github.com/Enriquito/youtube-dl-front.git
+
+# Install the modules for the server
 WORKDIR /youtube-dl-front/server
 RUN npm install
+
+# Build the frontend
+WORKDIR /youtube-dl-front/web
+RUN npm run build
 
 # Setup ports and volumes (volume tbd), startup script
 EXPOSE 3000
