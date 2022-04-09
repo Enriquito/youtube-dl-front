@@ -62,6 +62,9 @@ export default {
             this.$socket.emit('removeDownload', this.item.id);
         },
         dotInterval(){
+            if(!document.getElementById('dots'))
+                return;
+
             this.interval = setInterval(() => {
                 const txt = document.getElementById('dots').innerHTML;
 
