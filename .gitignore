@@ -8,6 +8,7 @@ server/test.js
 web/node_modules
 web/.env
 web/.DS_Store
+web/dist
 
 .DS_Store
 
