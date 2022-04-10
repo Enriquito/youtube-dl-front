@@ -1,8 +1,6 @@
 server/node_modules
 server/videos/*
-server/music/*
 server/.DS_Store
-server/database.json
 server/test.js
 
 web/node_modules
@@ -14,4 +12,3 @@ web/dist
 
 # sqlite database
 *.db
-server/test.js
