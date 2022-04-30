@@ -1,41 +1,45 @@
 const fs = require('fs')
 const path = require('path');
-let express = require('express');
+const express = require('express');
 const bodyParser = require('body-parser');
 const Database = require("./database");
 const Download = require('./download');
 const Settings = require("./settings");
 const Video = require('./video');
 const Downloader = require('./downloader');
+const Queue = require('./queue');
 
+const DownloadQueue = new Queue();
 const app = express();
 const settings = new Settings();
 
 Database.checkFirstUse()
-.then(() => {
-    settings.load()
-        .then(() => {
-            httpServer.listen(settings.port, () => {
-                console.log(`HTTP Server running on port ${settings.port}`);
-            });
-
-            app.use('/media/', express.static(settings.outputLocation));
-
-            Downloader.loadQueue()
-                .then(() => {
-                    Downloader.start();
-                })
-                .catch(error => {
-                    console.error(error);
+    .then(() => {
+        settings.load()
+            .then(async () => {
+                httpServer.listen(settings.port, () => {
+                    console.log(`HTTP Server running on port ${settings.port}`);
                 });
-        });
-})
-.catch(error => {
-    console.log(error);
-});
+
+                app.use('/media/', express.static(settings.outputLocation));
+
+                DownloadQueue.load()
+                    .then(() => {
+                        Downloader.queue = DownloadQueue;
+                        Downloader.start();
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
+            });
+    })
+    .catch(error => {
+        console.log(error);
+    });
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
+const {emitEvent} = require("./helpers");
 
 app.use('/', express.static(path.join(__dirname,"../web/dist/")));
 
@@ -46,10 +50,10 @@ const io = require('socket.io')(httpServer);
 io.on('connection', (socket) => {
     socket.join('ydl');
 
-    socket.on('emitEvents',function(type, value){  
+    socket.on('emitEvents',function(type, value){
         socket.join('ydl');
         io.to('ydl').emit(type, value);        
-    })
+    });
 
     socket.on('getVideos', getVideos);
     socket.on('getVideo', getVideo);
@@ -70,7 +74,7 @@ io.on('connection', (socket) => {
 
 const downloadQueue = async () => {
     try{
-        io.to('ydl').emit('downloadQueue', Downloader.queue);
+        io.to('ydl').emit('downloadQueue', DownloadQueue.items);
     }
     catch(error){
         console.log(error);
@@ -112,7 +116,7 @@ const removeDownload = async id => {
                     fs.unlinkSync(`${settings.outputLocation}/${file}`);
                 }
             }
-        };
+        }
 
         io.to('ydl').emit('systemMessages', {type: "Success", messages: `${download.title} has been removed from downloads.`});
     }
@@ -143,27 +147,7 @@ const resumeDownload = async id => {
 
 const stopDownload = async processId => {
     try{
-        const { spawn } = require('child_process');
-        const downloads = await Download.all();
-
-        if(download === null){
-            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error reading database."});
-            return;
-        }
-
-        downloads.forEach(async video => {
-            if(processId === video.processId){
-                video.status = "stopped";
-                video.processId = null;
-                await video.update();
-
-                const stopCommand = spawn('kill', ["-9", video.processId]);
-
-                stopCommand.on('close', async () => {
-                    io.to('ydl').emit('systemMessages', {type: "Success", messages: `Download has been stopped for ${video.title}`});
-                });
-            }
-        })
+        await Downloader.stop(processId);
     }
     catch(error){
         console.log(error);
@@ -185,7 +169,7 @@ const emptyDatabase = async () => {
 
 const getVideoInfo = async url => {
     try{
-        const info = await Downloader.getDownloadInfo(url, null);
+        const info = await Download.getInfo(url, null);
 
         if(info != null)
             io.to('ydl').emit('videoInfo', info);
@@ -241,7 +225,25 @@ const download = async data => {
                 playlist: item.playlist
             };
 
-            Downloader.addToQueue(item.url, options);
+            const download = new Download();
+
+            let fileInfo = await Download.getInfo(item.url, options);
+
+            download.videoId = fileInfo.id;
+            download.title = fileInfo.title;
+            download.status = 'queued';
+            download.url = item.url;
+            download.format = options.format;
+            download.audioFormat = options.audioFormat;
+            download.audioOnly = options.audioOnly;
+            download.playlist = options.playlist;
+
+            await download.save();
+
+            await DownloadQueue.add(download);
+            await Downloader.start();
+            emitEvent('downloadQueue', DownloadQueue.items);
+            emitEvent('systemMessages', {type: "Success", messages: `Download '${fileInfo.title} has been added to the queue.`});
         }
     }
     catch(error){
@@ -265,7 +267,7 @@ const getVideo = async id => {
     try{
         const video = await Video.find(id);
 
-        if(video !== null || video !== undefined)
+        if(video !== null)
             io.to('ydl').emit('item', video);
         else
             io.to('ydl').emit('systemMessages', {type: "Warning", messages: "Item not found."});
@@ -312,7 +314,7 @@ const updateSettings = async newSettings => {
         settings.authentication.password = newSettings.authentication.password;
         // settings.authentication.twofa = newSettings.authentication.password;
         
-        settings.update();
+        await settings.update();
 
         io.to('ydl').emit('systemMessages', {type: "Success", messages: "Settings has been updated."});
     }
@@ -325,9 +327,6 @@ const updateSettings = async newSettings => {
 const getSettings = async () => {
     try{
         await settings.load();
-
-        if(settings === null)
-            io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching settings."});
 
         io.to('ydl').emit('getSettings', settings);
     }

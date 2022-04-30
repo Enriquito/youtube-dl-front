@@ -1,16 +1,14 @@
 const Database = require("./database");
 
 class Settings{
-    constructor(){
-        this.port;
-        this.outputLocation;
-        this.defaultQuality;
-        this.authentication = {
-            username: "",
-            password: "",
-            twofa: ""
-        }
-    }
+    port;
+    outputLocation;
+    defaultQuality;
+    authentication = {
+        username: "",
+        password: "",
+        twoFA: ""
+    };
 
     async update(){
         return new Promise(async (resolve, reject) => {
