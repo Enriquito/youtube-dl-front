@@ -1,7 +1,7 @@
 server/node_modules
 server/videos/*
 server/.DS_Store
-server/test.js
+server/src/test.js
 
 web/node_modules
 web/.env
