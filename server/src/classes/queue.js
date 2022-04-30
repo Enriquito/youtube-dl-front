@@ -1,6 +1,6 @@
 const Database = require("./database");
 const Download = require("./download");
-const {emitEvent} = require('./helpers');
+const {emitEvent} = require('../helpers');
 
 class Queue {
     items = [];

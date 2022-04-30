@@ -2,7 +2,7 @@ const Settings = require("./settings");
 const Video = require("./video");
 const Download = require('./download');
 const { spawn, exec } = require('child_process');
-const {emitEvent} = require('./helpers');
+const {emitEvent} = require('../helpers');
 const fs = require('fs');
 
 class Downloader{

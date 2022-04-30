@@ -1,23 +1,21 @@
 const Database = require("./database");
 
 class Video{
-    constructor(){
-        this.id;
-        this.title;
-        this.uploaderUrl;
-        this.viewCount;
-        this.duration;
-        this.extention;
-        this.fileName;
-        this.fileLocation;
-        this.url;
-        this.videoProviderId;
-        this.uploaderName;
-        this.description;
-        this.tags;
-        this.thumbnails;
-        this.options;
-    }
+    id;
+    title;
+    uploaderUrl;
+    viewCount;
+    duration;
+    extention;
+    fileName;
+    fileLocation;
+    url;
+    videoProviderId;
+    uploaderName;
+    description;
+    tags;
+    thumbnails;
+    options;
 
     // Storing data
 
@@ -62,10 +60,10 @@ class Video{
     async saveVideo(){
         return new Promise(async (resolve, reject) => {
             try{
-                const insertVideoPrefix = "INSERT INTO videos (title, uploader_url, view_count, duration, file_extention, file_name, file_location, video_url, video_provider_id, uploader_name, description)";
+                const query = "INSERT INTO videos (title, uploader_url, view_count, duration, file_extention, file_name, file_location, video_url, video_provider_id, uploader_name, description) VALUES(?,?,?,?,?,?,?,?,?,?,?)";
                 const videoValues = [this.title, this.uploaderUrl, this.viewCount, this.duration, this.extention, this.fileName, this.fileLocation, this.url, this.videoProviderId, this.uploaderName, this.description];
 
-                const result = await Database.run(`${insertVideoPrefix} VALUES(?,?,?,?,?,?,?,?,?,?,?)`,  videoValues);
+                const result = await Database.run(query ,  videoValues);
 
                 resolve(result.data.lastID);
             }

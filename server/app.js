@@ -2,12 +2,12 @@ const fs = require('fs')
 const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
-const Database = require("./database");
-const Download = require('./download');
-const Settings = require("./settings");
-const Video = require('./video');
-const Downloader = require('./downloader');
-const Queue = require('./queue');
+const Database = require("./src/classes/database");
+const Download = require('./src/classes/download');
+const Settings = require("./src/classes/settings");
+const Video = require('./src/classes/video');
+const Downloader = require('./src/classes/downloader');
+const Queue = require('./src/classes/queue');
 
 const DownloadQueue = new Queue();
 const app = express();
@@ -39,7 +39,7 @@ Database.checkFirstUse()
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
-const {emitEvent} = require("./helpers");
+const {emitEvent} = require("./src/helpers");
 
 app.use('/', express.static(path.join(__dirname,"../web/dist/")));
 

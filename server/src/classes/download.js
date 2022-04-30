@@ -3,7 +3,7 @@ const Video = require('./video');
 
 const Settings = require('./settings');
 const {exec} = require("child_process");
-const {emitEvent} = require("./helpers");
+const {emitEvent} = require("../helpers");
 
 class Download {
     id;

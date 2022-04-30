@@ -1,7 +1,5 @@
 const Database = require('./database');
 const { spawn } = require('child_process');
-const Media = require('./media');
-
 
 class Channel{
     constructor(){

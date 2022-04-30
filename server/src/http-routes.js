@@ -107,8 +107,6 @@ module.exports = (app) => {
                     code: result.code,
                     messages: result.messages
                 });
-    
-                return;
             }
             else{
                 media.Download();
