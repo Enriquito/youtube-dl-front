@@ -1,94 +1,15 @@
-const Database = require("./database");
 const Settings = require("./settings");
 const Video = require("./video");
 const Download = require('./download');
 const { spawn, exec } = require('child_process');
 const {emitEvent} = require('./helpers');
 const fs = require('fs');
-const e = require("express");
 
 class Downloader{
     static isDownloading = false;
-    static queue = [];
-    static basicOptions = {
-        audioOnly : false,
-        format: null,
-        audioFormat: null,
-        playlist: false
-    }
-
-    static loadQueue(){
-        return new Promise(async (resolve, reject) => {
-            try{
-                Downloader.queue = [];
-                const queueItems = await Database.all(`SELECT * FROM downloads WHERE status = 'queued'`);
-
-                queueItems.data.forEach(download => {
-                    const dl = new Download();
-
-                    dl.videoId = download.video_id;
-                    dl.title = download.title;
-                    dl.status = download.status;
-                    dl.url = download.url;
-                    dl.format = download.format;
-                    dl.audioFormat = download.audioFormat;
-                    dl.audioOnly = download.audioOnly;
-                    dl.playlist = download.playlist;
-                    dl.downloadStatus = 0;
-
-                    Downloader.queue.push(dl);
-                });
-
-                emitEvent('downloadStatus', Downloader.queue);
-                resolve();
-            }
-            catch(error){
-                reject(error);
-            }
-        });
-    }
-
-    static addToQueue(url, options){
-        return new Promise(async (resolve, reject) => {
-            try{
-                await Downloader.loadQueue();
-                let opt = options;
-
-                if(options === null || options === undefined)
-                    opt = Downloader.basicOptions;
-
-                const fileInfo = await Downloader.getDownloadInfo(url, opt);
-
-                const dl = new Download();
-
-                dl.videoId = fileInfo.id;
-                dl.title = fileInfo.title;
-                dl.status = 'queued';
-                dl.url = url;
-                dl.format = options.format;
-                dl.audioFormat = options.audioFormat;
-                dl.audioOnly = options.audioOnly;
-                dl.playlist = options.playlist;
-
-                await dl.save();
-
-                Downloader.queue.push(dl);
-
-                console.log(`added video: ${dl.url} to the queue`);
-
-                emitEvent('downloadQueue', Downloader.queue);
-                emitEvent('systemMessages', {type: "Success", messages: `Download '${fileInfo.title} has been added to the queue.`});
-
-                if(!Downloader.isDownloading)
-                    Downloader.start();
-
-                resolve({success: true, messages: `Download '${fileInfo.title} has been added to the queue.`, code: 3});
-            }
-            catch(error){
-                reject({success: false, messages: error, code: 100});
-            }
-        });
-    }
+    static downloadIsAborted = false;
+    static currentDownloads = [];
+    static queue;
 
     static getDownloadArguments(settings, download){
         let directory = "./videos";
@@ -172,51 +93,6 @@ class Downloader{
         });
     }
 
-    static getDownloadInfo(url, options = null){
-        return new Promise((resolve, reject) => {
-            try{
-                let command = `youtube-dl --skip-download --dump-json ${url}`;
-
-                if(options !== null)
-                    if(options.format && options.audioFormat)
-                        command = `youtube-dl --skip-download --dump-json -f ${options.format}+${options.audioFormat} ${url}`;
-
-                exec(command, (error, stdout, stderr) => {
-                    if(error){
-                        reject({success: false, messages: error, code: 101});
-                        return;
-                    }
-
-                    const obj = JSON.parse(stdout);
-
-                    resolve(obj);
-                });
-            }
-            catch(error){
-                console.log(error);
-                emitEvent('systemMessages', {type: 'Error', messages: error.messages.messages});
-                reject({success: false, messages: error, code: 100});
-            }
-        });
-    }
-
-    static CreateDownloadObject(fileInfo, downloadProccesID, options){
-        const dl = new Download();
-
-        dl.videoId = fileInfo.id;
-        dl.title = fileInfo.title;
-        dl.status = 'downloading';
-        dl.processId = downloadProccesID;
-        dl.url = fileInfo.webpage_url;
-        dl.format = options.format;
-        dl.audioFormat = options.audioFormat;
-        dl.audioOnly = options.audioOnly;
-        dl.playlist = options.playlist;
-        dl.downloadStatus = 0;
-
-        return dl;
-    }
-
     static CreateVideoObject(fileInfo, extention, fileLocation){
         const video = new Video();
 
@@ -225,7 +101,7 @@ class Downloader{
         video.viewCount = fileInfo.view_count;
         video.duration = fileInfo.duration;
         video.extention = extention;
-        video.fileName = fileInfo.id; //was the 'fname' variable
+        video.fileName = fileInfo.id;
         video.fileLocation = fileLocation; //downloadOptions.directory;
         video.url = fileInfo.webpage_url;
         video.videoProviderId = fileInfo.id;
@@ -244,7 +120,6 @@ class Downloader{
                     console.log("There is already a download in progress abort.");
                     return;
                 }
-                    
 
                 console.log(`--- Start download ---`);
                 console.log(`Url: ${url}`);
@@ -255,7 +130,7 @@ class Downloader{
                 const settings = new Settings();
                 await settings.load();
                 
-                const fileInfo = await Downloader.getDownloadInfo(url, options);
+                const fileInfo = await Download.getInfo(url, options);
                 const dl = await Download.find([fileInfo.id], "video_id = ?");
                 const downloadArguments = Downloader.getDownloadArguments(settings, dl);
 
@@ -268,13 +143,17 @@ class Downloader{
 
                     emitEvent('systemMessages', {type: 'Error', messages: `Item already downloaded`});
                     
-                    reject({success: false, messages: 'Item already excist', code: 2});
+                    reject({success: false, messages: 'Item already exist', code: 2});
                     return;
                 }  
 
                 const download = spawn('youtube-dl', downloadArguments.args);
-                
-                emitEvent('systemMessages', {type: 'Succes', messages: `Download started for ${fileInfo.title}`});
+
+                dl.processId = download.pid;
+                await dl.update();
+                this.currentDownloads.push(dl);
+
+                emitEvent('systemMessages', {type: 'Success', messages: `Download started for ${fileInfo.title}`});
                 console.log(`Download started.`);
                 
                 dl.status = 'downloading';
@@ -316,21 +195,26 @@ class Downloader{
                     
                     await dl.remove();
 
+                    emitEvent('downloadStatus', null);
+                    Downloader.isDownloading = false;
+                    this.currentDownloads.shift();
+                    await Downloader.start();
+
+                    if (Downloader.downloadIsAborted) {
+                        Downloader.downloadIsAborted = false;
+                        return;
+                    }
+
                     const video = Downloader.CreateVideoObject(fileInfo, downloadArguments.extention, downloadArguments.directory);
                     await video.save();
+                    emitEvent('systemMessages', {type: 'Success', messages: `${fileInfo.title} has finished downloading`});
 
                     const videos = await Video.all();
-                    
-                    emitEvent('downloadStatus', null);
-                    emitEvent('systemMessages', {type: 'Succes', messages: `${fileInfo.title} has finished downloading`});
                     emitEvent('getVideos', videos.reverse());
 
                     console.log(`--- Download is completed. ---`);
-                    
-                    Downloader.isDownloading = false;
-                    Downloader.start();
 
-                    resolve({success: true, messages: "Download successfull", code: 1});
+                    resolve({success: true, messages: "Video has been successfully downloaded", code: 1});
                 });
             }
             catch(error){
@@ -339,22 +223,41 @@ class Downloader{
                 
                 emitEvent('systemMessages', {type: "Error", messages: `${error}`});
                 reject({success: false, messages: error, code: 100});
-                return;
             }
         });
     }
 
     static async start(){
         try{
-            if(Downloader.queue.length > 0 && !Downloader.isDownloading){
-                const download = Downloader.queue.shift();
-                const video = await download.toVideo();
+            if(this.queue.count() > 0 && !Downloader.isDownloading){
+                const download = this.queue.shift();
+                emitEvent('downloadQueue', this.queue.getItems());
 
-                await Downloader.download(download.url, video.options);
+                await Downloader.download(download.url, download.getOptions());
             }
         }
         catch(error){
             console.error(error);
+        }
+    }
+
+    static async stop(processId) {
+        for(let i = 0; i < this.currentDownloads.length; i++) {
+            const download = this.currentDownloads[i];
+
+            if(processId === download.processId){
+                download.status = "stopped";
+                download.processId = null;
+
+                await download.update();
+
+                const stopCommand = spawn('kill', ["-9", processId]);
+
+                stopCommand.on('close', async () => {
+                    Downloader.downloadIsAborted = true;
+                    emitEvent('systemMessages', {type: "Success", messages: `Download has been stopped for ${download.title}`});
+                });
+            }
         }
     }
 
@@ -391,8 +294,8 @@ class Downloader{
                                 return;
                             }
 
-                            for(let enteries = 0; enteries < output.entries.length; enteries++){
-                                const e = output.entries[enteries];
+                            for(let entries = 0; entries < output.entries.length; entries++){
+                                const e = output.entries[entries];
 
                                 if(!data.find(val => {if(val.title === e.title) return val;}))
                                     data.push(e);
@@ -417,6 +320,10 @@ class Downloader{
                 reject(error);
             }
         });
+    }
+
+    static getCurrentDownloads() {
+        return this.currentDownloads;
     }
 }
 

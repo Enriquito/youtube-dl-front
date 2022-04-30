@@ -2,34 +2,62 @@ const Database = require('./database');
 const Video = require('./video');
 
 const Settings = require('./settings');
+const {exec} = require("child_process");
+const {emitEvent} = require("./helpers");
 
 class Download {
-    constructor(){
-        this.id;
-        this.videoId;
-        this.title;
-        this.status;
-        this.processId;
-        this.url;
-        this.format;
-        this.audioFormat;
-        this.audioOnly;
-        this.playlist;
-        this.downloadStatus;
-    }
+    id;
+    videoId;
+    title;
+    status;
+    processId;
+    url;
+    format;
+    audioFormat;
+    audioOnly;
+    playlist;
+    downloadStatus;
 
     async save(){
         try{
-            const insertVideoPrefix = "INSERT INTO downloads (video_id, title, status, process_id, url, format, audio_format, audio_only, playlist, download_status)";
+            const query = `INSERT INTO downloads (video_id, title, status, process_id, url, format, audio_format, audio_only, playlist, download_status) VALUES(?,?,?,?,?,?,?,?,?,?)`;
             const values = [this.videoId, this.title, this.status, this.processId, this.url, this.format, this.audioFormat, this.audioOnly, this.playlist, this.downloadStatus];
 
-            const temp = await Database.run(`${insertVideoPrefix} VALUES(?,?,?,?,?,?,?,?,?,?)`, values);
+            const temp = await Database.run(query, values);
 
             this.id = temp.data.lastID;
         }
         catch(error){
             console.error(error);
         }
+    }
+
+    static getInfo(url, options = null){
+        return new Promise((resolve, reject) => {
+            try{
+                let command = `youtube-dl --skip-download --dump-json ${url}`;
+
+                if(options !== null)
+                    if(options.format && options.audioFormat)
+                        command = `youtube-dl --skip-download --dump-json -f ${options.format}+${options.audioFormat} ${url}`;
+
+                exec(command, (error, stdout, stderr) => {
+                    if(error || stderr){
+                        reject({success: false, messages: error, code: 101});
+                        return;
+                    }
+
+                    const obj = JSON.parse(stdout);
+
+                    resolve(obj);
+                });
+            }
+            catch(error){
+                console.log(error);
+                emitEvent('systemMessages', {type: 'Error', messages: error.messages.messages});
+                reject({success: false, messages: error, code: 100});
+            }
+        });
     }
 
     async update(){
@@ -48,10 +76,10 @@ class Download {
         }
     }
 
-    static async find(values, findConditon = "id = ?"){
+    static async find(values, findCondition = "id = ?"){
         return new Promise(async (resolve, reject) => {
             try{
-                const data = await Database.get(`SELECT * FROM downloads WHERE ${findConditon}`, values);
+                const data = await Database.get(`SELECT * FROM downloads WHERE ${findCondition}`, values);
 
                 if(data.data === null){ 
                     resolve(null);
@@ -81,19 +109,19 @@ class Download {
         });
     }
 
-    static async all(findConditon, values){
+    static async all(findCondition, values){
         return new Promise(async (resolve, reject) => {
             try{
                 let findQuery;
 
-                if(findConditon != null)
-                    findQuery = `WHERE ${findConditon}`;
+                if(findCondition != null)
+                    findQuery = `WHERE ${findCondition}`;
                     
-                const DBdownloads = await Database.all(`SELECT * FROM downloads ${findQuery}`, values);
+                const Downloads = await Database.all(`SELECT * FROM downloads ${findQuery}`, values);
     
                 const downloads = [];
     
-                DBdownloads.data.forEach(row => {
+                Downloads.data.forEach(row => {
                     const dl = new Download();
                     
                     dl.id = row.id;
@@ -133,10 +161,18 @@ class Download {
         });
     }
 
+    getOptions() {
+        return {
+            audioOnly : this.audio_only,
+            format: this.format,
+            audioFormat: this.audio_format,
+            playlist: this.playlist
+        }
+    }
+
     toVideo(){
         return new Promise(async (resolve, reject) => {
             try{
-                const Downloader = require('./downloader');
                 const settings = new Settings();
                 await settings.load();
 
@@ -147,7 +183,7 @@ class Download {
                     playlist: this.playlist
                 }
         
-                const fileInfo = await Downloader.getDownloadInfo(this.url, options);
+                const fileInfo = await Download.getInfo(this.url, options);
                 const video = new Video();
                 
                 video.title = fileInfo.title;
@@ -160,7 +196,7 @@ class Download {
                 else
                     video.extention = 'mp4';
         
-                video.fileName = fileInfo.id; //was the 'fname' variable
+                video.fileName = fileInfo.id;
                 video.fileLocation = settings.output_location; //downloadOptions.directory;
                 video.url = fileInfo.webpage_url;
                 video.videoProviderId = fileInfo.id;
@@ -176,6 +212,23 @@ class Download {
                 reject(error);
             }
         });
+    }
+
+    static CreateDownloadObject(fileInfo, downloadProcessID, options){
+        const dl = new Download();
+
+        dl.videoId = fileInfo.id;
+        dl.title = fileInfo.title;
+        dl.status = 'downloading';
+        dl.processId = downloadProcessID;
+        dl.url = fileInfo.webpage_url;
+        dl.format = options.format;
+        dl.audioFormat = options.audioFormat;
+        dl.audioOnly = options.audioOnly;
+        dl.playlist = options.playlist;
+        dl.downloadStatus = 0;
+
+        return dl;
     }
 }
 
