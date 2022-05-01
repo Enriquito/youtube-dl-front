@@ -47,9 +47,7 @@ class Download {
                         return;
                     }
 
-                    const obj = JSON.parse(stdout);
-
-                    resolve(obj);
+                    resolve(JSON.parse(stdout));
                 });
             }
             catch(error){
@@ -168,50 +166,6 @@ class Download {
             audioFormat: this.audio_format,
             playlist: this.playlist
         }
-    }
-
-    toVideo(){
-        return new Promise(async (resolve, reject) => {
-            try{
-                const settings = new Settings();
-                await settings.load();
-
-                const options = {
-                    audioOnly : this.audio_only,
-                    format: this.format,
-                    audioFormat: this.audio_format,
-                    playlist: this.playlist
-                }
-        
-                const fileInfo = await Download.getInfo(this.url, options);
-                const video = new Video();
-                
-                video.title = fileInfo.title;
-                video.uploaderUrl = fileInfo.channel_url;
-                video.viewCount = fileInfo.view_count;
-                video.duration = fileInfo.duration;
-                
-                if(options.audioOnly)
-                    video.extention = 'mp3';
-                else
-                    video.extention = 'mp4';
-        
-                video.fileName = fileInfo.id;
-                video.fileLocation = settings.output_location; //downloadOptions.directory;
-                video.url = fileInfo.webpage_url;
-                video.videoProviderId = fileInfo.id;
-                video.uploaderName = fileInfo.uploader;
-                video.description = fileInfo.description;
-                video.tags = fileInfo.tags;
-                video.thumbnails = fileInfo.thumbnails;
-                video.options = options;
-        
-                resolve(video);
-            }
-            catch(error){
-                reject(error);
-            }
-        });
     }
 
     static CreateDownloadObject(fileInfo, downloadProcessID, options){
