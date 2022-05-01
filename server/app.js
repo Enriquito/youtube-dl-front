@@ -24,7 +24,8 @@ Database.checkFirstUse()
                 app.use('/media/', express.static(settings.outputLocation));
 
                 DownloadQueue.load()
-                    .then(() => {
+                    .then((queueItems) => {
+                        emitEvent('downloadStatus', queueItems);
                         Downloader.queue = DownloadQueue;
                         Downloader.start();
                     })

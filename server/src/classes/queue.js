@@ -42,8 +42,7 @@ class Queue {
                     this.items.push(dl);
                 });
 
-                emitEvent('downloadStatus', this.items);
-                resolve();
+                resolve(this.items);
             }
             catch(error){
                 reject(error);

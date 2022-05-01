@@ -22,7 +22,7 @@ class Video{
     async save(){
         return new Promise(async (resolve,reject) => {
             try{
-                this.id = await this.saveVideo();
+                await this.saveVideo();
     
                 if(this.id === null){
                     console.error("Error creating video");
@@ -65,7 +65,9 @@ class Video{
 
                 const result = await Database.run(query ,  videoValues);
 
-                resolve(result.data.lastID);
+                this.id = result.data.lastID;
+
+                resolve();
             }
             catch(error){
                 console.error(error);
@@ -120,8 +122,6 @@ class Video{
             }
         });
     }
-
-    // End storing data
 
     async checkTag(tag){
         
@@ -255,7 +255,7 @@ class Video{
                 await Database.run("DELETE FROM videos WHERE id = ?", [this.id]);
                 await Database.run("DELETE FROM thumbnails WHERE video = ?", [this.id]);
 
-                resolve(true);
+                resolve();
             }
             catch(error){
                 console.log(error);

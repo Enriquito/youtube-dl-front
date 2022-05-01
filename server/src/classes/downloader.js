@@ -144,7 +144,6 @@ class Downloader{
                 }  
 
                 const download = spawn('youtube-dl', downloadArguments.args);
-                console.log(downloadArguments.args);
 
                 dl.processId = download.pid;
                 await dl.update();
