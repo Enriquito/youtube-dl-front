@@ -238,12 +238,19 @@ const download = async data => {
             download.audioOnly = options.audioOnly;
             download.playlist = options.playlist;
 
+            console.log(download);
+
             await download.save();
 
             await DownloadQueue.add(download);
-            await Downloader.start();
+
             emitEvent('downloadQueue', DownloadQueue.items);
-            emitEvent('systemMessages', {type: "Success", messages: `Download '${fileInfo.title} has been added to the queue.`});
+
+            if (DownloadQueue.count() > 1 || Downloader.isDownloading) {
+                emitEvent('systemMessages', {type: "Success", messages: `Download '${fileInfo.title} has been added to the queue.`});
+            }
+
+            await Downloader.start();
         }
     }
     catch(error){
