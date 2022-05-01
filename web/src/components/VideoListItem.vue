@@ -15,7 +15,7 @@
             <div class="d-flex justify-content-between">
                 <div>
                     <span>
-                        <a target="_blank" :href="data.uploaderUrl">{{data.uploader}}</a>
+                        <a target="_blank" :href="data.uploaderUrl">{{data.uploaderName}}</a>
                     </span>
                 </div>
                 <div>
