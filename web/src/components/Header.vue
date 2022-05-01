@@ -71,8 +71,7 @@ export default {
             let SearchingDefaultQuality = true;
 
             if(this.options.videoQuality === "Quality" && !this.options.audioOnly){
-                if(this.info !== null)
-                    this.options.soundQuality = this.getBestAudio;
+              this.options.soundQuality = this.getBestAudio;
 
                 const qualities = [
                     '144p',
