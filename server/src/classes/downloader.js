@@ -47,10 +47,6 @@ class Downloader{
             args.push(`-f`);
             args.push(`${download.format}+${download.audioFormat}`);
         }
-        else if(download.format){
-            args.push(`-f`);
-            args.push(download.format);
-        }
         else{
             args.push(`-f`);
             args.push(`best`);
@@ -148,6 +144,7 @@ class Downloader{
                 }  
 
                 const download = spawn('youtube-dl', downloadArguments.args);
+                console.log(downloadArguments.args);
 
                 dl.processId = download.pid;
                 await dl.update();
