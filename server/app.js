@@ -185,7 +185,7 @@ const deleteVideo = async video => {
     try{
         const vid = await Video.find(video.id);
 
-        if(vid == null){
+        if(vid === null){
             io.to('ydl').emit('systemMessages', {type: "Error", messages: "Item not found."});
             return;
         }

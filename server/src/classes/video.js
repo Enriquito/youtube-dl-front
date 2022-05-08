@@ -43,7 +43,7 @@ class Video{
                 for(let i = 0; i < tags.length; i++){
                     await this.saveTagLinks(tags[i]);
                 }
-    
+
                 for(let i = 0; i < this.thumbnails.length; i++){
                     await this.saveThumbnail(this.thumbnails[i]);
                 }
@@ -105,15 +105,18 @@ class Video{
     async saveThumbnail(thumbnail){
         return new Promise(async (resolve,reject) => {
             try{
-                const values = [
-                    this.id,
-                    thumbnail.height,
-                    thumbnail.width,
-                    thumbnail.resolution,
-                    thumbnail.url
-                ];
+                if (thumbnail.height !== undefined) {
+                    const values = [
+                        this.id,
+                        thumbnail.height,
+                        thumbnail.width,
+                        thumbnail.resolution,
+                        thumbnail.url
+                    ];
 
-                await Database.run("INSERT INTO thumbnails (video, height, width, resolution, url) VALUES(?,?,?,?,?)", values);
+                    await Database.run("INSERT INTO thumbnails (video, height, width, resolution, url) VALUES(?,?,?,?,?)", values);
+                }
+
                 resolve();
             }
             catch(error){
@@ -255,7 +258,7 @@ class Video{
                 await Database.run("DELETE FROM videos WHERE id = ?", [this.id]);
                 await Database.run("DELETE FROM thumbnails WHERE video = ?", [this.id]);
 
-                resolve();
+                resolve(true);
             }
             catch(error){
                 console.log(error);
