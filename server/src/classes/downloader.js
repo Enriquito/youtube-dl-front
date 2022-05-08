@@ -143,7 +143,7 @@ class Downloader{
                     return;
                 }  
 
-                const download = spawn('youtube-dl', downloadArguments.args);
+                const download = spawn('yt-dlp', downloadArguments.args);
 
                 dl.processId = download.pid;
                 await dl.update();
@@ -273,7 +273,7 @@ class Downloader{
                     await new Promise((resolve, reject) => {
                         // console.log(`youtube-dl --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${url}`);
 
-                        exec(`youtube-dl --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${url}`, (error, stdout, stderr) => {
+                        exec(`yt-dlp --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${url}`, (error, stdout, stderr) => {
                             if (error) {
                                 reject(error.message);
                                 return;

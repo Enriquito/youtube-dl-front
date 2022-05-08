@@ -184,7 +184,7 @@ class Channel{
                 if(!doesEx)
                     reject("No record found of channel");
                 
-                const process = spawn('youtube-dl', ['--dump-json', this.url]);
+                const process = spawn('yt-dlp', ['--dump-json', this.url]);
 
                 const stdoutData = [];
     

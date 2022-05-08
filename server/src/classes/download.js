@@ -35,11 +35,11 @@ class Download {
     static getInfo(url, options = null){
         return new Promise((resolve, reject) => {
             try{
-                let command = `youtube-dl --skip-download --dump-json ${url}`;
+                let command = `yt-dlp --skip-download --dump-json ${url}`;
 
                 if(options !== null)
                     if(options.format && options.audioFormat)
-                        command = `youtube-dl --skip-download --dump-json -f ${options.format}+${options.audioFormat} ${url}`;
+                        command = `yt-dlp --skip-download --dump-json -f ${options.format}+${options.audioFormat} ${url}`;
 
                 exec(command, (error, stdout, stderr) => {
                     if(error || stderr){
