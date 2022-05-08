@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # Install latsest youtube-dl
-curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
-chmod a+rx /usr/local/bin/youtube-dl
+sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+sudo chmod a+rx /usr/local/bin/yt-dlp
 
 # Change to the server directory and run the application
 cd /youtube-dl-front/server

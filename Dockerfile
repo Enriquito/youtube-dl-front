@@ -24,9 +24,6 @@ WORKDIR /youtube-dl-front/web
 RUN npm install
 RUN npm run build
 
-# Remove the node_module folder as it is no longer needed.
-RUN rm -rf /youtube-dl-front/web/node_modules
-
 FROM node:16.14.2-alpine3.14
 
 WORKDIR /
@@ -39,8 +36,8 @@ RUN apk add --no-cache ${APK_ADD}
 COPY run.sh ./run.sh
 
 # Download youtube-dl and make it executable.
-RUN curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
-RUN chmod a+rx /usr/local/bin/youtube-dl
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+RUN chmod a+rx /usr/local/bin/yt-dlp
 
 # Copy the youtube-dl-front files from the build layer.
 COPY --from=build /youtube-dl-front /youtube-dl-front
