@@ -262,7 +262,7 @@ class Downloader{
             try{
                 let start = 1;
                 let a = 1;
-                let step = 3;
+                let step = 1;
                 let end = step;
 
                 const data = [];
@@ -271,13 +271,12 @@ class Downloader{
 
                 for(let i = 0; i < a; i++){
                     await new Promise((resolve, reject) => {
-                        // console.log(`youtube-dl --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${url}`);
-
                         exec(`yt-dlp --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${url}`, (error, stdout, stderr) => {
                             if (error) {
                                 reject(error.message);
                                 return;
                             }
+
                             if (stderr) {
                                 reject(stderr);
                                 return;
