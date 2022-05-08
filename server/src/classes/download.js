@@ -93,10 +93,10 @@ class Download {
                 dl.processId = data.data.pid;
                 dl.url = data.data.url;
                 dl.format = data.data.format;
-                dl.audioFormat = data.data.audioFormat;
-                dl.audioOnly = data.data.audioOnly;
+                dl.audioFormat = data.data.audio_format;
+                dl.audioOnly = data.data.audio_only;
                 dl.playlist = data.data.playlist;
-                dl.downloadStatus = data.data.downloadStatus;
+                dl.downloadStatus = data.data.download_status;
 
                 resolve(dl);
             }
@@ -161,9 +161,9 @@ class Download {
 
     getOptions() {
         return {
-            audioOnly : this.audio_only,
+            audioOnly : this.audioOnly,
             format: this.format,
-            audioFormat: this.audio_format,
+            audioFormat: this.audioFormat,
             playlist: this.playlist
         }
     }

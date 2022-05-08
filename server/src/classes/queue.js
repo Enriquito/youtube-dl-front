@@ -34,8 +34,8 @@ class Queue {
                     dl.status = download.status;
                     dl.url = download.url;
                     dl.format = download.format;
-                    dl.audioFormat = download.audioFormat;
-                    dl.audioOnly = download.audioOnly;
+                    dl.audioFormat = download.audio_format;
+                    dl.audioOnly = download.audio_only;
                     dl.playlist = download.playlist;
                     dl.downloadStatus = 0;
 
