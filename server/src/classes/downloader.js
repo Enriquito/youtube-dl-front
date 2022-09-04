@@ -1,6 +1,8 @@
 const Settings = require("./settings");
 const Video = require("./video");
 const Download = require('./download');
+const Database = require('./database')
+const Channel = require("./channel");
 const { spawn, exec } = require('child_process');
 const {emitEvent} = require('../helpers');
 const fs = require('fs');
@@ -89,7 +91,7 @@ class Downloader{
         });
     }
 
-    static CreateVideoObject(fileInfo, extention, fileLocation){
+    static CreateVideoObject(fileInfo, extention, fileLocation, channelId){
         const video = new Video();
 
         video.title = fileInfo.title;
@@ -105,6 +107,7 @@ class Downloader{
         video.description = fileInfo.description;
         video.tags = fileInfo.tags;
         video.thumbnails = fileInfo.thumbnails;
+        video.channelId = channelId;
 
         return video;
     }
@@ -160,7 +163,6 @@ class Downloader{
 
                 download.stdout.on('data',async data => {
                     const downloadStatus = data.toString().match(/(\d+)\.(\d)%/);
-
                     if(downloadStatus != null){
                         if(parseInt(downloadStatus[1]) > oldStatus){
                             status = parseInt(downloadStatus[1]);
@@ -194,14 +196,26 @@ class Downloader{
                     emitEvent('downloadStatus', null);
                     Downloader.isDownloading = false;
                     this.currentDownloads.shift();
-                    await Downloader.start();
+
 
                     if (Downloader.downloadIsAborted) {
                         Downloader.downloadIsAborted = false;
                         return;
                     }
 
-                    const video = Downloader.CreateVideoObject(fileInfo, downloadArguments.extention, downloadArguments.directory);
+                    const channel = new Channel();
+                    channel.url = fileInfo.channel_url;
+
+                    const result = await channel.doesExist();
+
+                    if (result) {
+                        await channel.setVideoAsDownloaded(fileInfo.id);
+                    } else {
+                        await channel.setInfo();
+                        await channel.save();
+                    }
+
+                    const video = Downloader.CreateVideoObject(fileInfo, downloadArguments.extention, downloadArguments.directory, channel.id);
                     await video.save();
                     emitEvent('systemMessages', {type: 'Success', messages: `${fileInfo.title} has finished downloading`});
 
@@ -209,6 +223,8 @@ class Downloader{
                     emitEvent('getVideos', videos.reverse());
 
                     console.log(`--- Download is completed. ---`);
+
+                    await Downloader.start();
 
                     resolve({success: true, messages: "Video has been successfully downloaded", code: 1});
                 });
@@ -268,6 +284,7 @@ class Downloader{
                 const data = [];
 
                 console.log("--- Fetching playlist data ---")
+                // console.log(`yt-dlp --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${url}`)
 
                 for(let i = 0; i < a; i++){
                     await new Promise((resolve, reject) => {
@@ -312,6 +329,7 @@ class Downloader{
                 resolve(data);
             }
             catch(error){
+                console.log(error);
                 reject(error);
             }
         });
@@ -319,6 +337,20 @@ class Downloader{
 
     static getCurrentDownloads() {
         return this.currentDownloads;
+    }
+
+    static isChannelVideo(channelID) {
+        return new Promise(async (resolve, reject) => {
+           try {
+               const query = "SELECT * FROM channel_video_index WHERE channel_id = ?";
+               const result = await Database.run(query, [channelID])
+
+               resolve(result)
+           }
+           catch (error) {
+                reject(error)
+           }
+        });
     }
 }
 

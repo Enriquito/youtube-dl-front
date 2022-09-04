@@ -1,14 +1,15 @@
 server/node_modules
 server/videos/*
 server/.DS_Store
-server/src/test.js
+server/test.js
 
 web/node_modules
 web/.env
 web/.DS_Store
 web/dist
 
+node_modules
 .DS_Store
-
+.idea
 # sqlite database
 *.db

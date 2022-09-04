@@ -3,13 +3,14 @@ const sqlite3 = require('sqlite3').verbose();
 class Database {
 	static async connect(){
 		return new Promise((resolve, reject) => {
-			const database = new sqlite3.Database('./database.db', async (err) => {
+
+			const database = new sqlite3.Database(`${process.cwd()}/database.db`, async (err) => {
 				if (err) {
 				  console.error(err.message);
 				  reject(err);
 				  return;
 				}
-			
+
 				// console.log('Connected to the database.');
 				
 				resolve(database);
@@ -35,9 +36,10 @@ class Database {
 
 				const isFirstUse = await Database.isFirstUse(db);
 
-				if(isFirstUse)
-					await Database.createTables(db);
-				
+				if(isFirstUse) {
+					await Database.createTables();
+				}
+
 				resolve();
 			}
 			catch(error){
@@ -69,7 +71,7 @@ class Database {
 		});
 	}
 
-	static async createTables(db){
+	static async createTables(){
 		return new Promise(async (resolve, reject) => {
 			console.log("Creating tables...");
 
@@ -107,22 +109,14 @@ class Database {
 			`;
 
 			const createChannelsTable = `
-					CREATE TABLE yt_channels (
-						id INTEGER,
+					CREATE TABLE channels (
+						id TEXT NOT NULL UNIQUE,
 						url TEXT NOT NULL,
 						name TEXT NOT NULL,
-						last_scan TEXT,
-						PRIMARY KEY("id" AUTOINCREMENT)
+						follower_count INT NOT NULL,
+						avatar TEXT,
+						last_scan TEXT
 					);
-			`;
-
-			const createChannelVideosTable = `
-					CREATE TABLE yt_channel_videos (
-						id INTEGER,
-						video_provider_id TEXT NOT NULL,
-						download_time TEXT,
-						PRIMARY KEY("id" AUTOINCREMENT)
-					); 
 			`;
 
 			const createTagTable = `
@@ -144,7 +138,17 @@ class Database {
 				video_url TEXT NOT NULL,
 				video_provider_id TEXT NOT NULL,
 				uploader_name TEXT NOT NULL,
-				description TEXT NOT NULL
+				description TEXT NOT NULL,
+				channel_id INT
+				);`;
+
+			const createChannelVideoIndexTable = `
+				CREATE TABLE channel_video_index (
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					channel_id INTEGER NOT NULL,
+					yt_video_id TEXT NOT NULL,
+					video_url TEXT NOT NULL,
+					downloaded_at TEXT
 				);`;
 			
 			const createTagLinksTable = `
@@ -194,6 +198,8 @@ class Database {
 				await Database.run(createTagTable);
 				await Database.run(createTagLinksTable);
 				await Database.run(createThumbnailTable);
+				await Database.run(createChannelsTable);
+				await Database.run(createChannelVideoIndexTable)
 				await Database.run(alterTables);
 
 				console.log("Tables created");

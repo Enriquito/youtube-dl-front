@@ -24,10 +24,10 @@ Database.checkFirstUse()
                 app.use('/media/', express.static(settings.outputLocation));
 
                 DownloadQueue.load()
-                    .then((queueItems) => {
+                    .then(async (queueItems) => {
                         emitEvent('downloadStatus', queueItems);
                         Downloader.queue = DownloadQueue;
-                        Downloader.start();
+                        await Downloader.start();
                     })
                     .catch(error => {
                         console.error(error);

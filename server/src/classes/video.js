@@ -15,6 +15,7 @@ class Video{
     description;
     tags;
     thumbnails;
+    channelId;
     options;
 
     // Storing data
@@ -60,8 +61,8 @@ class Video{
     async saveVideo(){
         return new Promise(async (resolve, reject) => {
             try{
-                const query = "INSERT INTO videos (title, uploader_url, view_count, duration, file_extention, file_name, file_location, video_url, video_provider_id, uploader_name, description) VALUES(?,?,?,?,?,?,?,?,?,?,?)";
-                const videoValues = [this.title, this.uploaderUrl, this.viewCount, this.duration, this.extention, this.fileName, this.fileLocation, this.url, this.videoProviderId, this.uploaderName, this.description];
+                const query = "INSERT INTO videos (title, uploader_url, view_count, duration, file_extention, file_name, file_location, video_url, video_provider_id, uploader_name, description, channel_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)";
+                const videoValues = [this.title, this.uploaderUrl, this.viewCount, this.duration, this.extention, this.fileName, this.fileLocation, this.url, this.videoProviderId, this.uploaderName, this.description, this.channelId];
 
                 const result = await Database.run(query ,  videoValues);
 

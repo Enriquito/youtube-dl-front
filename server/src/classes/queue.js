@@ -5,11 +5,13 @@ const {emitEvent} = require('../helpers');
 class Queue {
     items = [];
 
-    add(download) {
+    add(download, frontEndNotification = true) {
         return new Promise(async (resolve, reject) => {
             try{
                 this.items.push(download);
-                emitEvent('downloadQueue', this.items);
+
+                if(frontEndNotification)
+                    emitEvent('downloadQueue', this.items);
 
                 console.log(`added video: ${download.url} to the queue`);
 
