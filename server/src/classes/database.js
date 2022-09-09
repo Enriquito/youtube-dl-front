@@ -113,6 +113,7 @@ class Database {
 						id TEXT NOT NULL UNIQUE,
 						url TEXT NOT NULL,
 						name TEXT NOT NULL,
+						auto_download_after_scan INT DEFAULT 0 NOT NULL,
 						follower_count INT NOT NULL,
 						avatar TEXT,
 						last_scan TEXT

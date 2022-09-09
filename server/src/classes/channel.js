@@ -12,6 +12,7 @@ class Channel{
     avatar;
     lastScan;
     videos;
+    autoDownloadAfterScan;
 
     // Storing data
 
@@ -29,6 +30,10 @@ class Channel{
                 reject(error);
             }
         });
+    }
+
+    getTimeNow() {
+        return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
     }
 
     async updateLastScan() {
@@ -94,6 +99,7 @@ class Channel{
                 channel.id = result.data.id;
                 channel.url = result.data.url;
                 channel.name = result.data.name;
+                channel.autoDownloadAfterScan = result.auto_download_after_scan;
                 channel.followerCount = result.data.follower_count;
                 channel.avatar = result.data.avatar;
                 channel.lastScan = result.data.last_scan;
@@ -178,6 +184,8 @@ class Channel{
                     const video = data[i];
                     let pushDownload = false;
 
+                    this.followerCount = video.channel_follower_count;
+
                     try {
                         const gotVideoInIndex = await this.gotVideoIndex(video);
 
@@ -191,9 +199,9 @@ class Channel{
                             pushDownload = true;
                         }
 
-                        if(pushDownload) {
+                        if(pushDownload && this.autoDownloadAfterScan) {
                             const download = this.createDownloadObject(video);
-                            await download.save(download)
+                            await download.update(download)
                         }
                     }
                     catch (error) {
@@ -201,7 +209,9 @@ class Channel{
                     }
                 }
 
-                await this.updateLastScan();
+                this.lastScan = this.getTimeNow();
+
+                await this.update();
 
                 resolve();
             }
@@ -275,6 +285,22 @@ class Channel{
             }
             catch(error){
                 console.log(error);
+                reject(error);
+            }
+        });
+    }
+
+    async update() {
+        return new Promise(async (resolve, reject) => {
+            try{
+                const values = [this.url, this.name, this.followerCount , this.avatar, this.lastScan, this.id];
+
+                await Database.run(`UPDATE channels SET url = ?, name = ?, follower_count = ?, avatar = ? ,last_scan = ? WHERE id = ?`,  values);
+
+                resolve();
+            }
+            catch(error){
+                console.error(error);
                 reject(error);
             }
         });
