@@ -70,9 +70,10 @@ class Channel{
                     channel.name = row.name;
                     channel.url = row.url;
                     channel.lastScan = row.last_scan;
+                    channel.followerCount = row.follower_count;
+                    channel.avatar = row.avatar;
 
-
-                    channels.push(channel);                    
+                    channels.push(channel);
                 }
 
                 resolve(channels)           
@@ -155,10 +156,13 @@ class Channel{
 
                     const output = JSON.parse(stdout);
 
+                    console.log(output);
+
                     this.id = output.uploader_id;
                     this.name = output.uploader;
                     this.followerCount = output.channel_follower_count;
                     this.url = output.channel_url;
+                    this.avatar = output.thumbnails.find(thumbnail => thumbnail.id === 'avatar_uncropped').url ?? null;
 
                     resolve();
                 });
@@ -184,6 +188,7 @@ class Channel{
                     const video = data[i];
                     let pushDownload = false;
 
+                    this.avatar = video.thumbnails.find(thumbnail => thumbnail.id === 'avatar_uncropped') ?? null;
                     this.followerCount = video.channel_follower_count;
 
                     try {

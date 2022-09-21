@@ -3,7 +3,6 @@ const sqlite3 = require('sqlite3').verbose();
 class Database {
 	static async connect(){
 		return new Promise((resolve, reject) => {
-
 			const database = new sqlite3.Database(`${process.cwd()}/database.db`, async (err) => {
 				if (err) {
 				  console.error(err.message);

@@ -3,6 +3,7 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const Database = require("./src/classes/database");
+const Channel = require('./src/classes/channel')
 const Download = require('./src/classes/download');
 const Settings = require("./src/classes/settings");
 const Video = require('./src/classes/video');
@@ -71,7 +72,20 @@ io.on('connection', (socket) => {
     socket.on('removeDownload', removeDownload);
     socket.on('getPlaylist', getPlaylistInfo);
     socket.on('downloadQueue', downloadQueue);
+    socket.on('getChannels', getChannels);
 });
+
+const getChannels = async () => {
+    try {
+        const channels = await Channel.all();
+        console.log(channels);
+        io.to('ydl').emit('getChannels', channels);
+    }
+    catch (error) {
+        console.error(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while fetching channels."});
+    }
+}
 
 const downloadQueue = async () => {
     try{
