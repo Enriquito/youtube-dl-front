@@ -18,7 +18,7 @@
               <img :src="channel.avatar" :style="`background: ${channel.avatar}; background-size: cover`">
             </div>
             <figcaption class="mt-2 text-center">
-              <strong class="d-inline-block">{{ channel.name }}</strong>
+              <strong @click="() => {link(channel.id)}" class="d-inline-block">{{ channel.name }}</strong>
               <small class="d-block">{{channel.followerCount}} Subscribers</small>
             </figcaption>
           </div>
@@ -46,6 +46,14 @@ export default {
     });
 
     this.$socket.emit('getChannels')
+  },
+  methods: {
+    link(channelID) {
+      this.$router.push({
+        name: 'Channel',
+        params: {id: channelID}
+      });
+    }
   }
 }
 </script>
@@ -53,6 +61,11 @@ export default {
 figure
 {
   width: 200px;
+}
+figure figcaption strong:hover
+{
+  text-decoration: underline;
+  cursor: pointer;
 }
 figure img
 {

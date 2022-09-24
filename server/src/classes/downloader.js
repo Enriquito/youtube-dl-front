@@ -1,8 +1,8 @@
+
 const Settings = require("./settings");
 const Video = require("./video");
 const Download = require('./download');
 const Database = require('./database')
-const Channel = require("./channel");
 const { spawn, exec } = require('child_process');
 const {emitEvent} = require('../helpers');
 const fs = require('fs');
@@ -114,6 +114,7 @@ class Downloader{
 
     static download(url, options){
         return new Promise(async (resolve, reject) => {
+
             try{
                 if(Downloader.isDownloading) {
                     console.log("There is already a download in progress abort.");
@@ -197,11 +198,16 @@ class Downloader{
                     Downloader.isDownloading = false;
                     this.currentDownloads.shift();
 
-
                     if (Downloader.downloadIsAborted) {
                         Downloader.downloadIsAborted = false;
                         return;
                     }
+
+                    // Needs to be put here instead of top of the class otherwise we get an error:
+                    // Not sure why...
+                    // const channel = new Channel();
+                    // TypeError: Channel is not a constructor
+                    const Channel = require("./channel");
 
                     const channel = new Channel();
                     channel.url = fileInfo.channel_url;

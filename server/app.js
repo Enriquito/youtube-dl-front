@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
 
     socket.on('emitEvents',function(type, value){
         socket.join('ydl');
-        io.to('ydl').emit(type, value);        
+        io.to('ydl').emit(type, value);
     });
 
     socket.on('getVideos', getVideos);
@@ -73,13 +73,39 @@ io.on('connection', (socket) => {
     socket.on('getPlaylist', getPlaylistInfo);
     socket.on('downloadQueue', downloadQueue);
     socket.on('getChannels', getChannels);
+    socket.on('getChannel', getChannel);
+    socket.on('getVideosByChannelID', getVideosByChannelID);
 });
+
+const getVideosByChannelID = async (id) => {
+    try {
+        const channel = await Channel.find(id);
+        const videos = await channel.getVideos()
+
+        io.to('ydl').emit('getVideosByChannelID', videos.data);
+    }
+    catch (error) {
+        console.error(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while fetching channels."});
+    }
+}
 
 const getChannels = async () => {
     try {
         const channels = await Channel.all();
-        console.log(channels);
         io.to('ydl').emit('getChannels', channels);
+    }
+    catch (error) {
+        console.error(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error while fetching channels."});
+    }
+}
+
+const getChannel = async id => {
+    try {
+        const channel = await Channel.find(id);
+        console.log(channel);
+        io.to('ydl').emit('getChannel', channel);
     }
     catch (error) {
         console.error(error);

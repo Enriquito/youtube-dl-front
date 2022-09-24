@@ -10,6 +10,7 @@ class Channel{
     name;
     followerCount;
     avatar;
+    banner;
     lastScan;
     videos;
     autoDownloadAfterScan;
@@ -19,9 +20,9 @@ class Channel{
     async save(){
         return new Promise(async (resolve, reject) => {
             try{
-                const values = [this.id, this.url, this.name, this.followerCount , this.avatar, this.lastScan];
+                const values = [this.id, this.url, this.name, this.followerCount , this.avatar, this.banner, this.lastScan];
 
-                await Database.run(`INSERT INTO channels (id, url, name, follower_count, avatar ,last_scan) VALUES(?,?,?,?,?,?)`,  values);
+                await Database.run(`INSERT INTO channels (id, url, name, follower_count, avatar, banner ,last_scan) VALUES(?,?,?,?,?,?,?)`,  values);
 
                 resolve();
             }
@@ -97,12 +98,15 @@ class Channel{
 
                 const channel = new Channel();
 
+                console.log(result);
+
                 channel.id = result.data.id;
                 channel.url = result.data.url;
                 channel.name = result.data.name;
-                channel.autoDownloadAfterScan = result.auto_download_after_scan;
+                channel.autoDownloadAfterScan = result.data.auto_download_after_scan;
                 channel.followerCount = result.data.follower_count;
                 channel.avatar = result.data.avatar;
+                channel.banner = result.data.banner;
                 channel.lastScan = result.data.last_scan;
 
                 resolve(channel);     
@@ -162,7 +166,8 @@ class Channel{
                     this.name = output.uploader;
                     this.followerCount = output.channel_follower_count;
                     this.url = output.channel_url;
-                    this.avatar = output.thumbnails.find(thumbnail => thumbnail.id === 'avatar_uncropped').url ?? null;
+                    this.avatar = output.thumbnails.find(thumbnail => thumbnail.id == 'avatar_uncropped').url ?? null;
+                    this.banner = output.thumbnails.find(thumbnail => thumbnail.id == 6).url ?? null;
 
                     resolve();
                 });
@@ -188,8 +193,21 @@ class Channel{
                     const video = data[i];
                     let pushDownload = false;
 
-                    this.avatar = video.thumbnails.find(thumbnail => thumbnail.id === 'avatar_uncropped') ?? null;
-                    this.followerCount = video.channel_follower_count;
+                    const avatar = video.thumbnails.find(thumbnail => thumbnail.id === 'avatar_uncropped');
+
+                    if (avatar) {
+                        this.avatar = avatar.url;
+                    }
+
+                    const banner = video.thumbnails.find(thumbnail => thumbnail.id === 'banner_uncropped');
+
+                    if (banner) {
+                        this.banner = banner.url;
+                    }
+
+                    if (video.channel_follower_count) {
+                        this.followerCount = video.channel_follower_count;
+                    }
 
                     try {
                         const gotVideoInIndex = await this.gotVideoIndex(video);
@@ -271,9 +289,21 @@ class Channel{
     getVideos() {
         return new Promise(async (resolve, reject) => {
            try {
-               const result = await Database.all(`SELECT * FROM channels ytc JOIN videos v ON ytc.id = v.channel_id WHERE ytc.id = ?`, this.id);
+               const query = `
+                SELECT DISTINCT 
+                    v.id, v.video_url, v.title, v.duration, v.description, v.view_count,
+                    (SELECT url FROM thumbnails WHERE video = v.id ORDER BY id DESC) as 'thumbnail'
+                FROM
+                    channels ytc
+                    JOIN channel_video_index cvi ON ytc.id = cvi.channel_id
+                    JOIN videos v ON cvi.yt_video_id = v.video_provider_id
+                WHERE
+                    ytc.id = ?
+               `;
 
-               resolve();
+               const result = await Database.all(query, this.id);
+
+               resolve(result);
            } catch (error) {
                console.log(error);
                reject(error);
