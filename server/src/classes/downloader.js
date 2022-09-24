@@ -6,6 +6,7 @@ const Database = require('./database')
 const { spawn, exec } = require('child_process');
 const {emitEvent} = require('../helpers');
 const fs = require('fs');
+const Channel = require("./channel");
 
 class Downloader{
     static isDownloading = false;
@@ -209,12 +210,9 @@ class Downloader{
                     // TypeError: Channel is not a constructor
                     const Channel = require("./channel");
 
-                    const channel = new Channel();
-                    channel.url = fileInfo.channel_url;
+                    let channel = await Channel.findBy({url: fileInfo.channel_url});
 
-                    const result = await channel.doesExist();
-
-                    if (result) {
+                    if (channel) {
                         await channel.setVideoAsDownloaded(fileInfo.id);
                     } else {
                         await channel.setInfo();

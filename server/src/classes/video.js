@@ -1,4 +1,7 @@
 const Database = require("./database");
+const Tag = require('./tag')
+const TagLink = require('./tagLink');
+const Thumbnail = require('./thumbnail');
 
 class Video{
     id;
@@ -33,20 +36,38 @@ class Video{
                 const tags = [];
     
                 for(let i = 0; i < this.tags.length; i++){
-                    const check = await this.checkTag(this.tags[i]);
-    
-                    if(check === null || check === undefined)
-                        tags.push(await this.saveTag(this.tags[i]));
-                    else
+                    const check = await Tag.findBy({tag : this.tags[i]});
+
+                    if(!check) {
+                        const tag = new Tag();
+                        tag.tag = this.tags[i];
+                        await tag.save();
+
+                        tags.push(tag.id);
+                    }
+                    else {
                         tags.push(check.id);
+                    }
                 }
-    
+
                 for(let i = 0; i < tags.length; i++){
-                    await this.saveTagLinks(tags[i]);
+                    const tagLink = new TagLink();
+
+                    tagLink.video = this.id;
+                    tagLink.tag = tags[i];
+
+                    await tagLink.save();
                 }
 
                 for(let i = 0; i < this.thumbnails.length; i++){
-                    await this.saveThumbnail(this.thumbnails[i]);
+                    const thumbnail = new Thumbnail();
+                    thumbnail.video = this.id;
+                    thumbnail.width = this.thumbnails[i].width;
+                    thumbnail.height = this.thumbnails[i].height;
+                    thumbnail.resolution = this.thumbnails[i].resolution;
+                    thumbnail.url = this.thumbnails[i].url;
+
+                    await thumbnail.save();
                 }
     
                 resolve();
@@ -77,32 +98,6 @@ class Video{
         });
     }
 
-    async saveTagLinks(tagID){
-        return new Promise(async (resolve, reject) => {
-            try{
-                await Database.run("INSERT INTO tag_links (video, tag) VALUES(?,?)",  [this.id, tagID]);
-                resolve();
-            }
-            catch(error){
-                console.error(error);
-                reject(error);
-            }
-        });
-    }
-
-    async saveTag(tag){
-        return new Promise(async (resolve, reject) => {
-            try{
-                const response = await Database.run("INSERT INTO tags (tag) VALUES(?)", [tag]);
-                resolve(response.data.lastID);
-            }
-            catch(error){
-                console.error(error);
-                reject(error);
-            }
-        });
-    }
-
     async saveThumbnail(thumbnail){
         return new Promise(async (resolve,reject) => {
             try{
@@ -125,20 +120,6 @@ class Video{
                 reject(error);
             }
         });
-    }
-
-    async checkTag(tag){
-        
-        return new Promise(async (resolve, reject) => {
-            try{
-                const result = await Database.get("SELECT * FROM tags WHERE tag = ?",  [tag]);
-                resolve(result.data);
-            }
-            catch(error){
-                console.error(error);
-                reject(error);
-            }
-        })
     }
 
     static all(limitStart = 0, limitEnd = 50){
@@ -243,6 +224,7 @@ class Video{
                 video.description = vid.data.description;
                 video.tags = await this.getTags(video.id);
                 video.thumbnails = await this.getThumbnails(video.id);
+                video.channelId = vid.data.channel_id
 
                 resolve(video);
             }

@@ -22,3 +22,24 @@ module.exports.emitEvent = (type, value) => {
 module.exports.getRootDir= () => {
     return __dirname
 }
+
+module.exports.getObjectLength = (object) => {
+    let length = 0;
+    for( let key in object ) {
+        if(object.hasOwnProperty(key)) {
+            length++;
+        }
+    }
+
+    return length;
+};
+
+module.exports.snakeToCamel = (str) =>
+    str.toLowerCase().replace(/([-_][a-z])/g, group =>
+        group
+            .toUpperCase()
+            .replace('-', '')
+            .replace('_', '')
+    );
+
+module.exports.camelToSnake = str => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);

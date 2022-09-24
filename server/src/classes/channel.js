@@ -3,9 +3,9 @@ const Downloader = require('./downloader');
 const Download = require('./download');
 const moment = require('moment');
 const { spawn, exec} = require('child_process');
+const AbstractEntity = require('./abstractEntity');
 
-class Channel{
-    id;
+class Channel extends AbstractEntity{
     url;
     name;
     followerCount;
@@ -13,26 +13,9 @@ class Channel{
     banner;
     lastScan;
     videos;
-    autoDownloadAfterScan;
+    autoDownloadAfterScan = 0;
 
     // Storing data
-
-    async save(){
-        return new Promise(async (resolve, reject) => {
-            try{
-                const values = [this.id, this.url, this.name, this.followerCount , this.avatar, this.banner, this.lastScan];
-
-                await Database.run(`INSERT INTO channels (id, url, name, follower_count, avatar, banner ,last_scan) VALUES(?,?,?,?,?,?,?)`,  values);
-
-                resolve();
-            }
-            catch(error){
-                console.error(error);
-                reject(error);
-            }
-        });
-    }
-
     getTimeNow() {
         return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
     }
@@ -55,95 +38,6 @@ class Channel{
     }
 
     // End storing data
-
-    static all(limitStart = 0, limitEnd = 30){
-        return new Promise(async (resolve, reject) => {
-            try{
-                const result = await Database.all("SELECT * FROM channels LIMIT ?,?", [limitStart,limitEnd]);
-
-                const channels = [];
-
-                for(let i = 0; i < result.data.length; i++){
-                    const row = result.data[i];
-                    const channel = new Channel();
-
-                    channel.id = row.id;
-                    channel.name = row.name;
-                    channel.url = row.url;
-                    channel.lastScan = row.last_scan;
-                    channel.followerCount = row.follower_count;
-                    channel.avatar = row.avatar;
-
-                    channels.push(channel);
-                }
-
-                resolve(channels)           
-            }
-            catch(error){
-                console.error(error);
-                reject(error);
-            }
-        });
-    }
-
-    static async find(id){
-        return new Promise(async (resolve, reject) => {
-            try{
-                const result = await Database.get("SELECT * FROM channels WHERE id = ? ", id);
-
-                if(result === null || result === undefined){
-                    resolve(null);
-                    return;
-                }
-
-                const channel = new Channel();
-
-                console.log(result);
-
-                channel.id = result.data.id;
-                channel.url = result.data.url;
-                channel.name = result.data.name;
-                channel.autoDownloadAfterScan = result.data.auto_download_after_scan;
-                channel.followerCount = result.data.follower_count;
-                channel.avatar = result.data.avatar;
-                channel.banner = result.data.banner;
-                channel.lastScan = result.data.last_scan;
-
-                resolve(channel);     
-            }  
-            catch(error){
-                console.log(error);
-                reject(error);
-            }    
-
-        });
-    }
-
-    async doesExist(){
-        return new Promise(async (resolve, reject) => {
-            try{
-                const channel = await Database.get("SELECT * FROM channels WHERE url = ?", this.url);
-
-                if(channel.data !== null){
-                    this.id = channel.data.id;
-                    this.name = channel.data.name;
-                    this.followerCount = channel.data.follower_count;
-                    this.avatar = channel.data.avatar;
-                    this.url = channel.data.url;
-
-                    resolve(true);
-                    return;
-                } else {
-                    resolve(false);
-                }
-            }
-            catch(error){
-                console.error(error);
-                reject(error);
-            }
-        });
-    }
-
     async setInfo(){
         return new Promise(async (resolve, reject) => {
             try {
@@ -182,11 +76,9 @@ class Channel{
     async scan(){
         return new Promise(async (resolve, reject) => {
             try{
-                const doesEx = await this.doesExist();
-
-                if(!doesEx)
-                    reject("No record found of channel");
-                
+                if (this.url === undefined) {
+                    throw new Error('No channel url found');
+                }
                 const data = await Downloader.getPlaylistInfo(this.url);
 
                 for(let i = 0; i < data.length; i++) {
@@ -258,8 +150,25 @@ class Channel{
     async saveVideoIndex(video) {
         return new Promise((resolve, reject) => {
             try {
-                const query = "INSERT INTO channel_video_index (channel_id, yt_video_id, video_url, downloaded_at) VALUES (?,?,?,?)";
-                Database.run(query, [this.id, video.id, video.original_url, null])
+                const query = "INSERT INTO channel_video_index (channel_id, yt_video_id, title, duration, thumbnail, video_url, downloaded_at) VALUES (?,?,?,?,?,?,?)";
+                Database.run(query, [
+                    this.id,
+                    video.id,
+                    video.title,
+                    video.duration,
+                    video.thumbnails.find(thumbnail => {
+                        const thumb = thumbnail.url.match('maxresdefault')
+
+                        if (thumb) {
+                            return thumb.length > 0;
+                        }
+
+                        return false;
+
+                    }).url,
+                    video.original_url,
+                    null
+                ])
 
                 resolve()
             }
@@ -290,15 +199,18 @@ class Channel{
         return new Promise(async (resolve, reject) => {
            try {
                const query = `
-                SELECT DISTINCT 
-                    v.id, v.video_url, v.title, v.duration, v.description, v.view_count,
-                    (SELECT url FROM thumbnails WHERE video = v.id ORDER BY id DESC) as 'thumbnail'
-                FROM
-                    channels ytc
-                    JOIN channel_video_index cvi ON ytc.id = cvi.channel_id
-                    JOIN videos v ON cvi.yt_video_id = v.video_provider_id
-                WHERE
-                    ytc.id = ?
+                   SELECT distinct 
+                    v.id,
+                    IFNULL(v.video_url, cvi.video_url) as 'video_url',
+                    IFNULL(v.title, cvi.title)         as 'title',
+                    v.duration,
+                    IFNULL((SELECT url FROM thumbnails WHERE video = v.id ORDER BY id DESC),cvi.thumbnail) as 'thumbnail',
+                   cvi.downloaded_at
+                   FROM channels ytc
+                            LEFT JOIN channel_video_index cvi ON ytc.id = cvi.channel_id
+                            LEFT JOIN videos v ON cvi.yt_video_id = v.video_provider_id
+                   WHERE ytc.id = ?
+                    ORDER BY cvi.downloaded_at DESC
                `;
 
                const result = await Database.all(query, this.id);
@@ -311,43 +223,13 @@ class Channel{
         });
     }
 
-    remove(){
-        return new Promise(async (resolve, reject) => {
-            try{    
-                await Database.run("DELETE FROM channels WHERE id = ?", [this.id]);
-
-                resolve(true);
-            }
-            catch(error){
-                console.log(error);
-                reject(error);
-            }
-        });
-    }
-
-    async update() {
-        return new Promise(async (resolve, reject) => {
-            try{
-                const values = [this.url, this.name, this.followerCount , this.avatar, this.lastScan, this.id];
-
-                await Database.run(`UPDATE channels SET url = ?, name = ?, follower_count = ?, avatar = ? ,last_scan = ? WHERE id = ?`,  values);
-
-                resolve();
-            }
-            catch(error){
-                console.error(error);
-                reject(error);
-            }
-        });
-    }
-
-    async setVideoAsDownloaded(id) {
+    async setVideoAsDownloaded(id, removeDownloadedAt = false) {
         return new Promise((resolve, reject) => {
             try {
                 const now = moment(new Date())
                 const query = "UPDATE channel_video_index SET downloaded_at = ? WHERE yt_video_id = ?";
 
-                Database.run(query, [now.format("YYYY-MM-DD HH:mm:ss"), id]);
+                Database.run(query, [removeDownloadedAt ? null : now.format("YYYY-MM-DD HH:mm:ss"), id]);
 
                 resolve()
             }
@@ -357,5 +239,8 @@ class Channel{
         });
     }
 }
+
+Channel.table = 'channels';
+Channel.ignoredProperties = ['videos'];
 
 module.exports = Channel;

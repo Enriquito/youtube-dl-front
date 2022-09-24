@@ -92,6 +92,7 @@ const getVideosByChannelID = async (id) => {
 
 const getChannels = async () => {
     try {
+        console.log(Channel.table);
         const channels = await Channel.all();
         io.to('ydl').emit('getChannels', channels);
     }
@@ -230,7 +231,10 @@ const deleteVideo = async video => {
             return;
         }
 
+        const channel = await Channel.find(vid.channelId);
         const success = await vid.remove();
+
+        channel.setVideoAsDownloaded(vid.videoProviderId, true);
 
         if(success){
             fs.unlinkSync(`${vid.fileLocation}/${vid.fileName}.${vid.extention}`);

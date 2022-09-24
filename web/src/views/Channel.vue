@@ -10,7 +10,8 @@
       </router-link>
     </header>
     <section v-if="channel">
-      <div :style="`background: url(${channel.banner}); background-size: cover; height: 283px;`" class="w-full">
+      <div style="height: 283px; background-color: gray;" class="w-full">
+        <img style="background-size: cover; width: 100%; height: 100%;" referrerpolicy="no-referrer" :src="channel.banner">
       </div>
 
       <div id="channel-header" style="height: 0;" class="d-flex justify-content-center">
@@ -18,7 +19,7 @@
           <figure class="d-flex justify-content-center">
             <div>
               <div class="d-flex justify-content-center">
-                <img :src="channel.avatar" :style="`background: ${channel.avatar}; background-size: cover`">
+                <img referrerpolicy="no-referrer" :src="channel.avatar" :style="`background-color: #FFF;`">
               </div>
               <figcaption class="mt-2 text-center">
                 <strong @click="() => {link(channel.id)}" class="d-inline-block">{{ channel.name }}</strong>
@@ -106,7 +107,9 @@ button
   background: #FFF;
   border-radius: 50px;
 }
-button.enabled {
+</style>
+<style>
+.enabled {
   background: #2ecc71 !important;
   color: #FFF;
 }

@@ -148,12 +148,16 @@ class Database {
 					id INTEGER PRIMARY KEY AUTOINCREMENT,
 					channel_id INTEGER NOT NULL,
 					yt_video_id TEXT NOT NULL,
+					title TEXT NOT NULL,
+					duration mediumINTEGER NOT NULL,
+					thumbnail TEXT NOT NULL,
 					video_url TEXT NOT NULL,
 					downloaded_at TEXT
 				);`;
 			
 			const createTagLinksTable = `
 				CREATE TABLE tag_links (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				video INTEGER  NOT NULL,
 				tag INTEGER  NOT NULL
 				);`;
@@ -162,9 +166,9 @@ class Database {
 				CREATE TABLE thumbnails (
 				id INTEGER PRIMARY KEY AUTOINCREMENT, 
 				video INTEGER NOT NULL,
-				height INTEGER NOT NULL,
-				width INTEGER NOT NULL,
-				resolution TEXT NOT NULL,
+				height INTEGER,
+				width INTEGER,
+				resolution TEXT,
 				url TEXT NOT NULL
 				);`;
 

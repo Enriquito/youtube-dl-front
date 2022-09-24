@@ -5,14 +5,18 @@
 
     <img class="yt-image" alt="image" :src="data.thumbnail">
     <figcaption>
-      <span class="duration">
+      <span v-if="data.downloaded_at" class="duration">
         {{duration}}
       </span>
+      <button @click="downloadVideo" v-if="!data.downloaded_at" class="download-button enabled">{{downloadButtonText}}</button>
       <div class="d-flex">
-        <strong>
+        <strong v-if="data.id">
           <router-link :to="{name:'Watch', params:{id: data.id}}">
             {{data.title}}
           </router-link>
+        </strong>
+        <strong v-else>
+          {{data.title}}
         </strong>
       </div>
       <div v-if="showActions" class="d-flex justify-content-between">
@@ -39,13 +43,18 @@ export default {
   },
   data() {
     return {
-      showActions: false
+      showActions: false,
+      downloadButtonText: "Download"
     }
   },
   methods: {
     deleteItem(){
       this.$socket.emit('deleteVideo',this.data);
       this.$emit('deleted', this.data);
+    },
+    downloadVideo() {
+      this.$socket.emit('download',{list: [{url: this.data.video_url}]});
+      this.downloadButtonText = "Downloading";
     }
   },
   computed:{
@@ -63,9 +72,18 @@ export default {
       return bestImage;
     },
     duration() {
-      const timeInMinutes = Math.floor(this.data.duration / 60);
+      let timeInMinutes = Math.floor(this.data.duration / 60);
       const timeInSeconds = this.data.duration % 60;
+      let hours = null;
 
+      if (timeInMinutes >= 60) {
+        hours = Math.floor(timeInMinutes / 60);
+        timeInMinutes = Math.floor(timeInMinutes - (hours * 60));
+      }
+
+      if (hours) {
+        return `${hours}:${String(timeInMinutes).padStart(2, '0')}:${String(timeInSeconds).padStart(2, '0')}`;
+      }
 
       return `${timeInMinutes}:${String(timeInSeconds).padStart(2, '0')}`;
     }
@@ -78,6 +96,7 @@ figure
   margin: 5px;
   position: relative;
   z-index: 1;
+  width: 250px;
 }
 figure .icon
 {
@@ -130,9 +149,23 @@ figure figcaption strong a
   border-radius: 5px;
   padding: 0 5px;
   position: absolute;
-  bottom: 35px;
+  top: 115px;
   right: 5px;
   font-size: smaller;
+  font-weight: bold;
+}
+.download-button
+{
+  background: rgba(0, 0, 0, 0.75);
+  color: #FFF;
+  border-radius: 5px;
+  padding: 0 5px;
+  position: absolute;
+  top: 115px;
+  left: 5px;
+  font-size: smaller;
+  font-weight: bold;
+  border: none;
 }
 .media-type-icon
 {
