@@ -11,5 +11,6 @@ web/dist
 node_modules
 .DS_Store
 .idea
+.vscode
 # sqlite database
 *.db
