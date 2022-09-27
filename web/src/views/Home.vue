@@ -1,28 +1,5 @@
 <template>
-  <main>
-    <Notification ref="notificationComp" />
-    <SettingsWindow :open="this.$store.state.settingsOpen" />
-    <PlaylistSelectionWindow :open="this.$store.state.playlistSelectionOpen" />
-    <DownloadManager :open="this.$store.state.downloadOpen" />
-    <header v-if="settings">
-      <div class="d-flex justify-content-center">
-        <!-- <img style="margin-top: 0px !important" v-if="searching" @click="() => {searching = false}" class="header-icon" src="@/assets/icons/close.svg" alt="search" /> -->
-        <!-- <img class="header-icon" src="@/assets/icons/search.svg" alt="search" /> -->
-
-        <!-- <SearchBar v-if="searching" @searchResults="searchResults" :items="items" /> -->
-        <Header :defaultQuality="settings.defaultQuality" />
-        <div class="d-flex justify-content-center align-self-center icon-group">
-
-          <RouterLink :to="{name: 'Channels'}">
-            <ChannelIcon />
-          </RouterLink>
-
-          <SettingsIcon @customclick="toggleSettingsOpen" />
-          <DownloadIcon @customclick="toggleDownloadsOpen" :downloadIconStyle="downloadIconStyle" />
-        </div>
-      </div>
-    </header>
-
+  <BaseTemplate>
     <div style="margin-top: 75px">
       <div class="d-flex justify-content-center">
         <div id="holder" v-if="items">
@@ -38,21 +15,14 @@
         </div>
       </div>
     </div>
-  </main>
+  </BaseTemplate>
 </template>
 
 <script>
-import Header from '@/components/Header.vue'
 import VideoListItem from '@/components/VideoListItem.vue'
 // import SearchBar from '@/components/SearchBar.vue'
-import Notification from '@/components/Notification.vue'
-import SettingsWindow from '@/components/SettingsWindow.vue'
-import PlaylistSelectionWindow from '@/components/playlistSelection/Window.vue'
-import DownloadManager from '@/components/DownloadManager.vue'
 import VideoSkeletonLoader from '@/components/VideoSkeletonLoader.vue'
-import ChannelIcon from '../components/icons/ChannelIcon.vue'
-import SettingsIcon from '../components/icons/SettingsIcon.vue'
-import DownloadIcon from '../components/icons/DownloadIcon.vue'
+import BaseTemplate from '@/components/BaseTemplate.vue'
 
 export default {
   name: 'Home',
@@ -68,16 +38,9 @@ export default {
     this.$socket.emit('getVideos');
   },
   components: {
-    Header,
     VideoListItem,
-    Notification,
-    SettingsWindow,
-    DownloadManager,
-    PlaylistSelectionWindow,
     VideoSkeletonLoader,
-    ChannelIcon,
-    SettingsIcon,
-    DownloadIcon
+    BaseTemplate
 },
   data(){
     return({

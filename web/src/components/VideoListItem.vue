@@ -122,11 +122,14 @@ figure figcaption strong a
     height: 25px !important;
     margin-right: 5px;
     position: absolute;
-    left: 0;
+    left: -8px;
     background: #ffffff;
     padding: 5px;
-    border-bottom-right-radius: 5px;
+    border-radius: 50px;
     cursor: inherit;
+    top: -5px;
+
+    
 }
 @media (max-width: 720px) {
     figure

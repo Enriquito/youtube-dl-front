@@ -1,14 +1,5 @@
 <template>
-  <main>
-    <Notification ref="notificationComp" />
-    <header class="d-flex align-items-center">
-      <router-link :to="{name:'Home'}">
-        <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-             width="512px" height="512px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512; width: 25px; height: 25px; fill:#FFF" xml:space="preserve">
-                    <polygon points="64.5,256.5 256.5,448.5 256.5,336.5 448.5,336.5 448.5,176.5 256.5,176.5 256.5,64.5 "/>
-                </svg>
-      </router-link>
-    </header>
+  <BaseTemplate>
     <section v-if="channel">
       <div style="height: 283px; background-color: gray;" class="w-full">
         <img style="background-size: cover; width: 100%; height: 100%;" referrerpolicy="no-referrer" :src="channel.banner">
@@ -30,10 +21,10 @@
         </div>
       </div>
       <div style="height: 100px" class="w-full d-flex align-items-center px-3">
-        <button class="border">Scan</button>
+        <button @click="scanChannel" class="border">Scan</button>
 
-        <button class="enabled" v-if="channel.autoDownloadAfterScan">Auto download</button>
-        <button v-else>Auto download</button>
+        <button @click="enableAutomaticDownload" class="enabled" v-if="channel.autoDownloadAfterScan">Auto download after scan</button>
+        <button @click="enableAutomaticDownload" v-else>Auto download after scan</button>
       </div>
       <div v-if="videos" class="d-flex justify-content-center">
          <div style="max-width: 785px" class="d-flex flex-wrap justify-content-center">
@@ -41,16 +32,16 @@
          </div>
       </div>
     </section>
-  </main>
+  </BaseTemplate>
 </template>
 <script>
-import Notification from '@/components/Notification.vue'
+import BaseTemplate from '@/components/BaseTemplate.vue'
 import ChannelVideoItem from "@/components/Channel/ChannelVideoItem";
 
 export default {
   name: 'Channel',
   components: {
-    Notification,
+    BaseTemplate,
     ChannelVideoItem
   },
   data() {
@@ -62,20 +53,32 @@ export default {
   mounted(){
     this.sockets.subscribe('getChannel', (data) => {
       this.channel = data;
+      this.channel.autoDownloadAfterScan = Boolean(this.channel.autoDownloadAfterScan);
     });
 
     this.sockets.subscribe('getVideosByChannelID', (videos) => {
       this.videos = videos;
     });
 
+    this.sockets.subscribe('toggleAutoDownloadAfterScan', (success) => {
+      this.channel.autoDownloadAfterScan = success;
+    });
+
+    this.sockets.subscribe('scanChannel', () => {
+      this.$socket.emit('getVideosByChannelID', this.$route.params.id);
+    });
+
     this.$socket.emit('getChannel', this.$route.params.id);
     this.$socket.emit('getVideosByChannelID', this.$route.params.id);
   },
-  computed: {
-    bannerBackground() {
-      return ``
+  methods: {
+    enableAutomaticDownload() {
+      this.$socket.emit('toggleAutoDownloadAfterScan', this.channel.id);
+    },
+    scanChannel() {
+      this.$socket.emit('scanChannel', this.channel.id);
     }
-  }
+  },
 }
 </script>
 <style scoped>

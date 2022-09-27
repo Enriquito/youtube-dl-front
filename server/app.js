@@ -75,7 +75,40 @@ io.on('connection', (socket) => {
     socket.on('getChannels', getChannels);
     socket.on('getChannel', getChannel);
     socket.on('getVideosByChannelID', getVideosByChannelID);
+    socket.on('toggleAutoDownloadAfterScan', toggleAutoDownloadAfterScan);
+    socket.on('scanChannel', scanChannel);
 });
+
+const scanChannel = async (channelID) => {
+    try {
+        const channel = await Channel.find(channelID);
+        await channel.scan();
+
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: `Scan complete for channel: ${channel.name}`});
+        io.to('ydl').emit('scanChannel');
+    } 
+    catch(error) {
+        console.error(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error scanning channel"});
+    }
+}
+
+const toggleAutoDownloadAfterScan = async (channelID) => {
+    try {
+        const channel = await Channel.find(channelID);
+        
+        channel.autoDownloadAfterScan = !channel.autoDownloadAfterScan;
+
+        await channel.update();
+
+        io.to('ydl').emit('toggleAutoDownloadAfterScan', channel.autoDownloadAfterScan);
+
+    }
+    catch(error) {
+        console.error(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error enableing auto dowload"});
+    }
+}
 
 const getVideosByChannelID = async (id) => {
     try {

@@ -215,6 +215,8 @@ class Downloader{
                     if (channel) {
                         await channel.setVideoAsDownloaded(fileInfo.id);
                     } else {
+                        channel = new Channel();
+                        channel.url = fileInfo.channel_url;
                         await channel.setInfo();
                         await channel.save();
                     }

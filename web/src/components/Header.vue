@@ -244,12 +244,10 @@ export default {
 <style scoped>
 input[type="url"]
 {
-    padding: 11px 5px;
+    padding: 11px;
     width: 411px;
     outline: none;
     border: none;
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
 }
 select
 {
@@ -258,8 +256,6 @@ select
     border-radius: 0px;
     border: none;
     height: 46px;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
     outline: none;
 }
 select:disabled

@@ -1,8 +1,5 @@
 <template>
   <figure>
-<!--    <img style="height: 25px !important;" class="media-type-icon" v-if="data.extention == 'mp3'" src="@/assets/icons/note.svg" alt="Audio" />-->
-<!--    <img style="height: 25px !important;" class="media-type-icon" v-else src="@/assets/icons/videocamera.svg" alt="Video" />-->
-
     <img class="yt-image" alt="image" :src="data.thumbnail">
     <figcaption>
       <span v-if="data.downloaded_at" class="duration">
