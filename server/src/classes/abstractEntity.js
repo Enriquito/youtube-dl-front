@@ -27,7 +27,7 @@ class AbstractEntity {
                         }
                     }
                 }
-
+                
                 resolve(object);
             }
             catch(error){

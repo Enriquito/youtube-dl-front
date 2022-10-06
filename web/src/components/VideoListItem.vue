@@ -5,6 +5,9 @@
 
         <img class="yt-image" alt="image" :src="imageLink">
         <figcaption>
+            <span class="duration">
+                {{duration}}
+            </span>
             <div class="d-flex">
                 <strong>
                     <router-link :to="{name:'Watch', params:{id: data.id}}">
@@ -15,7 +18,10 @@
             <div class="d-flex justify-content-between">
                 <div>
                     <span>
-                        <a target="_blank" :href="data.uploaderUrl">{{data.uploaderName}}</a>
+                        <!-- <a target="_blank" :href="data.uploaderUrl">{{data.uploaderName}}</a> -->
+                        <router-link :to="{name:'Channel', params:{id: data.channel.id}}">
+                            {{data.channel.name}}
+                        </router-link>
                     </span>
                 </div>
                 <div>
@@ -61,11 +67,39 @@ export default {
             }
 
             return bestImage;
+        },
+        duration() {
+            let timeInMinutes = Math.floor(this.data.duration / 60);
+            const timeInSeconds = this.data.duration % 60;
+            let hours = null;
+
+            if (timeInMinutes >= 60) {
+                hours = Math.floor(timeInMinutes / 60);
+                timeInMinutes = Math.floor(timeInMinutes - (hours * 60));
+            }
+
+            if (hours) {
+                return `${hours}:${String(timeInMinutes).padStart(2, '0')}:${String(timeInSeconds).padStart(2, '0')}`;
+            }
+
+            return `${timeInMinutes}:${String(timeInSeconds).padStart(2, '0')}`;
         }
     }
 }
 </script>
 <style scoped>
+.duration
+{
+  background: rgba(0, 0, 0, 0.75);
+  color: #FFF;
+  border-radius: 5px;
+  padding: 0 5px;
+  position: absolute;
+  top: 115px;
+  left: 205px;
+  font-size: smaller;
+  font-weight: bold;
+}
 figure
 {
     width: 700px;

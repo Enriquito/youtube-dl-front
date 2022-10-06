@@ -19,6 +19,7 @@ class Video{
     tags;
     thumbnails;
     channelId;
+    channel;
     options;
 
     // Storing data
@@ -126,7 +127,8 @@ class Video{
         return new Promise(async (resolve, reject) => {
             try{
                 const result = await Database.all("SELECT * FROM videos LIMIT ?,?", [limitStart,limitEnd]);
-
+                const Channel = require('./channel.js');
+                
                 const videos = [];
 
                 for(let i = 0; i < result.data.length; i++){
@@ -144,6 +146,7 @@ class Video{
                     video.url = row.video_url;
                     video.videoProviderId = row.video_provider_id;
                     video.uploaderName = row.uploader_name;
+                    video.channel = await Channel.find(row.channel_id);
                     video.description = row.description;
 
                     video.tags = await this.getTags(video.id);

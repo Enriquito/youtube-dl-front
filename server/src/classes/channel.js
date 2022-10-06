@@ -4,8 +4,10 @@ const Download = require('./download');
 const moment = require('moment');
 const { spawn, exec} = require('child_process');
 const AbstractEntity = require('./abstractEntity');
+const ChannelVideoIndex = require('./channelVideoIndex');
 
 class Channel extends AbstractEntity{
+    channelId;
     url;
     name;
     followerCount;
@@ -15,9 +17,12 @@ class Channel extends AbstractEntity{
     videos;
     autoDownloadAfterScan = 0;
 
-    // Storing data
     getTimeNow() {
         return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
+    }
+
+    getUrl() {
+        return `https://www.youtube.com/channel/${this.channelId}`;
     }
 
     async updateLastScan() {
@@ -37,7 +42,6 @@ class Channel extends AbstractEntity{
         });
     }
 
-    // End storing data
     async setInfo(){
         return new Promise(async (resolve, reject) => {
             try {
@@ -54,9 +58,7 @@ class Channel extends AbstractEntity{
 
                     const output = JSON.parse(stdout);
 
-                    console.log(output);
-
-                    this.id = output.uploader_id;
+                    this.channelId = output.uploader_id;
                     this.name = output.uploader;
                     this.followerCount = output.channel_follower_count;
                     this.url = output.channel_url;
@@ -76,10 +78,7 @@ class Channel extends AbstractEntity{
     async scan(){
         return new Promise(async (resolve, reject) => {
             try{
-                if (this.url === undefined) {
-                    throw new Error('No channel url found');
-                }
-                const data = await Downloader.getPlaylistInfo(this.url);
+                const data = await this.getChannelVideos();
 
                 for(let i = 0; i < data.length; i++) {
                     const video = data[i];
@@ -110,7 +109,25 @@ class Channel extends AbstractEntity{
                             }
                         }
                         else {
-                            await this.saveVideoIndex(video);
+                            const channelVideoIndex = new ChannelVideoIndex();
+                            channelVideoIndex.channelId = this.id;
+                            channelVideoIndex.duration = video.duration;
+                            channelVideoIndex.title = video.title;
+                            channelVideoIndex.thumbnail = video.thumbnails.find(thumbnail => {
+                                const thumb = thumbnail.url.match('maxresdefault')
+        
+                                if (thumb) {
+                                    return thumb.length > 0;
+                                }
+        
+                                return false;
+        
+                            }).url;
+                            channelVideoIndex.ytVideoId = video.id;
+                            channelVideoIndex.videoUrl = video.original_url;
+                            
+                            await channelVideoIndex.save();
+
                             pushDownload = true;
                         }
 
@@ -133,6 +150,70 @@ class Channel extends AbstractEntity{
             catch(error){
                 reject(error);
             }
+        });
+    }
+
+    getChannelVideos () {
+        return new Promise(async (resolve, reject) => {
+            let start = 1;
+            let step = 1;
+
+            let a = 1;
+            let end = step;
+
+            const data = [];
+
+            try{
+                for(let i = 0; i < a; i++){
+                    await new Promise((resolve, reject) => {
+                        exec(`yt-dlp --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${this.getUrl()}`, (error, stdout, stderr) => {
+                            if (error) {
+                                reject(error.message);
+                                return;
+                            }
+
+                            if (stderr) {
+                                reject(stderr);
+                                return;
+                            }
+                            
+                            const output = JSON.parse(stdout);
+
+                            if(output.entries === undefined){
+                                reject({status: "failed", error: "No playlist found"});
+                                return;
+                            }
+
+                            for(let entries = 0; entries < output.entries.length; entries++){
+                                const e = output.entries[entries];
+
+                                if(!data.find(val => {
+                                    if(val.title === e.title) 
+                                        return val;
+                                }))
+                                    data.push(e);
+                            }
+                            
+                            if(output.entries.length === step){
+                                start += step;
+                                end += step;
+                                console.log(`start: ${start} - end: ${end}`);
+                                a++;
+                            }
+                                
+                            resolve();
+                        });
+                    });
+                }
+
+                console.log("--- End fetching playlist data ---")
+            }
+            catch(error){
+                console.log(error);
+                reject(error);
+            }
+
+            resolve(data);
         });
     }
 

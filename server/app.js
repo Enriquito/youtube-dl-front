@@ -82,9 +82,11 @@ io.on('connection', (socket) => {
 const scanChannel = async (channelID) => {
     try {
         const channel = await Channel.find(channelID);
+        io.to('ydl').emit('systemMessages', {type: "Info", messages: `Scanning channel '${channel.name}'`});
+
         await channel.scan();
 
-        io.to('ydl').emit('systemMessages', {type: "Error", messages: `Scan complete for channel: ${channel.name}`});
+        io.to('ydl').emit('systemMessages', {type: "Info", messages: `Scan complete for channel: ${channel.name}`});
         io.to('ydl').emit('scanChannel');
     } 
     catch(error) {
@@ -125,7 +127,6 @@ const getVideosByChannelID = async (id) => {
 
 const getChannels = async () => {
     try {
-        console.log(Channel.table);
         const channels = await Channel.all();
         io.to('ydl').emit('getChannels', channels);
     }

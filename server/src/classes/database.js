@@ -109,7 +109,8 @@ class Database {
 
 			const createChannelsTable = `
 					CREATE TABLE channels (
-						id TEXT NOT NULL UNIQUE,
+						id INTEGER PRIMARY KEY AUTOINCREMENT, 
+						channel_id id NOT NULL,
 						url TEXT NOT NULL,
 						name TEXT NOT NULL,
 						auto_download_after_scan INT DEFAULT 0 NOT NULL,

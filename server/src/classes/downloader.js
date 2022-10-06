@@ -2,11 +2,12 @@
 const Settings = require("./settings");
 const Video = require("./video");
 const Download = require('./download');
-const Database = require('./database')
+const Database = require('./database');
 const { spawn, exec } = require('child_process');
 const {emitEvent} = require('../helpers');
 const fs = require('fs');
 const Channel = require("./channel");
+const ChannelVideoIndex = require('./channelVideoIndex');
 
 class Downloader{
     static isDownloading = false;
@@ -212,14 +213,34 @@ class Downloader{
 
                     let channel = await Channel.findBy({url: fileInfo.channel_url});
 
-                    if (channel) {
-                        await channel.setVideoAsDownloaded(fileInfo.id);
-                    } else {
+                    if (!channel) {
                         channel = new Channel();
                         channel.url = fileInfo.channel_url;
+                        
                         await channel.setInfo();
+                        console.log(channel);
                         await channel.save();
                     }
+
+                    console.log(fileInfo.id)
+
+                    await Downloader.createChanelVideoIndex(
+                        channel.id, 
+                        fileInfo.id, 
+                        fileInfo.title, 
+                        fileInfo.duration,
+                        fileInfo.thumbnails.find(thumbnail => {
+                            const thumb = thumbnail.url.match('maxresdefault')
+    
+                            if (thumb) {
+                                return thumb.length > 0;
+                            }
+    
+                            return false;
+    
+                        }).url,
+                        fileInfo.webpage_url
+                    );
 
                     const video = Downloader.CreateVideoObject(fileInfo, downloadArguments.extention, downloadArguments.directory, channel.id);
                     await video.save();
@@ -283,14 +304,14 @@ class Downloader{
         return new Promise(async (resolve, reject) => {
             try{
                 let start = 1;
-                let a = 1;
                 let step = 1;
+
+                let a = 1;
                 let end = step;
 
                 const data = [];
 
                 console.log("--- Fetching playlist data ---")
-                // console.log(`yt-dlp --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${url}`)
 
                 for(let i = 0; i < a; i++){
                     await new Promise((resolve, reject) => {
@@ -357,6 +378,22 @@ class Downloader{
                 reject(error)
            }
         });
+    }
+
+    static async createChanelVideoIndex(channelId, videoId, title, duration, thumbnail, videoUrl) {
+        const cvi = new ChannelVideoIndex();
+
+        cvi.channelId = channelId;
+        cvi.ytVideoId = videoId;
+        cvi.title = title;
+        cvi.duration = duration;
+        cvi.thumbnail = thumbnail;
+        cvi.videoUrl = videoUrl;
+        cvi.downloadedAt = cvi.getTimeNow();
+        
+        console.log(cvi);
+
+        await cvi.save();
     }
 }
 

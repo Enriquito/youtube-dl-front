@@ -25,6 +25,7 @@
 
         <button @click="enableAutomaticDownload" class="enabled" v-if="channel.autoDownloadAfterScan">Auto download after scan</button>
         <button @click="enableAutomaticDownload" v-else>Auto download after scan</button>
+        <button @click="goToChannel">Visit on youtube</button>
       </div>
       <div v-if="videos" class="d-flex justify-content-center">
          <div style="max-width: 785px" class="d-flex flex-wrap justify-content-center">
@@ -54,6 +55,7 @@ export default {
     this.sockets.subscribe('getChannel', (data) => {
       this.channel = data;
       this.channel.autoDownloadAfterScan = Boolean(this.channel.autoDownloadAfterScan);
+      this.$socket.emit('getVideosByChannelID', this.channel.id);
     });
 
     this.sockets.subscribe('getVideosByChannelID', (videos) => {
@@ -69,7 +71,7 @@ export default {
     });
 
     this.$socket.emit('getChannel', this.$route.params.id);
-    this.$socket.emit('getVideosByChannelID', this.$route.params.id);
+    
   },
   methods: {
     enableAutomaticDownload() {
@@ -77,6 +79,9 @@ export default {
     },
     scanChannel() {
       this.$socket.emit('scanChannel', this.channel.id);
+    },
+    goToChannel() {
+      window.open(this.channel.url, "_blank");
     }
   },
 }

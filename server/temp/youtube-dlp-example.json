@@ -1,0 +1,289 @@
+{
+    uploader: 'Call Me Kevin',
+    uploader_id: 'UCdoPCztTOW7BJUPk2h5ttXA',
+    uploader_url: 'https://www.youtube.com/channel/UCdoPCztTOW7BJUPk2h5ttXA',
+    thumbnails: [
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w320-fcrop64=1,32b75a57cd48a5a8-k-c0xffffffff-no-nd-rj',
+        height: 88,
+        width: 320,
+        preference: -10,
+        id: '0',
+        resolution: '320x88'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w320-fcrop64=1,00000000ffffffff-k-c0xffffffff-no-nd-rj',
+        height: 180,
+        width: 320,
+        preference: -10,
+        id: '1',
+        resolution: '320x180'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w640-fcrop64=1,32b75a57cd48a5a8-k-c0xffffffff-no-nd-rj',
+        height: 175,
+        width: 640,
+        preference: -10,
+        id: '2',
+        resolution: '640x175'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w854-fcrop64=1,00000000ffffffff-k-c0xffffffff-no-nd-rj',
+        height: 480,
+        width: 854,
+        preference: -10,
+        id: '3',
+        resolution: '854x480'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w960-fcrop64=1,32b75a57cd48a5a8-k-c0xffffffff-no-nd-rj',
+        height: 263,
+        width: 960,
+        preference: -10,
+        id: '4',
+        resolution: '960x263'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w1060-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj',
+        height: 175,
+        width: 1060,
+        preference: -10,
+        id: '5',
+        resolution: '1060x175'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w1138-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj',
+        height: 188,
+        width: 1138,
+        preference: -10,
+        id: '6',
+        resolution: '1138x188'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w1280-fcrop64=1,32b75a57cd48a5a8-k-c0xffffffff-no-nd-rj',
+        height: 351,
+        width: 1280,
+        preference: -10,
+        id: '7',
+        resolution: '1280x351'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w1280-fcrop64=1,00000000ffffffff-k-c0xffffffff-no-nd-rj',
+        height: 720,
+        width: 1280,
+        preference: -10,
+        id: '8',
+        resolution: '1280x720'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w1440-fcrop64=1,32b75a57cd48a5a8-k-c0xffffffff-no-nd-rj',
+        height: 395,
+        width: 1440,
+        preference: -10,
+        id: '9',
+        resolution: '1440x395'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj',
+        height: 283,
+        width: 1707,
+        preference: -10,
+        id: '10',
+        resolution: '1707x283'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w1920-fcrop64=1,00000000ffffffff-k-c0xffffffff-no-nd-rj',
+        height: 1080,
+        width: 1920,
+        preference: -10,
+        id: '11',
+        resolution: '1920x1080'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w2120-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj',
+        height: 351,
+        width: 2120,
+        preference: -10,
+        id: '12',
+        resolution: '2120x351'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w2120-fcrop64=1,00000000ffffffff-k-c0xffffffff-no-nd-rj',
+        height: 1192,
+        width: 2120,
+        preference: -10,
+        id: '13',
+        resolution: '2120x1192'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w2276-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj',
+        height: 377,
+        width: 2276,
+        preference: -10,
+        id: '14',
+        resolution: '2276x377'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=w2560-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj',
+        height: 424,
+        width: 2560,
+        preference: -10,
+        id: '15',
+        resolution: '2560x424'
+      },
+      {
+        url: 'https://yt3.ggpht.com/yogl4cXYZEGqGCMnGSMgID-XBlWRvl1rU8L9MNMxDts_4k-If-v7F2ttVFjsUNEUJBMl7hhS6Q=s0',
+        id: 'banner_uncropped',
+        preference: -5
+      },
+      {
+        url: 'https://yt3.ggpht.com/ytc/AMLnZu8DXGhQwwPRBJBHacDLkiBl3Chq44fyVI-2F0FQ8g=s900-c-k-c0x00ffffff-no-rj',
+        height: 900,
+        width: 900,
+        id: '17',
+        resolution: '900x900'
+      },
+      {
+        url: 'https://yt3.ggpht.com/ytc/AMLnZu8DXGhQwwPRBJBHacDLkiBl3Chq44fyVI-2F0FQ8g=s0',
+        id: 'avatar_uncropped',
+        preference: 1
+      }
+    ],
+    tags: [
+      '"funny',   'gaming"',
+      'gaming',   '"gaming',
+      'videos"',  'comedy',
+      'funny',    'callmekevin',
+      '"call',    'me',
+      'kevin"',   '"simulation',
+      'games"',   '"variety',
+      'gaming"',  '"funny',
+      'clips"',   '"variety',
+      'channel"', '"funny',
+      'games"',   '"gaming',
+      'channel"'
+    ],
+    view_count: null,
+    availability: null,
+    modified_date: null,
+    playlist_count: null,
+    channel_follower_count: 3060000,
+    channel: 'Call Me Kevin',
+    channel_id: 'UCdoPCztTOW7BJUPk2h5ttXA',
+    channel_url: 'https://www.youtube.com/channel/UCdoPCztTOW7BJUPk2h5ttXA',
+    id: 'UCdoPCztTOW7BJUPk2h5ttXA',
+    title: 'Call Me Kevin - Videos',
+    description: 'Welcome to the channel, I hope you take a look at some of my content and subscribe if you like it!\n',
+    _type: 'playlist',
+    entries: [
+      {
+        id: 'Eq58Xkou1Yk',
+        title: 'Beating the Sims 1 is the hardest challenge in gaming',
+        formats: [Array],
+        thumbnails: [Array],
+        thumbnail: 'https://i.ytimg.com/vi_webp/Eq58Xkou1Yk/maxresdefault.webp',
+        description: 'If you enjoyed, subscribe for more! \n' +
+          '\n' +
+          'Twitch: https://www.twitch.tv/callmekevin\n' +
+          'Merch: https://www.callmekev.in\n' +
+          'Twitter: http://twitter.com/CallMeKevin1811\n' +
+          'TikTok: https://www.tiktok.com/@realcallmekevin\n' +
+          'Instagram: https://www.instagram.com/callmekevin1811\n' +
+          '\n' +
+          'Clips Channel: https://www.youtube.com/channel/UCoB1WvtNPod0bTbPTsSGx7Q \n' +
+          'Stream Archive Channel: https://www.youtube.com/channel/UCGwrdu-cp2khOEfuJE1pmKA \n' +
+          'Spanish Channel: https://www.youtube.com/channel/UCyyzh9vzGhy-_yr5vRZUI3g \n' +
+          '\n' +
+          'Editors: \n' +
+          'Kippesoep001\n' +
+          'Call Me Kevin \n' +
+          'We work as a team on every edit😀\n' +
+          '\n' +
+          'Beating the Sims 1 is the hardest challenge in gaming \n' +
+          '#CallMeKevin #Funny #Sims',
+        uploader: 'Call Me Kevin',
+        uploader_id: 'UCdoPCztTOW7BJUPk2h5ttXA',
+        uploader_url: 'http://www.youtube.com/channel/UCdoPCztTOW7BJUPk2h5ttXA',
+        channel_id: 'UCdoPCztTOW7BJUPk2h5ttXA',
+        channel_url: 'https://www.youtube.com/channel/UCdoPCztTOW7BJUPk2h5ttXA',
+        duration: 1158,
+        view_count: 365015,
+        average_rating: null,
+        age_limit: 0,
+        webpage_url: 'https://www.youtube.com/watch?v=Eq58Xkou1Yk',
+        categories: [Array],
+        tags: [Array],
+        playable_in_embed: true,
+        is_live: false,
+        was_live: false,
+        live_status: 'not_live',
+        release_timestamp: null,
+        automatic_captions: [Object],
+        subtitles: {},
+        comment_count: 706,
+        chapters: null,
+        like_count: 22370,
+        channel: 'Call Me Kevin',
+        channel_follower_count: 3060000,
+        upload_date: '20220928',
+        availability: 'public',
+        original_url: 'https://www.youtube.com/watch?v=Eq58Xkou1Yk',
+        webpage_url_basename: 'watch',
+        webpage_url_domain: 'youtube.com',
+        extractor: 'youtube',
+        extractor_key: 'Youtube',
+        playlist_count: null,
+        playlist: 'Call Me Kevin - Videos',
+        playlist_id: 'UCdoPCztTOW7BJUPk2h5ttXA',
+        playlist_title: 'Call Me Kevin - Videos',
+        playlist_uploader: 'Call Me Kevin',
+        playlist_uploader_id: 'UCdoPCztTOW7BJUPk2h5ttXA',
+        n_entries: 1,
+        playlist_index: 1,
+        __last_playlist_index: 1,
+        playlist_autonumber: 1,
+        display_id: 'Eq58Xkou1Yk',
+        fulltitle: 'Beating the Sims 1 is the hardest challenge in gaming',
+        duration_string: '19:18',
+        requested_subtitles: null,
+        _has_drm: null,
+        requested_downloads: [Array],
+        requested_formats: [Array],
+        format: '303 - 1920x1080 (1080p60)+251 - audio only (medium)',
+        format_id: '303+251',
+        ext: 'webm',
+        protocol: 'https+https',
+        language: null,
+        format_note: '1080p60+medium',
+        filesize_approx: 280719485,
+        tbr: 1938.7220000000002,
+        width: 1920,
+        height: 1080,
+        resolution: '1920x1080',
+        fps: 60,
+        dynamic_range: 'SDR',
+        vcodec: 'vp9',
+        vbr: 1803.977,
+        stretched_ratio: null,
+        acodec: 'opus',
+        abr: 134.745,
+        asr: 48000,
+        audio_channels: 2
+      }
+    ],
+    webpage_url: 'https://www.youtube.com/channel/UCdoPCztTOW7BJUPk2h5ttXA',
+    original_url: 'https://www.youtube.com/channel/UCdoPCztTOW7BJUPk2h5ttXA',
+    webpage_url_basename: 'UCdoPCztTOW7BJUPk2h5ttXA',
+    webpage_url_domain: 'youtube.com',
+    extractor: 'youtube:tab',
+    extractor_key: 'YoutubeTab',
+    requested_entries: [ 1 ],
+    __files_to_move: {},
+    epoch: 1664541433,
+    _version: {
+      version: '2022.09.01',
+      current_git_head: null,
+      release_git_head: '5d7c7d6',
+      repository: 'yt-dlp/yt-dlp'
+    }
+  }
