@@ -301,8 +301,6 @@ button
     {
         width: auto;
         min-width: auto;
-        border-top-right-radius: 10px;
-        border-bottom-right-radius: 10px;
     }
     .audio-button
     {

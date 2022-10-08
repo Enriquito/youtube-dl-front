@@ -10,7 +10,7 @@
             </div>
             <figcaption class="mt-2 text-center">
               <strong @click="() => {link(channel.id)}" class="d-inline-block">{{ channel.name }}</strong>
-              <small class="d-block">{{channel.followerCount}} Subscribers</small>
+              <small class="d-block">{{formatSubscriberCount(channel)}} subscribers</small>
             </figcaption>
           </div>
         </figure>
@@ -44,6 +44,21 @@ export default {
         name: 'Channel',
         params: {id: channelID}
       });
+    },
+    formatSubscriberCount(channel) {
+        let subscriptionString = '';
+
+        if (channel.followerCount > 100000) { 
+          subscriptionString = (channel.followerCount / 1000);
+        }
+        else if (channel.followerCount > 10000) { 
+          subscriptionString = (channel.followerCount / 1000).toFixed(1);
+        } 
+        else if (channel.followerCount > 1000) {
+            subscriptionString = (channel.followerCount / 1000).toFixed(2);
+        }
+        
+        return `${subscriptionString}K`.replace(',','.');
     }
   }
 }

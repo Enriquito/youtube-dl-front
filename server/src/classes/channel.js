@@ -16,6 +16,7 @@ class Channel extends AbstractEntity{
     lastScan;
     videos;
     autoDownloadAfterScan = 0;
+    isScanning = 0;
 
     getTimeNow() {
         return moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
@@ -78,67 +79,79 @@ class Channel extends AbstractEntity{
     async scan(){
         return new Promise(async (resolve, reject) => {
             try{
-                const data = await this.getChannelVideos();
+                let rounds = 10;
+                
+                for(let i = 0; i < rounds; i++) {
+                    const result = await this.getChannelVideos(i + 1,i + 1,1);
+                    let data = result.data;
 
-                for(let i = 0; i < data.length; i++) {
-                    const video = data[i];
-                    let pushDownload = false;
-
-                    const avatar = video.thumbnails.find(thumbnail => thumbnail.id === 'avatar_uncropped');
-
-                    if (avatar) {
-                        this.avatar = avatar.url;
-                    }
-
-                    const banner = video.thumbnails.find(thumbnail => thumbnail.id === 'banner_uncropped');
-
-                    if (banner) {
-                        this.banner = banner.url;
-                    }
-
-                    if (video.channel_follower_count) {
-                        this.followerCount = video.channel_follower_count;
-                    }
-
-                    try {
-                        const gotVideoInIndex = await this.gotVideoIndex(video);
-
-                        if(gotVideoInIndex) {
-                            if(gotVideoInIndex.downloaded_at === null) {
+                    for(let i = 0; i < data.length; i++) { 
+                        const video = data[i];
+                        let pushDownload = false;
+    
+                        const avatar = video.thumbnails.find(thumbnail => thumbnail.id === 'avatar_uncropped');
+    
+                        if (avatar) {
+                            this.avatar = avatar.url;
+                        }
+    
+                        const banner = video.thumbnails.find(thumbnail => thumbnail.id === 'banner_uncropped');
+    
+                        if (banner) {
+                            this.banner = banner.url;
+                        }
+    
+                        if (video.channel_follower_count) {
+                            this.followerCount = video.channel_follower_count;
+                        }
+    
+                        try {
+                            const gotVideoInIndex = await this.gotVideoIndex(video);
+    
+                            if(gotVideoInIndex) {
+                                if(gotVideoInIndex.downloaded_at === null) {
+                                    pushDownload = true;
+                                }
+                            }
+                            else {
+                                const channelVideoIndex = new ChannelVideoIndex();
+                                channelVideoIndex.channelId = this.id;
+                                channelVideoIndex.duration = video.duration;
+                                channelVideoIndex.title = video.title;
+                                channelVideoIndex.thumbnail = video.thumbnails.find(thumbnail => {
+                                    const thumb = thumbnail.url.match('maxresdefault')
+            
+                                    if (thumb) {
+                                        return thumb.length > 0;
+                                    }
+            
+                                    return false;
+            
+                                }).url;
+                                channelVideoIndex.ytVideoId = video.id;
+                                channelVideoIndex.videoUrl = video.original_url;
+                                
+                                await channelVideoIndex.save();
+    
                                 pushDownload = true;
                             }
+    
+                            if(pushDownload && this.autoDownloadAfterScan) {
+                                const download = this.createDownloadObject(video);
+                                await download.update(download)
+                            }
                         }
-                        else {
-                            const channelVideoIndex = new ChannelVideoIndex();
-                            channelVideoIndex.channelId = this.id;
-                            channelVideoIndex.duration = video.duration;
-                            channelVideoIndex.title = video.title;
-                            channelVideoIndex.thumbnail = video.thumbnails.find(thumbnail => {
-                                const thumb = thumbnail.url.match('maxresdefault')
-        
-                                if (thumb) {
-                                    return thumb.length > 0;
-                                }
-        
-                                return false;
-        
-                            }).url;
-                            channelVideoIndex.ytVideoId = video.id;
-                            channelVideoIndex.videoUrl = video.original_url;
-                            
-                            await channelVideoIndex.save();
-
-                            pushDownload = true;
-                        }
-
-                        if(pushDownload && this.autoDownloadAfterScan) {
-                            const download = this.createDownloadObject(video);
-                            await download.update(download)
+                        catch (error) {
+                            console.error(error)
                         }
                     }
-                    catch (error) {
-                        console.error(error)
+
+                    if (result.isDone) {
+                        console.log('done');
+                        break;
                     }
+
+                    rounds+= 10;
                 }
 
                 this.lastScan = this.getTimeNow();
@@ -153,67 +166,64 @@ class Channel extends AbstractEntity{
         });
     }
 
-    getChannelVideos () {
+    getChannelVideos (start, end, step = 1) {
         return new Promise(async (resolve, reject) => {
-            let start = 1;
-            let step = 1;
-
-            let a = 1;
-            let end = step;
-
             const data = [];
+            let dateScanOption = "";
+
+            if (this.lastScan !== null) {
+                dateScanOption = `--dateafter=${lastScanDate}`;
+            }
+
+            const lastScanDate = moment(new Date(this.lastScan)).format('YMMDD');
 
             try{
-                for(let i = 0; i < a; i++){
-                    await new Promise((resolve, reject) => {
-                        exec(`yt-dlp --skip-download --dump-single-json --playlist-start ${start} --playlist-end ${end} ${this.getUrl()}`, (error, stdout, stderr) => {
-                            if (error) {
-                                reject(error.message);
-                                return;
-                            }
+                let isDone = await new Promise((resolve, reject) => {
+                    exec(`yt-dlp --skip-download --dump-single-json ${dateScanOption} --playlist-start ${start} --playlist-end ${end} ${this.getUrl()}`, (error, stdout, stderr) => {
+                        if (error) {
+                            reject(error.message);
+                            return;
+                        }
 
-                            if (stderr) {
-                                reject(stderr);
-                                return;
-                            }
+                        if (stderr) {
+                            reject(stderr);
+                            return;
+                        }
+                        
+                        const output = JSON.parse(stdout);
+
+                        if(output.entries === undefined){
+                            reject({status: "failed", error: "No playlist found"});
+                            return;
+                        }
+
+                        for(let entries = 0; entries < output.entries.length; entries++){
+                            const e = output.entries[entries];
+
+                            if(!data.find(val => {
+                                if(val.title === e.title) 
+                                    return val;
+                            }))
+                                data.push(e);
+                        }
+
+                        console.log(`start: ${start} - end: ${end}`);
+                        
+                        if(output.entries.length !== step){
+                            resolve(true)
+                            return;
+                        }
                             
-                            const output = JSON.parse(stdout);
-
-                            if(output.entries === undefined){
-                                reject({status: "failed", error: "No playlist found"});
-                                return;
-                            }
-
-                            for(let entries = 0; entries < output.entries.length; entries++){
-                                const e = output.entries[entries];
-
-                                if(!data.find(val => {
-                                    if(val.title === e.title) 
-                                        return val;
-                                }))
-                                    data.push(e);
-                            }
-                            
-                            if(output.entries.length === step){
-                                start += step;
-                                end += step;
-                                console.log(`start: ${start} - end: ${end}`);
-                                a++;
-                            }
-                                
-                            resolve();
-                        });
+                        resolve(false);
                     });
-                }
+                });
 
-                console.log("--- End fetching playlist data ---")
+                resolve({data: data, isDone: isDone});
             }
             catch(error){
                 console.log(error);
                 reject(error);
             }
-
-            resolve(data);
         });
     }
 

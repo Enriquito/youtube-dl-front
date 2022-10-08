@@ -14,14 +14,15 @@
               </div>
               <figcaption class="mt-2 text-center">
                 <strong @click="() => {link(channel.id)}" class="d-inline-block">{{ channel.name }}</strong>
-                <small class="d-block">{{channel.followerCount}} Subscribers</small>
+                <small class="d-block">{{formatSubscriberCount}} subscribers</small>
               </figcaption>
             </div>
           </figure>
         </div>
       </div>
-      <div style="height: 100px" class="w-full d-flex align-items-center px-3">
-        <button @click="scanChannel" class="border">Scan</button>
+      <div style="height: 130px" class="w-full d-flex align-items-center px-3 button-bar">
+        <button @click="scanChannel" v-if="!channel.isScanning" class="border">Scan</button>
+        <button v-else class="border enabled">Scanning...</button>
 
         <button @click="enableAutomaticDownload" class="enabled" v-if="channel.autoDownloadAfterScan">Auto download after scan</button>
         <button @click="enableAutomaticDownload" v-else>Auto download after scan</button>
@@ -70,8 +71,11 @@ export default {
       this.$socket.emit('getVideosByChannelID', this.$route.params.id);
     });
 
+    this.sockets.subscribe('isChannelScanning', (result) => {
+      this.channel.isScanning = result;
+    });
+
     this.$socket.emit('getChannel', this.$route.params.id);
-    
   },
   methods: {
     enableAutomaticDownload() {
@@ -84,6 +88,23 @@ export default {
       window.open(this.channel.url, "_blank");
     }
   },
+  computed: {
+    formatSubscriberCount() {
+        let subscriptionString = '';
+
+        if (this.channel.followerCount > 100000) { 
+          subscriptionString = (this.channel.followerCount / 1000);
+        }
+        else if (this.channel.followerCount > 10000) { 
+          subscriptionString = (this.channel.followerCount / 1000).toFixed(1);
+        } 
+        else if (this.channel.followerCount > 1000) {
+            subscriptionString = (this.channel.followerCount / 1000).toFixed(2);
+        }
+        
+        return `${subscriptionString}K`.replace(',','.');
+    }
+  }
 }
 </script>
 <style scoped>
@@ -114,6 +135,19 @@ button
   margin: 5px;
   background: #FFF;
   border-radius: 50px;
+}
+@media (max-width: 1200px) {
+  .button-bar {
+    margin-top: 100px;
+    justify-content: center !important;
+    display: flex;
+  }
+}
+@media (max-width: 720px) {
+  .button-bar {
+    margin-top: 100px;
+
+  }
 }
 </style>
 <style>

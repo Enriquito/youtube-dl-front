@@ -77,17 +77,46 @@ io.on('connection', (socket) => {
     socket.on('getVideosByChannelID', getVideosByChannelID);
     socket.on('toggleAutoDownloadAfterScan', toggleAutoDownloadAfterScan);
     socket.on('scanChannel', scanChannel);
+    socket.on('isChannelScanning', isChannelScanning);
 });
+
+const isChannelScanning = async (channelID) => {
+    try {
+        const channel = await Channel.find(channelID);
+
+        io.to('ydl').emit('isChannelScanning', channel.isScanning);
+    }
+    catch (error) {
+        console.error(error);
+        io.to('ydl').emit('systemMessages', {type: "Error", messages: "Error fetching channel scanning status"});
+    }
+};
 
 const scanChannel = async (channelID) => {
     try {
         const channel = await Channel.find(channelID);
+
+        channel.isScanning = true;
+        io.to('ydl').emit('isChannelScanning', channel.isScanning);
+        await channel.update();
+
         io.to('ydl').emit('systemMessages', {type: "Info", messages: `Scanning channel '${channel.name}'`});
+
+        const refreshPageInterval = setInterval(() => {
+            io.to('ydl').emit('scanChannel');
+        }, 5000);
 
         await channel.scan();
 
-        io.to('ydl').emit('systemMessages', {type: "Info", messages: `Scan complete for channel: ${channel.name}`});
+        channel.isScanning = false;
+        io.to('ydl').emit('isChannelScanning', channel.isScanning);
+        await channel.update();
+
+        clearInterval(refreshPageInterval);
         io.to('ydl').emit('scanChannel');
+
+        io.to('ydl').emit('systemMessages', {type: "Info", messages: `Scan complete for channel: ${channel.name}`});
+        
     } 
     catch(error) {
         console.error(error);
@@ -139,7 +168,6 @@ const getChannels = async () => {
 const getChannel = async id => {
     try {
         const channel = await Channel.find(id);
-        console.log(channel);
         io.to('ydl').emit('getChannel', channel);
     }
     catch (error) {

@@ -117,7 +117,8 @@ class Database {
 						follower_count INT NOT NULL,
 						avatar TEXT,
 						banner TEXT,
-						last_scan TEXT
+						last_scan TEXT,
+						isScanning INT DEFAULT 0 NOT NULL
 					);
 			`;
 
@@ -141,7 +142,8 @@ class Database {
 				video_provider_id TEXT NOT NULL,
 				uploader_name TEXT NOT NULL,
 				description TEXT NOT NULL,
-				channel_id INT
+				channel_id INT,
+				upload_date TEXT NOT NULL
 				);`;
 
 			const createChannelVideoIndexTable = `

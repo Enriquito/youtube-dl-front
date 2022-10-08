@@ -21,6 +21,7 @@ class Video{
     channelId;
     channel;
     options;
+    uploadDate;
 
     // Storing data
 
@@ -83,8 +84,8 @@ class Video{
     async saveVideo(){
         return new Promise(async (resolve, reject) => {
             try{
-                const query = "INSERT INTO videos (title, uploader_url, view_count, duration, file_extention, file_name, file_location, video_url, video_provider_id, uploader_name, description, channel_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)";
-                const videoValues = [this.title, this.uploaderUrl, this.viewCount, this.duration, this.extention, this.fileName, this.fileLocation, this.url, this.videoProviderId, this.uploaderName, this.description, this.channelId];
+                const query = "INSERT INTO videos (title, uploader_url, view_count, duration, file_extention, file_name, file_location, video_url, video_provider_id, uploader_name, description, channel_id, upload_date) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                const videoValues = [this.title, this.uploaderUrl, this.viewCount, this.duration, this.extention, this.fileName, this.fileLocation, this.url, this.videoProviderId, this.uploaderName, this.description, this.channelId, this.uploadDate];
 
                 const result = await Database.run(query ,  videoValues);
 
@@ -148,6 +149,7 @@ class Video{
                     video.uploaderName = row.uploader_name;
                     video.channel = await Channel.find(row.channel_id);
                     video.description = row.description;
+                    video.uploadDate = row.upload_date;
 
                     video.tags = await this.getTags(video.id);
                     video.thumbnails = await this.getThumbnails(video.id);

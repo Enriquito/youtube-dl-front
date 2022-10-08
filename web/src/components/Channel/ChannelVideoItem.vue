@@ -7,12 +7,12 @@
       </span>
       <button @click="downloadVideo" v-if="!data.downloaded_at" class="download-button enabled">{{downloadButtonText}}</button>
       <div class="d-flex">
-        <strong v-if="data.id">
+        <strong class="title" v-if="data.id">
           <router-link :to="{name:'Watch', params:{id: data.id}}">
             {{data.title}}
           </router-link>
         </strong>
-        <strong v-else>
+        <strong class="title" v-else>
           {{data.title}}
         </strong>
       </div>
@@ -139,6 +139,15 @@ figure figcaption strong a
 {
   color: #2c3e50 !important;
 }
+figure figcaption strong.title
+{
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
 .duration
 {
   background: rgba(0, 0, 0, 0.75);
@@ -190,6 +199,16 @@ figure figcaption strong a
   .media-type-icon
   {
     left: auto !important;
+  }
+  .duration {
+    bottom: 75px !important;
+    right: 20px !important;
+    top: unset;
+  }
+  .download-button {
+    bottom: 75px !important;
+    left: 20px !important;
+    top: unset;
   }
 }
 </style>

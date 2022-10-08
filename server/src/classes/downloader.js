@@ -8,6 +8,7 @@ const {emitEvent} = require('../helpers');
 const fs = require('fs');
 const Channel = require("./channel");
 const ChannelVideoIndex = require('./channelVideoIndex');
+const moment = require('moment');
 
 class Downloader{
     static isDownloading = false;
@@ -110,6 +111,7 @@ class Downloader{
         video.tags = fileInfo.tags;
         video.thumbnails = fileInfo.thumbnails;
         video.channelId = channelId;
+        video.uploadDate = moment(fileInfo.upload_date, 'YYYYMMDD').format('YYYY-MM-DD');
 
         return video;
     }
@@ -242,7 +244,7 @@ class Downloader{
                         fileInfo.webpage_url
                     );
 
-                    const video = Downloader.CreateVideoObject(fileInfo, downloadArguments.extention, downloadArguments.directory, channel.id);
+                    const video = Downloader.CreateVideoObject(fileInfo, downloadArguments.extention, downloadArguments.directory, channel.id, );
                     await video.save();
                     emitEvent('systemMessages', {type: 'Success', messages: `${fileInfo.title} has finished downloading`});
 

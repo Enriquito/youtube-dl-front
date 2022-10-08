@@ -95,10 +95,12 @@ export default {
   border-radius: 5px;
   padding: 0 5px;
   position: absolute;
-  top: 115px;
-  left: 205px;
+  bottom: 5px;
+  left: -55px;
   font-size: smaller;
   font-weight: bold;
+  min-width: 45.55px;
+  text-align: center;
 }
 figure
 {
@@ -106,6 +108,7 @@ figure
     margin: 10px 0;
     position: relative;
     z-index: 1;
+    margin-bottom: 20px;
 }
 figure .icon
 {
@@ -125,10 +128,11 @@ figure img.yt-image
     min-height: 140px;
 }
 figure figcaption p{
-    max-height: 100px;
+    max-height: 65px;
     overflow: scroll;
     -ms-overflow-style: none;
     scrollbar-width: none;
+    overflow-y: scroll;
 }
 figure figcaption p::-webkit-scrollbar {
   display: none;
@@ -138,6 +142,8 @@ figure figcaption
     padding: 0 10px;
     width: 100%;
     max-width: 450px;
+    position: relative;
+    max-height: 140px;
 }
 figure figcaption span a
 {
@@ -180,6 +186,13 @@ figure figcaption strong a
     .media-type-icon
     {
         left: auto !important;
+    }
+    .duration
+    {
+        top: -30px !important;
+        right: 20px !important;
+        left: unset;
+        bottom: unset;
     }
 }
 </style>
