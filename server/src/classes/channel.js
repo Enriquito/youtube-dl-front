@@ -5,6 +5,7 @@ const moment = require('moment');
 const { spawn, exec} = require('child_process');
 const AbstractEntity = require('./abstractEntity');
 const ChannelVideoIndex = require('./channelVideoIndex');
+const { channel } = require('diagnostics_channel');
 
 class Channel extends AbstractEntity{
     channelId;
@@ -161,6 +162,9 @@ class Channel extends AbstractEntity{
                 resolve();
             }
             catch(error){
+                this.isScanning = false;
+                this.update();
+
                 reject(error);
             }
         });
@@ -207,8 +211,6 @@ class Channel extends AbstractEntity{
                                 data.push(e);
                         }
 
-                        console.log(`start: ${start} - end: ${end}`);
-                        
                         if(output.entries.length !== step){
                             resolve(true)
                             return;

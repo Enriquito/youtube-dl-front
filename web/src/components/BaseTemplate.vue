@@ -1,5 +1,5 @@
 <template>
-    <main>
+    <main v-if="healthCheck">
       <Notification ref="notificationComp" />
       <SettingsWindow :open="this.$store.state.settingsOpen" />
       <PlaylistSelectionWindow :open="this.$store.state.playlistSelectionOpen" />
@@ -31,6 +31,14 @@
 
       </slot>
     </main>
+    <main style="height=100%" v-else>
+     <div class="d-flex justify-content-center align-items-center">
+        <div class="text-center">
+          <h1>No connection with the server.</h1> 
+          <h2>Please restart your server instance and try again.</h2> 
+        </div>
+     </div>
+    </main>
   </template>
   
   <script>
@@ -46,17 +54,17 @@
   import ArrowIcon from '../components/icons/ArrowIcon.vue'
   
   export default {
-    name: 'Home',
+    name: 'BaseTemplate',
     mounted(){
-      this.sockets.subscribe('getVideos', (data) => {
-          this.items = data;
+      this.sockets.subscribe('healthCheck', (check) => {
+          this.healthCheck = check;
       });
   
       this.sockets.subscribe('getSettings', (data) => {
         this.settings = data;
       });
-  
-      this.$socket.emit('getVideos');
+      
+      this.$socket.emit('healthCheck');
     },
     components: {
       Header,
@@ -71,8 +79,7 @@
   },
     data(){
       return({
-        items: [],
-        // itemsToShow : [],
+        healthCheck: false,
         searching: false,
         gearIcon: require('@/assets/icons/gear.svg'),
         settings: null

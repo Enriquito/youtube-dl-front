@@ -98,7 +98,6 @@ class Downloader{
         const video = new Video();
 
         video.title = fileInfo.title;
-        video.uploaderUrl = fileInfo.channel_url;
         video.viewCount = fileInfo.view_count;
         video.duration = fileInfo.duration;
         video.extention = extention;
@@ -106,7 +105,6 @@ class Downloader{
         video.fileLocation = fileLocation; //downloadOptions.directory;
         video.url = fileInfo.webpage_url;
         video.videoProviderId = fileInfo.id;
-        video.uploaderName = fileInfo.uploader;
         video.description = fileInfo.description;
         video.tags = fileInfo.tags;
         video.thumbnails = fileInfo.thumbnails;
@@ -207,10 +205,6 @@ class Downloader{
                         return;
                     }
 
-                    // Needs to be put here instead of top of the class otherwise we get an error:
-                    // Not sure why...
-                    // const channel = new Channel();
-                    // TypeError: Channel is not a constructor
                     const Channel = require("./channel");
 
                     let channel = await Channel.findBy({url: fileInfo.channel_url});
@@ -224,29 +218,39 @@ class Downloader{
                         await channel.save();
                     }
 
-                    console.log(fileInfo.id)
+                    let channelVideoIndex = await ChannelVideoIndex.findBy({yt_video_id: fileInfo.id})
 
-                    await Downloader.createChanelVideoIndex(
-                        channel.id, 
-                        fileInfo.id, 
-                        fileInfo.title, 
-                        fileInfo.duration,
-                        fileInfo.thumbnails.find(thumbnail => {
-                            const thumb = thumbnail.url.match('maxresdefault')
-    
-                            if (thumb) {
-                                return thumb.length > 0;
-                            }
-    
-                            return false;
-    
-                        }).url,
-                        fileInfo.webpage_url
-                    );
+                    console.log(channelVideoIndex);
 
-                    const video = Downloader.CreateVideoObject(fileInfo, downloadArguments.extention, downloadArguments.directory, channel.id, );
+                    if (!channelVideoIndex) {
+                        channelVideoIndex = await Downloader.createChanelVideoIndex(
+                            channel.id, 
+                            fileInfo.id, 
+                            fileInfo.title, 
+                            fileInfo.duration,
+                            fileInfo.thumbnails.find(thumbnail => {
+                                const thumb = thumbnail.url.match('maxresdefault')
+        
+                                if (thumb) {
+                                    return thumb.length > 0;
+                                }
+        
+                                return false;
+        
+                            }).url,
+                            fileInfo.webpage_url
+                        );
+                    }
+
+                    console.log(channelVideoIndex);
+
+                    await channelVideoIndex.setVideoAsDownloaded();
+
+                    const video = Downloader.CreateVideoObject(fileInfo, downloadArguments.extention, downloadArguments.directory, channel.id);
                     await video.save();
+
                     emitEvent('systemMessages', {type: 'Success', messages: `${fileInfo.title} has finished downloading`});
+                    emitEvent('videoDownloaded', video);
 
                     const videos = await Video.all();
                     emitEvent('getVideos', videos.reverse());
@@ -392,10 +396,10 @@ class Downloader{
         cvi.thumbnail = thumbnail;
         cvi.videoUrl = videoUrl;
         cvi.downloadedAt = cvi.getTimeNow();
-        
-        console.log(cvi);
 
         await cvi.save();
+        
+        return cvi;
     }
 }
 

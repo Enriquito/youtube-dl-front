@@ -40,6 +40,27 @@ module.exports.snakeToCamel = (str) =>
             .toUpperCase()
             .replace('-', '')
             .replace('_', '')
-    );
+);
+
+module.exports.resetYdlpCache = async () => {
+    return new Promise((resolve, reject) => {
+        const { exec } = require('child_process');
+        
+        exec(`yt-dlp --rm-cache`, (error, stdout, stderr) => {
+            if (error) {
+                reject(error.message);
+                return;
+            }
+
+            if (stderr) {
+                reject(stderr);
+                return;
+            }
+
+            resolve();
+        });
+
+    });
+};
 
 module.exports.camelToSnake = str => str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);

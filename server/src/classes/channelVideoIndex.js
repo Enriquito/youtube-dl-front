@@ -11,12 +11,12 @@ class ChannelVideoIndex extends AbstractEntity {
     videoUrl;
     downloadedAt;
 
-    async setVideoAsDownloaded(id, removeDownloadedAt = false) {
+    async setVideoAsDownloaded(removeDownloadedAt = false) {
         return new Promise((resolve, reject) => {
             try {
-                const query = `UPDATE ${this.constructor.table} SET downloaded_at = ? WHERE yt_video_id = ?`;
+                const query = `UPDATE ${this.constructor.table} SET downloaded_at = ? WHERE id = ?`;
 
-                Database.run(query, [removeDownloadedAt ? null :this.getTimeNow(), id]);
+                Database.run(query, [removeDownloadedAt ? null : this.getTimeNow(), this.id]);
 
                 resolve()
             }

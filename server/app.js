@@ -28,6 +28,7 @@ Database.checkFirstUse()
                     .then(async (queueItems) => {
                         emitEvent('downloadStatus', queueItems);
                         Downloader.queue = DownloadQueue;
+                        await resetYdlpCache();
                         await Downloader.start();
                     })
                     .catch(error => {
@@ -41,13 +42,19 @@ Database.checkFirstUse()
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
-const {emitEvent} = require("./src/helpers");
+const {emitEvent, resetYdlpCache} = require("./src/helpers");
 
 app.use('/', express.static(path.join(__dirname,"../web/dist/")));
 
 const http = require('http');
 const httpServer = http.createServer(app);
 const io = require('socket.io')(httpServer);
+
+// Clears the yt-dlp cache every 10 minutes
+setInterval(async () => {
+    await resetYdlpCache();
+    console.log('yt-dlp cache have been cleared')
+}, (1000 * 60) * 30)
 
 io.on('connection', (socket) => {
     socket.join('ydl');
@@ -57,21 +64,28 @@ io.on('connection', (socket) => {
         io.to('ydl').emit(type, value);
     });
 
+    socket.on('healthCheck', healthCheck);
+
     socket.on('getVideos', getVideos);
     socket.on('getVideo', getVideo);
+    socket.on('deleteVideo', deleteVideo);
+    socket.on('getVideoInfo', getVideoInfo);
+
     socket.on('downloadStatus', downloadStatus);
     socket.on('DeleteDownloads', deleteDownloads);
     socket.on('download', download);
-    socket.on('deleteVideo', deleteVideo);
-    socket.on('getVideoInfo', getVideoInfo);
-    socket.on('updateSettings', updateSettings);
-    socket.on('getSettings', getSettings);
-    socket.on('emptyDatabase', emptyDatabase);
+    socket.on('downloadQueue', downloadQueue);
     socket.on('stopDownload', stopDownload);
     socket.on('resumeDownload', resumeDownload);
     socket.on('removeDownload', removeDownload);
+   
+    socket.on('updateSettings', updateSettings);
+    socket.on('getSettings', getSettings);
+
+    socket.on('emptyDatabase', emptyDatabase);
+   
     socket.on('getPlaylist', getPlaylistInfo);
-    socket.on('downloadQueue', downloadQueue);
+    
     socket.on('getChannels', getChannels);
     socket.on('getChannel', getChannel);
     socket.on('getVideosByChannelID', getVideosByChannelID);
@@ -79,6 +93,10 @@ io.on('connection', (socket) => {
     socket.on('scanChannel', scanChannel);
     socket.on('isChannelScanning', isChannelScanning);
 });
+
+const healthCheck = () => {
+    io.to('ydl').emit('healthCheck', true);
+};
 
 const isChannelScanning = async (channelID) => {
     try {
@@ -344,8 +362,6 @@ const download = async data => {
             download.audioFormat = options.audioFormat;
             download.audioOnly = options.audioOnly;
             download.playlist = options.playlist;
-
-            console.log(download);
 
             await download.save();
 

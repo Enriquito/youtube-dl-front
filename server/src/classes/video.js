@@ -6,7 +6,6 @@ const Thumbnail = require('./thumbnail');
 class Video{
     id;
     title;
-    uploaderUrl;
     viewCount;
     duration;
     extention;
@@ -14,7 +13,6 @@ class Video{
     fileLocation;
     url;
     videoProviderId;
-    uploaderName;
     description;
     tags;
     thumbnails;
@@ -84,8 +82,8 @@ class Video{
     async saveVideo(){
         return new Promise(async (resolve, reject) => {
             try{
-                const query = "INSERT INTO videos (title, uploader_url, view_count, duration, file_extention, file_name, file_location, video_url, video_provider_id, uploader_name, description, channel_id, upload_date) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)";
-                const videoValues = [this.title, this.uploaderUrl, this.viewCount, this.duration, this.extention, this.fileName, this.fileLocation, this.url, this.videoProviderId, this.uploaderName, this.description, this.channelId, this.uploadDate];
+                const query = "INSERT INTO videos (title, view_count, duration, file_extention, file_name, file_location, video_url, video_provider_id, description, channel_id, upload_date) VALUES(?,?,?,?,?,?,?,?,?,?,?)";
+                const videoValues = [this.title, this.viewCount, this.duration, this.extention, this.fileName, this.fileLocation, this.url, this.videoProviderId, this.description, this.channelId, this.uploadDate];
 
                 const result = await Database.run(query ,  videoValues);
 
@@ -138,7 +136,6 @@ class Video{
 
                     video.id = row.id;
                     video.title = row.title;
-                    video.uploaderUrl = row.uploader_url;
                     video.viewCount = row.view_count;
                     video.duration = row.duration;
                     video.extention = row.file_extention;
@@ -146,7 +143,6 @@ class Video{
                     video.fileName = row.file_name;
                     video.url = row.video_url;
                     video.videoProviderId = row.video_provider_id;
-                    video.uploaderName = row.uploader_name;
                     video.channel = await Channel.find(row.channel_id);
                     video.description = row.description;
                     video.uploadDate = row.upload_date;
@@ -217,7 +213,6 @@ class Video{
                     
                 video.id = vid.data.id;
                 video.title = vid.data.title;
-                video.uploaderUrl = vid.data.uploader_url;
                 video.viewCount = vid.data.view_count;
                 video.duration = vid.data.duration;
                 video.extention = vid.data.file_extention;
@@ -225,7 +220,6 @@ class Video{
                 video.fileName = vid.data.file_name;
                 video.url = vid.data.video_url;
                 video.videoProviderId = vid.data.video_provider_id;
-                video.uploaderName = vid.data.uploader_name;
                 video.description = vid.data.description;
                 video.tags = await this.getTags(video.id);
                 video.thumbnails = await this.getThumbnails(video.id);

@@ -118,7 +118,7 @@ class Database {
 						avatar TEXT,
 						banner TEXT,
 						last_scan TEXT,
-						isScanning INT DEFAULT 0 NOT NULL
+						is_scanning INT DEFAULT 0 NOT NULL
 					);
 			`;
 
@@ -132,7 +132,6 @@ class Database {
 				CREATE TABLE videos (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				title TEXT NOT NULL,
-				uploader_url TEXT NOT NULL,
 				view_count bigINTEGER  NOT NULL,
 				duration mediumINTEGER NOT NULL,
 				file_extention TEXT NOT NULL,
@@ -140,7 +139,6 @@ class Database {
 				file_name TEXT NOT NULL,
 				video_url TEXT NOT NULL,
 				video_provider_id TEXT NOT NULL,
-				uploader_name TEXT NOT NULL,
 				description TEXT NOT NULL,
 				channel_id INT,
 				upload_date TEXT NOT NULL
