@@ -383,10 +383,10 @@ const download = async data => {
 
 const getVideos = async () => {
     try{
-        const videos = await Video.all();
+        const videos = await Video.all(0,10);
 
         if(videos != null)
-            io.to('ydl').emit('getVideos', videos.reverse());
+            io.to('ydl').emit('getVideos', videos);
     }
     catch(error){
         console.log(error);

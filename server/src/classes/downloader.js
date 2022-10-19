@@ -252,8 +252,8 @@ class Downloader{
                     emitEvent('systemMessages', {type: 'Success', messages: `${fileInfo.title} has finished downloading`});
                     emitEvent('videoDownloaded', video);
 
-                    const videos = await Video.all();
-                    emitEvent('getVideos', videos.reverse());
+                    const videos = await Video.all(0,10);
+                    emitEvent('getVideos', videos);
 
                     console.log(`--- Download is completed. ---`);
 

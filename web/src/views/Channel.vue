@@ -4,15 +4,18 @@
       <ChannelHeader :channel="channel" />
       
       <div style="height: 130px" class="w-full d-flex align-items-center px-3 button-bar">
-        <button @click="scanChannel" v-if="!channel.isScanning" class="border">Scan</button>
-        <button v-else class="border enabled">Scanning...</button>
+        <MoreIcon @customclick="openButtonBar" class="action-icon" />
+        <div ref="buttonHolder" id="button-holder">
+          <button @click="scanChannel" v-if="!channel.isScanning" class="border">Scan</button>
+          <button v-else class="border enabled">Scanning...</button>
 
-        <button @click="enableAutomaticDownload" class="enabled" v-if="channel.autoDownloadAfterScan">Auto download after scan</button>
-        <button @click="enableAutomaticDownload" v-else>Auto download after scan</button>
-        <button @click="goToChannel">Visit on youtube</button>
+          <button @click="enableAutomaticDownload" class="enabled" v-if="channel.autoDownloadAfterScan">Auto download after scan</button>
+          <button @click="enableAutomaticDownload" v-else>Auto download after scan</button>
+          <button @click="goToChannel">Visit on youtube</button>
+        </div>
       </div>
       <div v-if="videos" class="d-flex justify-content-center">
-         <div style="max-width: 785px" class="d-flex flex-wrap justify-content-center">
+         <div style="max-width: 785px; margin-bottom: 75px;" class="d-flex flex-wrap justify-content-center">
            <ChannelVideoItem v-for="video in videos" :key="video.id" :data="video" />
          </div>
       </div>
@@ -23,14 +26,16 @@
 import BaseTemplate from '@/components/BaseTemplate.vue'
 import ChannelVideoItem from "@/components/Channel/ChannelVideoItem";
 import ChannelHeader from "@/components/Channel/Header";
+import MoreIcon from '../components/icons/MoreIcon.vue';
 
 export default {
   name: 'Channel',
   components: {
     BaseTemplate,
     ChannelVideoItem,
-    ChannelHeader
-  },
+    ChannelHeader,
+    MoreIcon
+},
   data() {
     return {
       channel: null,
@@ -75,6 +80,10 @@ export default {
     },
     goToChannel() {
       window.open(this.channel.url, "_blank");
+    },
+    openButtonBar() {
+      console.log(this.$refs.buttonHolder.style);
+      this.$refs.buttonHolder.style.display = "flex";
     }
   }
 }
@@ -93,17 +102,28 @@ button
   background: #FFF;
   border-radius: 50px;
 }
+.action-icon {
+  display: none;
+}
 @media (max-width: 1200px) {
   .button-bar {
     margin-top: 100px;
-        justify-content: center !important;
+    justify-content: center !important;
     display: flex;
   }
 }
 @media (max-width: 720px) {
   .button-bar {
     margin-top: 100px;
+    height: auto !important;
+    justify-content: start !important;
 
+  }
+  #button-holder {
+    display:none;
+  }
+  .action-icon {
+    display: block;
   }
 }
 </style>

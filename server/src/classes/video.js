@@ -125,7 +125,7 @@ class Video{
     static all(limitStart = 0, limitEnd = 50){
         return new Promise(async (resolve, reject) => {
             try{
-                const result = await Database.all("SELECT * FROM videos LIMIT ?,?", [limitStart,limitEnd]);
+                const result = await Database.all("SELECT * FROM videos ORDER BY id DESC LIMIT ?,?", [limitStart,limitEnd]);
                 const Channel = require('./channel.js');
                 
                 const videos = [];

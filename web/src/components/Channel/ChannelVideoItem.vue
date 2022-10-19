@@ -141,7 +141,7 @@ figure figcaption strong a
 figure figcaption strong.title
 {
   overflow: hidden;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   text-overflow: ellipsis;
